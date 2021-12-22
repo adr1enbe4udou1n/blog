@@ -1,0 +1,36 @@
+kind: pipeline
+type: docker
+name: default
+
+steps:
+  - name: build
+    image: klakegg/hugo
+    commands:
+      - hugo --minify
+
+  - name: image
+    image: plugins/docker
+    settings:
+      registry: registry.okami101.io
+      repo: registry.okami101.io/adr1enbe4udou1n/blog
+      tags: latest
+      username:
+        from_secret: registry_username
+      password:
+        from_secret: registry_password
+
+  # - name: deploy
+  #   image: appleboy/drone-ssh
+  #   settings:
+  #     host: front.okami101.io
+  #     port: 2222
+  #     username: okami
+  #     key:
+  #       from_secret: swarm_ssh_key
+  #     script:
+  #       - docker service update --image registry.okami101.io/adr1enbe4udou1n/blog:latest blog_app --with-registry-auth
+
+trigger:
+  event:
+    - push
+    - pull_request

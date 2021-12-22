@@ -1,0 +1,26 @@
+# -- Site Configuration --
+# Refer to the theme docs for more details about each of these parameters.
+# https://jpanther.github.io/congo/docs/getting-started/
+
+# baseURL = "https://blog.okami101.io/"
+languageCode = "en"
+defaultContentLanguage = "en"
+
+title = "Okami101 Blog"
+# copyright = "Copy, _right?_ :thinking_face:"
+
+enableEmoji = true
+enableRobotsTXT = true
+
+summaryLength = 0
+
+[author]
+  name = "Adrien Beaudouin"
+  image = "img/author.jpg"
+  bio = "A simple web developer @janze"
+  links = [
+    { email = "mailto:adrien@okami101.io" },
+    { github = "https://github.com/adr1enbe4udou1n" },
+    { linkedin = "https://linkedin.com/in/adr1enbe4udou1n" },
+    { twitter = "https://twitter.com/adr1enbe4udou1n" },
+  ]
