@@ -4,7 +4,7 @@ name: default
 
 steps:
   - name: build
-    image: klakegg/hugo
+    image: peaceiris/hugo
     commands:
       - hugo --minify
 
