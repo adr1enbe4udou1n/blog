@@ -5,141 +5,40 @@ description: "Now I can say I finally have a blog..."
 tags: ["hugo", "docker", "drone"]
 ---
 
-This article offers a sample of basic Markdown formatting that can be used in Congo, also it shows how some basic HTML elements are decorated.
+Here we are, never too late too init my first blog 🙊.  
+So as a [cliché](https://www.hsablonniere.com/once-upon-a-blog--9849zg/), this first post must have to talk about his blog...
 
-<!--more-->
+## Why Hugo ?
 
-## Headings
+I first exit obviously standard all-in-one CMS as `Wordpress` because I wanted to stay minimalist, by writing markdown posts. Markdown-based headless CMS as `Strapi` is more suited, but I prefer to avoid DB storing write posts directly via VS Code with proper Markdown extensions, all versioned on Git. Besides, I wanted to have minimal work to do on frontend side with all basic blog features (pagination, tags and so on...), just some configurations, without lose any more advanced customization if needed.
 
-The following HTML `<h1>`—`<h6>` elements represent six levels of section headings. `<h1>` is the highest section level while `<h6>` is the lowest.
+So static generator was the obvious choice and `Hugo` was by far the easiest to use in order to make minimally featured proper blog. So many modern and artistic [themes](https://themes.gohugo.io/). [Congo](https://github.com/jpanther/congo) was the perfect choice for me with `Dark Mode`and `Tailwind` as a bonus 😍.
 
-# H1
+### The repo
 
-## H2
+As you can see the repo of this blog `https://github.com/adr1enbe4udou1n/blog`, thanks hugo modules we easily successfully manage to have only what maters in the repo, i.e. only hugo and theme related config files and obviously the contents and layouts overload for customization.
 
-### H3
+## Deployment
 
-#### H4
+```yaml
+kind: pipeline
+type: docker
+name: default
 
-##### H5
+steps:
+  - name: build
+    image: peaceiris/hugo:latest-mod
+    commands:
+      - hugo --minify
 
-###### H6
-
-## Paragraph
-
-Xerum, quo qui aut unt expliquam qui dolut labo. Aque venitatiusda cum, voluptionse latur sitiae dolessi aut parist aut dollo enim qui voluptate ma dolestendit peritin re plis aut quas inctum laceat est volestemque commosa as cus endigna tectur, offic to cor sequas etum rerum idem sintibus eiur? Quianimin porecus evelectur, cum que nis nust voloribus ratem aut omnimi, sitatur? Quiatem. Nam, omnis sum am facea corem alique molestrunt et eos evelece arcillit ut aut eos eos nus, sin conecerem erum fuga. Ri oditatquam, ad quibus unda veliamenimin cusam et facea ipsamus es exerum sitate dolores editium rerore eost, temped molorro ratiae volorro te reribus dolorer sperchicium faceata tiustia prat.
-
-Itatur? Quiatae cullecum rem ent aut odis in re eossequodi nonsequ idebis ne sapicia is sinveli squiatum, core et que aut hariosam ex eat.
-
-## Blockquotes
-
-The blockquote element represents content that is quoted from another source, optionally with a citation which must be within a `footer` or `cite` element, and optionally with in-line changes such as annotations and abbreviations.
-
-### Blockquote without attribution
-
-> Tiam, ad mint andaepu dandae nostion secatur sequo quae.
-> **Note** that you can use _Markdown syntax_ within a blockquote.
-
-### Blockquote with attribution
-
-> Don't communicate by sharing memory, share memory by communicating.<br>
-> — <cite>Rob Pike[^1]</cite>
-
-[^1]: The above quote is excerpted from Rob Pike's [talk](https://www.youtube.com/watch?v=PAAkCSZUG1c) during Gopherfest, November 18, 2015.
-
-## Tables
-
-Tables aren't part of the core Markdown spec, but Hugo supports supports them out-of-the-box.
-
-| Name  | Age |
-| ----- | --- |
-| Bob   | 27  |
-| Alice | 23  |
-
-### Inline Markdown within tables
-
-| Italics   | Bold     | Code   |
-| --------- | -------- | ------ |
-| _italics_ | **bold** | `code` |
-
-## Code Blocks
-
-### Code block with backticks
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Example HTML5 Document</title>
-  </head>
-  <body>
-    <p>Test</p>
-  </body>
-</html>
+  - name: image
+    image: plugins/docker
+    settings:
+      registry: registry.okami101.io
+      repo: registry.okami101.io/adr1enbe4udou1n/blog
+      tags: latest
+      username:
+        from_secret: registry_username
+      password:
+        from_secret: registry_password
 ```
-
-### Code block indented with four spaces
-
-    <!doctype html>
-    <html lang="en">
-    <head>
-      <meta charset="utf-8">
-      <title>Example HTML5 Document</title>
-    </head>
-    <body>
-      <p>Test</p>
-    </body>
-    </html>
-
-### Code block with Hugo's internal highlight shortcode
-
-{{< highlight html >}}
-
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Example HTML5 Document</title>
-</head>
-<body>
-  <p>Test</p>
-</body>
-</html>
-{{< /highlight >}}
-
-## List Types
-
-### Ordered List
-
-1. First item
-2. Second item
-3. Third item
-
-### Unordered List
-
-- List item
-- Another item
-- And another item
-
-### Nested list
-
-- Fruit
-  - Apple
-  - Orange
-  - Banana
-- Dairy
-  - Milk
-  - Cheese
-
-## Other Elements — abbr, sub, sup, kbd, mark
-
-<abbr title="Graphics Interchange Format">GIF</abbr> is a bitmap image format.
-
-H<sub>2</sub>O
-
-X<sup>n</sup> + Y<sup>n</sup> = Z<sup>n</sup>
-
-Press <kbd>CTRL</kbd>+<kbd>ALT</kbd>+<kbd>Delete</kbd> to end the session.
-
-Most <mark>salamanders</mark> are nocturnal, and hunt for insects, worms, and other small creatures.
