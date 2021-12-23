@@ -1,13 +1,13 @@
 ---
-title: "Welcome to Congo! :tada:"
-description: "This is a demo of the Congo theme for Hugo."
+title: "Welcome to Okami101 Blog! :tada:"
+description: "This is adr1enbe4udou1n blog."
 ---
 
 {{< lead >}}
 A 🧔🌍💻 aka senior web developer @Bretagne 🇫🇷
 {{< /lead >}}
 
-I'm a digital lover that do many things around Web development, including some *DevOps*. Mastering `Vue 3` with `Typescript` for frontend as well as `Laravel` and `Symfony` as main backend frameworks on modern `PHP 8+`.
+Hi folks, I'm a web lover working [@Cesson-Sévigné](https://fr.wikipedia.org/wiki/Cesson-S%C3%A9vign%C3%A9). Mastering `Vue 3` with `Typescript` for frontend as well as `Laravel` and `Symfony` as main backend frameworks on modern `PHP 8+`.
 
 I love develop proper API design following `DDD` + `Hexa` principles if applicable. My favorite backend stack is `ASP.NET Core` and `C#`. I'm also comfortable on [`Nest.js`](https://nestjs.com/) with combination on [`MikroORM`](https://mikro-orm.io/). I also used [`FastAPI`](https://fastapi.tiangolo.com/) as well as `Spring Boot` (*Java*).
 
