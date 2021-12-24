@@ -5,6 +5,8 @@ description: "Now I can say I finally have a blog..."
 tags: ["hugo", "docker", "drone"]
 ---
 
+test diun
+
 {{< lead >}}
 I have a dream that I'll have a blog...
 {{< /lead >}}
