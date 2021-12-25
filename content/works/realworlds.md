@@ -1,0 +1,3 @@
+Main purpose of this projects is to have personal extensive API training on multiple backend languages or framework. It's following the very known [Conduit project](https://github.com/gothinkster/realworld), a `Medium` clone.
+
+All of these apps are 100% compatible by the official [OpenAPI Spec](https://realworld-docs.netlify.app/docs/specs/backend-specs/endpoints). All can be tested with [last Postman collection of Conduit](https://github.com/gothinkster/realworld/tree/main/api). Each project are fully tested and follows best practices for linting, formatting, with static analyzers for non strongly typed languages.

@@ -1,0 +1,42 @@
+{{ define "main" }}
+<article>
+    <header>
+        <h1 class="mt-0 text-4xl font-extrabold text-neutral-900 dark:text-neutral mb-12">
+            {{ .Title | emojify }}
+        </h1>
+    </header>
+    {{ .Content | emojify }}
+    <section>
+        <h2 class="text-xl mb-8 pb-2 border-b-8 border-primary-500 inline-block">
+            {{ .Site.Data.realworld.title }}
+        </h2>
+
+        <div class="prose dark:prose-light mb-8">
+            {{ readFile (print "/content/works/" .Site.Data.realworld.description ".md") | markdownify }}
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-4">
+            {{ range $.Site.Data.realworld.projects }}
+            <div class="rounded border-2 border-primary-500 p-4 text-center">
+                <h3 class="mb-4 pb-1 font-bold border-b-2 border-primary-500 inline-block">
+                    {{ .title }}
+                </h3>
+                <div class="prose dark:prose-light">
+                    {{ readFile (print "/content/works/" .type ".md") | markdownify }}
+                </div>
+                <div class="flex justify-center gap-4 mt-4">
+                    <a class="px-4 py-2 !text-neutral !no-underline !rounded-md bg-primary-600 hover:!bg-primary-500 dark:bg-primary-800 dark:hover:!bg-primary-700"
+                        href="https://github.com/{{ .repo }}" target="_blank" role="button">
+                        {{ partial "icon.html" "github" }}
+                    </a>
+                    <a class="px-4 py-2 !text-neutral !no-underline !rounded-md bg-primary-600 hover:!bg-primary-500 dark:bg-primary-800 dark:hover:!bg-primary-700"
+                        href="https://{{ .type }}realworld.okami101.io/api" target="_blank" role="button">
+                        OpenAPI
+                    </a>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+    </section>
+</article>
+{{ end }}

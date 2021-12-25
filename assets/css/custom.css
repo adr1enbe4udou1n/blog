@@ -465,6 +465,10 @@ Ensure the default browser behavior of the `hidden` attribute.
   position: static;
 }
 
+.relative {
+  position: relative;
+}
+
 .mt-0 {
   margin-top: 0px;
 }
@@ -525,6 +529,10 @@ Ensure the default browser behavior of the `hidden` attribute.
   border-radius: 0.25rem;
 }
 
+.\!rounded-md {
+  border-radius: 0.375rem !important;
+}
+
 .border-2 {
   border-width: 2px;
 }
@@ -545,8 +553,22 @@ Ensure the default browser behavior of the `hidden` attribute.
   border-color: var(--color-primary-500);
 }
 
+.bg-primary-600 {
+  background-color: var(--color-primary-600);
+}
+
 .p-4 {
   padding: 1rem;
+}
+
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
 }
 
 .pb-2 {
@@ -559,6 +581,10 @@ Ensure the default browser behavior of the `hidden` attribute.
 
 .text-center {
   text-align: center;
+}
+
+.align-text-bottom {
+  vertical-align: text-bottom;
 }
 
 .text-4xl {
@@ -583,8 +609,29 @@ Ensure the default browser behavior of the `hidden` attribute.
   color: var(--color-neutral-900);
 }
 
+.\!text-neutral {
+  color: var(--color-neutral) !important;
+}
+
+.\!no-underline {
+  -webkit-text-decoration-line: none !important;
+          text-decoration-line: none !important;
+}
+
+.hover\:\!bg-primary-500:hover {
+  background-color: var(--color-primary-500) !important;
+}
+
+.dark .dark\:bg-primary-800 {
+  background-color: var(--color-primary-800);
+}
+
 .dark .dark\:text-neutral {
   color: var(--color-neutral);
+}
+
+.dark .dark\:hover\:\!bg-primary-700:hover {
+  background-color: var(--color-primary-700) !important;
 }
 
 @media (min-width: 768px) {
