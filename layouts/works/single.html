@@ -8,15 +8,15 @@
     {{ .Content | emojify }}
     <section>
         <h2 class="text-xl mb-8 pb-2 border-b-8 border-primary-500 inline-block">
-            {{ .Site.Data.realworld.title }}
+            Realworld Conduit Apps
         </h2>
 
         <div class="prose dark:prose-light mb-8">
-            {{ readFile (print "_data/realworld/" .Site.Data.realworld.description ".md") | markdownify }}
+            {{ readFile (print "_data/realworld/_index.md") | markdownify }}
         </div>
 
         <div class="grid md:grid-cols-2 gap-4">
-            {{ range $.Site.Data.realworld.projects }}
+            {{ range $.Site.Data.works.realworld }}
             <div class="rounded border-2 border-primary-500 p-4 text-center">
                 <h3 class="mb-4 pb-1 font-bold border-b-2 border-primary-500 inline-block">
                     {{ .title }}

@@ -1,7 +1,4 @@
-title: Realworld Conduit Apps
-description: description
-
-projects:
+realworld:
   - title: ASP.NET Core Realworld
     type: aspnet
     repo: adr1enbe4udou1n/aspnetcore-realworld-example-app
