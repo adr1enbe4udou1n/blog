@@ -477,12 +477,20 @@ Ensure the default browser behavior of the `hidden` attribute.
   margin-bottom: 2rem;
 }
 
-.inline-block {
-  display: inline-block;
+.mb-2 {
+  margin-bottom: 0.5rem;
 }
 
-.inline {
-  display: inline;
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+.mt-4 {
+  margin-top: 1rem;
+}
+
+.inline-block {
+  display: inline-block;
 }
 
 .flex {
@@ -497,40 +505,24 @@ Ensure the default browser behavior of the `hidden` attribute.
   display: contents;
 }
 
-.w-1\/3 {
-  width: 33.333333%;
-}
-
-.w-1\/2 {
-  width: 50%;
-}
-
-.flex-1 {
-  flex: 1 1 0%;
-}
-
-.grid-cols-2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.flex-wrap {
-  flex-wrap: wrap;
-}
-
-.gap-8 {
-  gap: 2rem;
+.justify-center {
+  justify-content: center;
 }
 
 .gap-4 {
   gap: 1rem;
 }
 
-.rounded {
-  border-radius: 0.25rem;
+.gap-8 {
+  gap: 2rem;
 }
 
-.border {
-  border-width: 1px;
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.rounded {
+  border-radius: 0.25rem;
 }
 
 .border-2 {
@@ -541,59 +533,37 @@ Ensure the default browser behavior of the `hidden` attribute.
   border-bottom-width: 2px;
 }
 
-.border-primary-700 {
-  border-color: var(--color-primary-700);
+.border-b-4 {
+  border-bottom-width: 4px;
+}
+
+.border-b-8 {
+  border-bottom-width: 8px;
 }
 
 .border-primary-500 {
   border-color: var(--color-primary-500);
 }
 
-.bg-primary-700 {
-  background-color: var(--color-primary-700);
-}
-
-.p-8 {
-  padding: 2rem;
-}
-
-.p-6 {
-  padding: 1.5rem;
-}
-
-.p-12 {
-  padding: 3rem;
-}
-
-.p-10 {
-  padding: 2.5rem;
-}
-
 .p-4 {
   padding: 1rem;
-}
-
-.pb-4 {
-  padding-bottom: 1rem;
 }
 
 .pb-2 {
   padding-bottom: 0.5rem;
 }
 
+.pb-1 {
+  padding-bottom: 0.25rem;
+}
+
+.text-center {
+  text-align: center;
+}
+
 .text-4xl {
   font-size: 2.25rem;
   line-height: 2.5rem;
-}
-
-.text-2xl {
-  font-size: 1.5rem;
-  line-height: 2rem;
-}
-
-.text-3xl {
-  font-size: 1.875rem;
-  line-height: 2.25rem;
 }
 
 .text-xl {
@@ -605,23 +575,16 @@ Ensure the default browser behavior of the `hidden` attribute.
   font-weight: 800;
 }
 
+.font-bold {
+  font-weight: 700;
+}
+
 .text-neutral-900 {
   color: var(--color-neutral-900);
 }
 
-.underline {
-  -webkit-text-decoration-line: underline;
-          text-decoration-line: underline;
-}
-
 .dark .dark\:text-neutral {
   color: var(--color-neutral);
-}
-
-@media (min-width: 640px) {
-  .sm\:grid-cols-2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (min-width: 768px) {
