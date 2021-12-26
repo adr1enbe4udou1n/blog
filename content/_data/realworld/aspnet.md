@@ -1,4 +1,6 @@
-`ASP.NET Core 6` implementation, follows `DDD` principle, implemented with `Hexa architecture` and `CQRS` pattern. Similar to the [official ASP.NET implementation](https://github.com/gothinkster/aspnetcore-realworld-example-app) but rewritten from scratch with further decoupling with dedicated project for each Hexa area, aka domain/application/infrastructure. Main packages involved :
+[`ASP.NET Core 6`](https://docs.microsoft.com/aspnet/core/) implementation, follows `DDD` principle, implemented with `Hexa architecture` and `CQRS` pattern. Similar to the [official ASP.NET implementation](https://github.com/gothinkster/aspnetcore-realworld-example-app) but rewritten from scratch with further decoupling with dedicated project for each Hexa area, aka domain/application/infrastructure. [Swashbuckle](https://github.com/domaindrivendev/Swashbuckle.AspNetCore) is used as default main OpenAPI generator that's perfectly integrates into the code.
+
+Main packages involved :
 
 * [EF Core](https://docs.microsoft.com/ef/) as strongly typed ORM
 * [MediatR](https://github.com/jbogard/MediatR) for easy mediator implementation. It allows strong decoupling between all ASP.NET controllers and the final application which is cutted into small queries and commands
