@@ -6,13 +6,13 @@
         </h1>
     </header>
     {{ .Content | emojify }}
-    <section>
+    <section class="mb-8">
         <h2 class="text-xl mb-8 pb-2 border-b-8 border-primary-500 inline-block">
             Conduit Apps Collection
         </h2>
 
         <div class="prose dark:prose-light mb-8">
-            {{ readFile (print "_data/realworld/_index.md") | markdownify }}
+            {{ readFile (print "_data/works/realworld.md") | markdownify }}
         </div>
 
         <div class="grid md:grid-cols-2 gap-4">
@@ -26,7 +26,7 @@
                     </a>
                 </div>
                 <div class="prose dark:prose-light flex-grow">
-                    {{ readFile (print "_data/realworld/" .type ".md") | markdownify }}
+                    {{ readFile (print "_data/works/" .name ".md") | markdownify }}
                 </div>
                 <div class="flex justify-center gap-4">
                     <a class="px-4 py-2 !text-neutral !no-underline !rounded-md bg-primary-600 hover:!bg-primary-500 dark:bg-primary-800 dark:hover:!bg-primary-700"
@@ -34,9 +34,49 @@
                         {{ partial "icon.html" "github" }}
                     </a>
                     <a class="px-4 py-2 !text-neutral !no-underline !rounded-md bg-primary-600 hover:!bg-primary-500 dark:bg-primary-800 dark:hover:!bg-primary-700"
-                        href="https://{{ .type }}realworld.okami101.io/api" target="_blank" role="button">
+                        href="https://{{ .name }}realworld.okami101.io/api" target="_blank" role="button">
                         OpenAPI
                     </a>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+    </section>
+    <section>
+        <h2 class="text-xl mb-8 pb-2 border-b-8 border-primary-500 inline-block">
+            Others projects
+        </h2>
+
+        <div class="grid md:grid-cols-2 gap-4">
+            {{ range $.Site.Data.works.others }}
+            <div class="flex flex-col gap-4 rounded border-2 border-primary-500 p-4 h-full">
+                <div class="text-center">
+                    <a href="https://github.com/{{ .repo }}" target="_blank">
+                        <h3 class="pb-1 font-bold border-b-2 border-primary-500 inline-block">
+                            {{ .title }}
+                        </h3>
+                    </a>
+                </div>
+                <div class="prose dark:prose-light flex-grow">
+                    {{ readFile (print "_data/works/" .name ".md") | markdownify }}
+                </div>
+                <div class="flex justify-center gap-4">
+                    <a class="px-4 py-2 !text-neutral !no-underline !rounded-md bg-primary-600 hover:!bg-primary-500 dark:bg-primary-800 dark:hover:!bg-primary-700"
+                        href="https://github.com/{{ .repo }}" target="_blank" role="button">
+                        {{ partial "icon.html" "github" }}
+                    </a>
+                    {{ if .demo }}
+                    <a class="px-4 py-2 !text-neutral !no-underline !rounded-md bg-primary-600 hover:!bg-primary-500 dark:bg-primary-800 dark:hover:!bg-primary-700"
+                        href="{{ .demo }}" target="_blank" role="button">
+                        Demo
+                    </a>
+                    {{ end }}
+                    {{ if .docs }}
+                    <a class="px-4 py-2 !text-neutral !no-underline !rounded-md bg-primary-600 hover:!bg-primary-500 dark:bg-primary-800 dark:hover:!bg-primary-700"
+                        href="{{ .docs }}" target="_blank" role="button">
+                        Docs
+                    </a>
+                    {{ end }}
                 </div>
             </div>
             {{ end }}
