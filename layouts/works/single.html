@@ -8,7 +8,7 @@
     {{ .Content | emojify }}
     <section>
         <h2 class="text-xl mb-8 pb-2 border-b-8 border-primary-500 inline-block">
-            Realworld Conduit Apps
+            Conduit Apps Collection
         </h2>
 
         <div class="prose dark:prose-light mb-8">
@@ -17,14 +17,16 @@
 
         <div class="grid md:grid-cols-2 gap-4">
             {{ range $.Site.Data.works.realworld }}
-            <div class="rounded border-2 border-primary-500 p-4 text-center">
-                <h3 class="mb-4 pb-1 font-bold border-b-2 border-primary-500 inline-block">
-                    {{ .title }}
-                </h3>
-                <div class="prose dark:prose-light">
+            <div class="flex flex-col gap-4 rounded border-2 border-primary-500 p-4 h-full">
+                <div class="text-center">
+                    <h3 class="pb-1 font-bold border-b-2 border-primary-500 inline-block">
+                        {{ .title }}
+                    </h3>
+                </div>
+                <div class="prose dark:prose-light flex-grow">
                     {{ readFile (print "_data/realworld/" .type ".md") | markdownify }}
                 </div>
-                <div class="flex justify-center gap-4 mt-4">
+                <div class="flex justify-center gap-4">
                     <a class="px-4 py-2 !text-neutral !no-underline !rounded-md bg-primary-600 hover:!bg-primary-500 dark:bg-primary-800 dark:hover:!bg-primary-700"
                         href="https://github.com/{{ .repo }}" target="_blank" role="button">
                         {{ partial "icon.html" "github" }}
