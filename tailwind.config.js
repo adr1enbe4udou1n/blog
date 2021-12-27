@@ -7,6 +7,9 @@ module.exports = {
     "./layouts/**/*.html",
     "./content/**/*.{html,md}",
   ],
+  safelist: [
+    'sm:flex-row',
+  ],
   darkMode: "class",
   theme: {
     colors: {
