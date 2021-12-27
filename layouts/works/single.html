@@ -21,19 +21,18 @@
         <div class="grid md:grid-cols-2 gap-4">
             {{ range .projects }}
             <div class="flex flex-col gap-4 rounded border-2 border-primary-500 p-4">
-                <div class="text-center relative">
+                <div class="text-center">
                     <a href="https://github.com/{{ .repo }}" target="_blank">
                         <h3 class="pb-1 font-bold border-b-2 border-primary-500 inline-block">
                             {{ .title }}
                         </h3>
                     </a>
-
-                    {{ if .date }}
-                    <div class="absolute top-0 right-0">
-                        {{ partial "badge.html" (print "Date : " .date) }}
-                    </div>
-                    {{ end }}
                 </div>
+                {{ if .date }}
+                <div class="flex justify-end">
+                    {{ partial "badge.html" (print "Date : " .date) }}
+                </div>
+                {{ end }}
                 <div class="prose dark:prose-light flex-grow">
                     {{ readFile (print "_data/works/" .name ".md") | markdownify }}
                 </div>
