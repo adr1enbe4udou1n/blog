@@ -56,6 +56,10 @@
   right: 0px
 }
 
+.m-8 {
+  margin: 2rem
+}
+
 .mt-0 {
   margin-top: 0px
 }
@@ -66,6 +70,10 @@
 
 .mb-8 {
   margin-bottom: 2rem
+}
+
+.mt-8 {
+  margin-top: 2rem
 }
 
 .inline-block {
@@ -162,6 +170,11 @@
 .text-xl {
   font-size: 1.25rem;
   line-height: 1.75rem
+}
+
+.text-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem
 }
 
 .font-extrabold {

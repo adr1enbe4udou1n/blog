@@ -10,45 +10,45 @@ colorScheme = "congo"
 # darkToggle = false
 # logo = "img/logo.jpg"
 # description = "My awesome website"
-# mainSections = ["section1", "section2"]
+mainSections = ["posts"]
 # robots = ""
 
 [homepage]
-  layout = "profile" # valid options: page, profile, custom
-  showRecent = true
+layout = "profile" # valid options: page, profile, custom
+showRecent = true
 
 [article]
-  showDate = true
-  dateFormat = "2 January 2006"
-  showAuthor = true
-  showBreadcrumbs = false
-  showDraftLabel = true
-  showEdit = false
-  # editURL = "https://github.com/username/repo/"
-  editAppendPath = true
-  showHeadingAnchors = true
-  showPagination = true
-  showReadingTime = true
-  showWordCount = false
-  # sharingLinks = ["facebook", "twitter", "pinterest", "reddit", "linkedin", "email"]
+showDate = true
+dateFormat = "2 January 2006"
+showAuthor = true
+showBreadcrumbs = false
+showDraftLabel = true
+showEdit = false
+# editURL = "https://github.com/username/repo/"
+editAppendPath = true
+showHeadingAnchors = true
+showPagination = true
+showReadingTime = true
+showWordCount = false
+# sharingLinks = ["facebook", "twitter", "pinterest", "reddit", "linkedin", "email"]
 
 [list]
-  showBreadcrumbs = false
-  showSummary = false
-  groupByYear = true
+showBreadcrumbs = false
+showSummary = false
+groupByYear = true
 
 [taxonomy]
-  showTermCount = true
+showTermCount = true
 
 [sitemap]
-  excludedKinds = ["taxonomy", "term"]
+excludedKinds = ["taxonomy", "term"]
 
 [fathomAnalytics]
-  # site = "ABC12345"
-  # domain = "llama.yoursite.com"
+# site = "ABC12345"
+# domain = "llama.yoursite.com"
 
 [verification]
-  # google = ""
-  # bing = ""
-  # pinterest = ""
-  # yandex = ""
+# google = ""
+# bing = ""
+# pinterest = ""
+# yandex = ""
