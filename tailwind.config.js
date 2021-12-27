@@ -1,5 +1,8 @@
 module.exports = {
   mode: "jit",
+  corePlugins: {
+    preflight: false
+  },
   content: [
     "./layouts/**/*.html",
     "./content/**/*.{html,md}",

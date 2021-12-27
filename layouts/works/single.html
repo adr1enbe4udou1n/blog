@@ -28,9 +28,11 @@
                         </h3>
                     </a>
 
+                    {{ if .date }}
                     <div class="absolute top-0 right-0">
                         {{ partial "badge.html" (print "Date : " .date) }}
                     </div>
+                    {{ end }}
                 </div>
                 <div class="prose dark:prose-light flex-grow">
                     {{ readFile (print "_data/works/" .name ".md") | markdownify }}
