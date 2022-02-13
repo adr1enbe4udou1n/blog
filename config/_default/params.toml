@@ -31,6 +31,7 @@ showPagination = true
 showReadingTime = true
 showWordCount = false
 # sharingLinks = ["facebook", "twitter", "pinterest", "reddit", "linkedin", "email"]
+showTableOfContents = true
 
 [list]
 showBreadcrumbs = false
