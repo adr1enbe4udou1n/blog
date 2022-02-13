@@ -30,11 +30,12 @@ Fully embracing app containerization with `Docker`, from local, staging to produ
 
 Mastering installations of properly configured `Docker Swarm` clusters with next containerized tools :
 
-* [`GitLab`](https://about.gitlab.com/) or [`Gitea`](https://gitea.io/) coupled with [`Drone CI`](https://www.drone.io/) as both *self-hosted CI/CD* solutions,
 * [`Traefik`](https://traefik.io/traefik/) as main cloud proxy with automatic service discovery and SSL configuration
-* [`Portainer`](https://www.portainer.io/) as simple GUI for containers management.
+* [`Portainer`](https://www.portainer.io/) as simple GUI for containers management
 * [`Loki`](https://grafana.com/oss/loki/), [`Prometheus`](https://prometheus.io) and [`Jaeger`](https://www.jaegertracing.io/) as respective *logging*, *metrics* and *tracing* tools
-* [`Grafana`](https://grafana.com) as perfect GUI dashboard builder for *Ops*.
+* [`Grafana`](https://grafana.com) as perfect GUI dashboard builder for *Ops*
+* [`GitLab`](https://about.gitlab.com/) or [`Gitea`](https://gitea.io/) coupled with [`Drone CI`](https://www.drone.io/) as both *self-hosted CI/CD* solutions
+* [SonarQube](https://www.sonarqube.org/) for automatic quality code scan
 
 I use managed [`PostgreSQL`](https://www.postgresql.org/), [`MySQL`](https://www.mysql.com/fr/), and `MSSQL` as main **SGBD**, as well as `Redis` for high performance cache/sessions management.
 
