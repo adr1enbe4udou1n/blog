@@ -9,6 +9,6 @@
   "author": "Adrien Beaudouin",
   "license": "MIT",
   "devDependencies": {
-    "tailwindcss": "^3.0.7"
+    "tailwindcss": "^3.0.22"
   }
 }

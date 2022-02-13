@@ -15,12 +15,12 @@ enableRobotsTXT = true
 summaryLength = 0
 
 [author]
-  name = "Adrien Beaudouin"
-  image = "img/author.jpg"
-  bio = "A simple web developer @janze"
-  links = [
-    { email = "mailto:adrien@okami101.io" },
-    { github = "https://github.com/adr1enbe4udou1n" },
-    { linkedin = "https://linkedin.com/in/adr1enbe4udou1n" },
-    { twitter = "https://twitter.com/adr1enbe4udou1n" },
-  ]
+name = "Adrien Beaudouin"
+image = "author.jpg"
+bio = "A simple web developer @janze"
+links = [
+  { email = "mailto:adrien@okami101.io" },
+  { github = "https://github.com/adr1enbe4udou1n" },
+  { linkedin = "https://linkedin.com/in/adr1enbe4udou1n" },
+  { twitter = "https://twitter.com/adr1enbe4udou1n" },
+]
