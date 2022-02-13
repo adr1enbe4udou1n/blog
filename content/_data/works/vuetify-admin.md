@@ -9,7 +9,7 @@ But I had to decide to stop this project after a couple of months because multip
 * Less time available
 * Too much effort to maintain and evolve it
 * Not written on `Typescript` that allows proper refactoring
-* Not unit tests from the beginning, which is a **HUGE** mistake
+* No unit tests from the beginning, what has proved to be **HUGE** mistake
 * `Vite`, `Vue 3` with real `Typescript` support and `Vuetify 3` are in the corner, which necessitates full rewrite and new *next* repo
 
 Nevertheless, it was a very instructive project that shows me the **real amount work for a good documentation** and the **cost of missing proper unit/integration/e2e tests**.

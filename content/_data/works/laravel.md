@@ -1,4 +1,4 @@
-[`Laravel 8`](https://laravel.com/) implementation on `PHP 8.1` with extensive usage of last attributes support. The particularity of this framework is to give you almost of all you need for quickly develop any complex application. So minimal external packages need.
+[`Laravel 9`](https://laravel.com/) implementation on `PHP 8.1` with extensive usage of last attributes support. The particularity of this framework is to give you almost of all you need for quickly develop any complex application. So minimal external packages need.
 
 I obviously made use of `Eloquent` as a very expressive Active Record ORM, and the Laravel factories system based on [PHP Faker](https://fakerphp.github.io/) is already perfect for dummy data generator.
 
@@ -11,4 +11,3 @@ Main packages involved :
 * [PHP CS Fixer](https://github.com/FriendsOfPHP/PHP-CS-Fixer) as formatter with Laravel style guide
 * [Larastan](https://github.com/nunomaduro/larastan), a Laravel wrapper of [PHPStan](https://phpstan.org/), as advanced code static analyzer
 * [Pest](https://pestphp.com/) as nice Jest-like API superset of existing PHPUnit
-* [PHPUnit Watcher](https://github.com/spatie/phpunit-watcher) can be perfectly integrated with Pest for perfect `TDD` experience
