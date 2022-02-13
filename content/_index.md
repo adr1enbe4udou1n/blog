@@ -10,10 +10,10 @@ A 🧔🌍💻 aka senior web developer @Bretagne 🇫🇷
 Hi folks, I'm a web lover actually working [@Cesson-Sévigné](https://fr.wikipedia.org/wiki/Cesson-S%C3%A9vign%C3%A9), mastering :
 
 * [`ASP.NET Core`](https://docs.microsoft.com/fr-fr/aspnet/core/?view=aspnetcore-6.0) with `C#` and [`Laravel`](https://laravel.com/) as main backend frameworks
-* [`Vue 3`](https://vuejs.org/) associated with [`Typescript`](https://www.typescriptlang.org/) and [`Composition API`](https://vuejs.org/guide/extras/composition-api-faq.html) on frontend side
+* [`Vue 3`](https://vuejs.org/) associated with [`Typescript`](https://www.typescriptlang.org/) and [*Composition API*](https://vuejs.org/guide/extras/composition-api-faq.html) on frontend side
 * *Utility-first CSS frameworks* as [`Tailwind`](https://tailwindcss.com/) / [`Windi CSS`](https://windicss.org/), but also comfortable with [`Sass`](https://sass-lang.com/) with **BEM** implementation
 
-I can develop proper API design following `DDD` + `Hexa` principles if applicable. In addition to above `.NET` and `PHP` backend stacks, I'm also confident with :
+I can develop proper API design following [**DDD / Hexa**](https://en.wikipedia.org/wiki/Domain-driven_design) principles if applicable. In addition to above `.NET` and `PHP` backend stacks, I'm also confident with :
 
 * [`Nest.js`](https://nestjs.com/) associated to [`MikroORM`](https://mikro-orm.io/) (*Typescript*),
 * [`FastAPI`](https://fastapi.tiangolo.com/) with [`SQLAlchemy`](https://www.sqlalchemy.org/) (*Python*),
@@ -26,7 +26,7 @@ I encourage `TDD` or at least proper **integration tests** on any backend framew
 * `JUnit` with [`REST Assured`](https://rest-assured.io/) for *Spring Boot*,
 * `Jest` and `pytest` on respective *NodeJS* end *Python* stacks.
 
-Fully embracing app containerization with `Docker`, from local, staging to production, I push to use properly configured `CI/CD` whenever is possible in order to enforce **continuous automatized testing, linting and coding standard** at many languages ([`ESLint`](https://eslint.org/), [`Prettier`](https://prettier.io/), [`PHP CS fixer`](https://cs.symfony.com/), [`PHPStan`](https://github.com/phpstan/phpstan), [`Black`](https://black.readthedocs.io/en/stable/), [`mypy`](http://mypy-lang.org/), [`Google Java Format`](https://github.com/google/google-java-format), [`Spotless`](https://github.com/diffplug/spotless), and so on...).
+Fully embracing app containerization with `Docker`, from local, staging to production, I push to use properly configured **CI/CD** whenever is possible in order to enforce **continuous automatized testing, linting and coding standard** at many languages ([`ESLint`](https://eslint.org/), [`Prettier`](https://prettier.io/), [`PHP CS fixer`](https://cs.symfony.com/), [`PHPStan`](https://github.com/phpstan/phpstan), [`Black`](https://black.readthedocs.io/en/stable/), [`mypy`](http://mypy-lang.org/), [`Google Java Format`](https://github.com/google/google-java-format), [`Spotless`](https://github.com/diffplug/spotless), and so on...).
 
 Mastering installations of properly configured `Docker Swarm` clusters with next containerized tools :
 
