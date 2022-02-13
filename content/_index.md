@@ -19,7 +19,7 @@ I can develop proper API design following [**DDD / Hexa**](https://en.wikipedia.
 * [`FastAPI`](https://fastapi.tiangolo.com/) with [`SQLAlchemy`](https://www.sqlalchemy.org/) (*Python*),
 * [`Spring Boot`](https://spring.io/projects/spring-boot) with `Hibernate` as main JPA implementation (*Java*).
 
-I encourage `TDD` or at least proper **integration tests** on any backend frameworks, following `AAA` aka *Arrange Act Assert* principle :
+I encourage `TDD` or at least proper **integration tests** on any backend frameworks, following **AAA** aka *Arrange Act Assert* principle :
 
 * `PHPUnit` or [`Pest`](https://pestphp.com/) for *PHP*,
 * `xUnit.net` with [`Fluent Assertions`](https://github.com/fluentassertions/fluentassertions) for *.NET Core*,
