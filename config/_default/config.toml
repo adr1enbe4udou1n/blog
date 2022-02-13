@@ -14,6 +14,9 @@ enableRobotsTXT = true
 
 summaryLength = 0
 
+[outputs]
+home = ["HTML", "RSS", "JSON"]
+
 [author]
 name = "Adrien Beaudouin"
 image = "author.jpg"
