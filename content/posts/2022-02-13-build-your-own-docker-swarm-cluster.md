@@ -27,6 +27,7 @@ So the prerequisites before continue :
 * Be comfortable with SSH terminal
 * Registered for a [Hetzner Cloud account](https://accounts.hetzner.com/signUp)
 * A custom domain, I'll use `example.org` here
+* A account to a transactional mail provider as mailgun, sendgrid, sendingblue, etc.
 
 {{< alert >}}
 You can of course apply this guide on any other cloud provider, but I doubt that you can achieve lower price.
@@ -36,31 +37,36 @@ You can of course apply this guide on any other cloud provider, but I doubt that
 
 In the end of this multi-steps guide, you will have complete working production grade secured cluster, backup included, with optional monitoring and complete development CI/CD workflow.
 
-### The stateful part for data 💾
+### 1. Cluster initialization 🌍
+
+* Initial VPS setup for docker under Ubuntu 20.04 with proper Hetzner firewall configuration
+* `Docker Swarm` installation, **1 manager and 2 workers**
+* `Traefik`, a cloud native reverse proxy with automatic service discovery and SSL configuration
+* `Portainer` as simple GUI for containers management
+
+### 2. The stateful part for data 💾
 
 For all data critical part, I choose to use **1 dedicated VPS**. We will install :
 
+* `GlusterFS` as network filesystem, configured for cluster nodes
+* `Loki` with `Promtail` for centralized logs, fetched from data node and docker containers
 * `PostgreSQL` as main production database
-* `GlusterFS` as network filesystem
-* `MySQL`, `MongoDB`, `Redis` as optional storage tools
-* `Elasticsearch` that will be used for tracing storage (`Jaeger`)
-* `Loki` with `Promtail` for centralized logs
-* `Restic` for backups to external S3 compatible bucket
+* `MySQL` as additional secondary database (optional)
+
+Note as I will not setup this for **HA** (High Availability) here, as it's a complete another topic. So this data node will be our **SPF** (Single Point of Failure) with only one file system and DB.
 
 {{< alert >}}
 There are many debates about using databases as docker container, but I personally prefer use managed server for better control, local on-disk performance, central backup management and easier possibility of database clustering.  
 Note as on the Kubernetes world, run containerized databases becomes reality thanks to [powerful operators](https://github.com/zalando/postgres-operator) that provide easy clustering. The is obviously no such things on Docker Swarm 🙈
 {{< /alert >}}
 
-### The stateless part, aka cluster 🚆
+#### Data Backup (optional)
 
-#### Cluster initialization 🌍
+Because backup should be taken care from the beginning, I'll show you how to use `Restic` for simple backups to external S3 compatible bucket.
 
-* `Docker Swarm` installation, **1 manager and 2 workers**
-* `Traefik`, a cloud native reverse proxy with automatic service discovery and SSL configuration
-* `Portainer` as simple GUI for containers management
+#### Testing the cluster with some containerized tools ✅
 
-#### Testing with some initial containerized tools ✅
+We will use the main portainer GUI in order to install following tools :
 
 * `pgAdmin` and `phpMyAdmin` as web database managers (optional)
 * [`Diun`](https://crazymax.dev/diun/) (optional), very useful in order to be notified for all used images update inside your Swarm cluster
@@ -70,6 +76,8 @@ Note as on the Kubernetes world, run containerized databases becomes reality tha
 
 * `Prometheus` as time series DB for monitoring, with many exporter (Node, PostgreSQL, MySQL Cadvisor, Traefik)
 * `Jaeger` as *tracing* tools
+  * We will use `Elasticsearch` as main data storage
+* `Traefik` configuration for metrics and trace
 * `Grafana` as GUI dashboard builder with many battery included dashboards
   * Monitoring all the cluster
   * Node, PostgreSQL and MySQL metrics
@@ -92,6 +100,41 @@ Note as this cluster will be intended for developer user with complete self-host
 * `worker-01` : A worker for your production/staging apps
 * `runner-01` : An additional worker dedicated to CI/CD pipelines execution
 * `data-01` : The critical data node, with attached and resizable volume for better flexibility
+
+{{< mermaid >}}
+flowchart TD
+subgraph manager-01
+traefik((Traefik))<-- Container Discovery -->docker[Docker API]
+end
+subgraph worker-01
+my-app-01((My App 01))
+my-app-02((My App 02))
+end
+subgraph runner-01
+runner((Drone CI runner))
+end
+subgraph data-01
+logs[Loki]
+postgresql[(PostgreSQL)]
+files[/GlusterFS/]
+mysql[(MySQL)]
+end
+manager-01 == As Worker Node ==> worker-01
+manager-01 == As Worker Node ==> runner-01
+traefik -. reverse proxy .-> my-app-01
+traefik -. reverse proxy .-> my-app-02
+my-app-01 -.-> postgresql
+my-app-02 -.-> mysql
+my-app-01 -.-> files
+my-app-02 -.-> files
+{{< /mermaid >}}
+
+Note as the hostnames correspond to a particular type of server, dedicated for one task specifically. Each type of node can be scale as you wish :
+
+* `manager-0x` For advanced resilient Swarm quorum
+* `worker-0x` : For better scaling production apps, the easiest to setup
+* `runner-0x` : More power for pipeline execution
+* `data-0x` : The hard part for data **HA**, with GlusterFS replications, DB clustering for PostgreSQL and MySQL, etc.
 
 {{< alert >}}
 For a simple production cluster, you can start with only `manager-01` and `data-01` as absolutely minimal start.  
