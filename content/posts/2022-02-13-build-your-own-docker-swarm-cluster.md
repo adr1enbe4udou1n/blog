@@ -44,7 +44,7 @@ In the end of this multi-steps guide, you will have complete working production 
 * `Traefik`, a cloud native reverse proxy with automatic service discovery and SSL configuration
 * `Portainer` as simple GUI for containers management
 
-### 2. The stateful part for data 💾
+### 2. The stateful part 💾
 
 For all data critical part, I choose to use **1 dedicated VPS**. We will install :
 
@@ -53,7 +53,7 @@ For all data critical part, I choose to use **1 dedicated VPS**. We will install
 * `PostgreSQL` as main production database
 * `MySQL` as additional secondary database (optional)
 
-Note as I will not setup this for **HA** (High Availability) here, as it's a complete another topic. So this data node will be our **SPF** (Single Point of Failure) with only one file system and DB.
+Note as I will not set up this for **HA** (High Availability) here, as it's a complete another topic. So this data node will be our **SPF** (Single Point of Failure) with only one file system and DB.
 
 {{< alert >}}
 There are many debates about using databases as docker container, but I personally prefer use managed server for better control, local on-disk performance, central backup management and easier possibility of database clustering.  
@@ -64,7 +64,7 @@ Note as on the Kubernetes world, run containerized databases becomes reality tha
 
 Because backup should be taken care from the beginning, I'll show you how to use `Restic` for simple backups to external S3 compatible bucket.
 
-#### Testing the cluster with some containerized tools ✅
+### 3. Testing the cluster ✅
 
 We will use the main portainer GUI in order to install following tools :
 
@@ -72,18 +72,22 @@ We will use the main portainer GUI in order to install following tools :
 * [`Diun`](https://crazymax.dev/diun/) (optional), very useful in order to be notified for all used images update inside your Swarm cluster
 * Some demo containerized samples that will show you how simple is it to install self-hosted web apps thanks to your shiny new cluster as `redmine`, `n8n`
 
-#### Monitoring (optional) 📈
+### 4. Monitoring 📈
 
-* `Prometheus` as time series DB for monitoring, with many exporter (Node, PostgreSQL, MySQL Cadvisor, Traefik)
+This is an optional part, feel free to skip. We'll set up production grade monitoring and tracing with complete dashboards.
+
+* `Prometheus` as time series DB for monitoring
+  * We will configure many metrics exporter for each critical part (Data node, PostgreSQL, MySQL, containers detail thanks to `cAdvisor`)
+  * Basic usage of *PromQL*
 * `Jaeger` as *tracing* tools
   * We will use `Elasticsearch` as main data storage
-* `Traefik` configuration for metrics and trace
+* `Traefik` configuration for metrics and trace as perfect sample
 * `Grafana` as GUI dashboard builder with many battery included dashboards
   * Monitoring all the cluster
   * Node, PostgreSQL and MySQL metrics
-  * Navigate through log history of all containers and data server node thanks to `Loki` like *ELK*, with LogQL
+  * Navigate through log history of all containers and data server node thanks to `Loki` like *ELK*, with *LogQL*
 
-#### CI/CD Development workflow (optional) 💻
+### 5. CI/CD setup 💻
 
 * `Gitea` as lightweight centralized control version, in case you want get out of Github / GitLab Cloud
 * `Private docker registry` with minimal UI for all your custom app images that will be built on your development process and be used as based image for your production docker on cluster
@@ -132,7 +136,7 @@ my-app-02 -.-> files
 Note as the hostnames correspond to a particular type of server, dedicated for one task specifically. Each type of node can be scale as you wish :
 
 * `manager-0x` For advanced resilient Swarm quorum
-* `worker-0x` : For better scaling production apps, the easiest to setup
+* `worker-0x` : For better scaling production apps, the easiest to set up
 * `runner-0x` : More power for pipeline execution
 * `data-0x` : The hard part for data **HA**, with GlusterFS replications, DB clustering for PostgreSQL and MySQL, etc.
 
