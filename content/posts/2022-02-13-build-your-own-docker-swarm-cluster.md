@@ -150,15 +150,20 @@ You have plenty choices here according to your budget !
 
 Here some of the cheapest VPS options we have :
 
-* **CPX11 (AMD)** = 2C/2G/40Go = **€4.79**
-* **CX21 (Intel)** = 3C/4G/80Go = **€5.88**
-* **CPX21 (AMD)** = 3C/4G/80Go = **€8.28**
+| Server Type      | Spec       | Price     |
+| ---------------- | ---------- | --------- |
+| **CPX11 (AMD)**  | 2C/2G/40Go | **€4.79** |
+| **CX21 (Intel)** | 3C/4G/80Go | **€5.88** |
+| **CPX21 (AMD)**  | 3C/4G/80Go | **€8.28** |
 
 My personal choice for a good balance between cheap and well-balanced cluster :
 
-* `manager-01` : **CX21**, I'll privilege RAM
-* `runner-01` : **CPX11**, 2 powerful core is better for building
-* `worker-01` and `data-01` : **CX21 VS CPX21** (just a power choice matter)
+| Server Name  | Type                  | Why                                          |
+| ------------ | --------------------- | -------------------------------------------- |
+| `manager-01` | **CX21**              | I'll privilege RAM                           |
+| `runner-01`  | **CPX11**             | 2 powerful core is better for building       |
+| `worker-01`  | **CX21** or **CPX21** | Just a power choice matter for your app      |
+| `data-01`    | **CX21** or **CPX21** | Just a power choice matter for your database |
 
 We'll take additional volume of **60 Go** for **€2.88**
 
@@ -179,23 +184,116 @@ If you intend to have your own self-hosted GitLab for an enterprise grade CI/CD 
 Before continue I presume you have :
 
 * Hetzner cloud account ready
-* Configured [hcloud cli](https://github.com/hetznercloud/cli)
+* Installed [hcloud cli](https://github.com/hetznercloud/cli)
+* Have a local account SSH key
 
-Firstly create the new context for your new project :
+Initiate the project by following this simple steps :
 
-{{< tabs tabTotal="2" >}}
-{{< tab tabName="Bash" >}}
+1. Create the project through the UI (I will use `swarm-rocks` as project's name here)
+2. Navigate to security > API tokens
+3. Generate new API key with Read Write permissions and copy the generated token
+
+Then go to the terminal and prepare the new context
 
 ```sh
-cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1
+hcloud context create swarm-rocks # set the copied token at prompt
+hcloud context list # check that your new project is active
+
+# set your ssh key to the project
+hcloud ssh-key create --name swarm --public-key-from-file .ssh/id_ed25519.pub
 ```
 
-{{< /tab >}}
-{{< tab tabName="Powershell" >}}
+Now we are ready to set up the above architecture !
 
-```powershell
--join ((48..57) + (65..90) + (97..122) | Get-Random -Count 64 | % {[char]$_})
+### Create the required servers and networks
+
+```sh
+# create private network
+hcloud network create --name network-01 --ip-range 10.0.0.0/16
+
+# create manager server
+hcloud server create --name manager-01 --ssh-key swarm --image ubuntu-20.04 --type cx21 --location nbg1 --network network-01
+
+# create worker server
+hcloud server create --name worker-01 --ssh-key swarm --image ubuntu-20.04 --type cx21 --location nbg1 --network network-01
+
+# create runner server
+hcloud server create --name runner-01 --ssh-key swarm --image ubuntu-20.04 --type cpx11 --location nbg1 --network network-01
+
+# create data server
+hcloud server create --name data-01 --ssh-key swarm --image ubuntu-20.04 --type cx21 --location nbg1 --network network-01
+
+# create the volume that will be used by gluster
+hcloud volume create --name volume-01 --size 60 --location nbg1 --automount --server data-01
 ```
 
-{{< /tab >}}
-{{< /tabs >}}
+### Prepare the servers
+
+```sh
+# ssh to your server
+hcloud server ssh manager-01
+```
+
+```sh
+# ssh to your server
+hcloud server ssh worker-01
+```
+
+### The firewall
+
+You should never let any cluster without properly configured firewall. It's generally preferable to use the cloud provider firewall instead of standard `ufw` because more easy to manage, no risk of being stupidly blocked, and settled once and for all.
+
+You need at least 2 firewalls :
+
+1. One for external incoming for SSH and Traefik, you'll need a full set of rules, only enabled for `manager-01`
+2. The second for block all any incoming requests applied to any servers different from the manager
+
+{{< alert >}}
+You wonder how we can access to this servers then, at least for ssh.
+{{< /alert >}}
+
+```json
+[
+    {
+        "direction": "in",
+        "port": "22",
+        "protocol": "tcp",
+        "source_ips": [
+            "0.0.0.0/0",
+            "::/0"
+        ]
+    },
+    {
+        "direction": "in",
+        "port": "80",
+        "protocol": "tcp",
+        "source_ips": [
+            "0.0.0.0/0",
+            "::/0"
+        ]
+    },
+    {
+        "direction": "in",
+        "port": "443",
+        "protocol": "tcp",
+        "source_ips": [
+            "0.0.0.0/0",
+            "::/0"
+        ]
+    },
+    {
+        "direction": "in",
+        "port": "2222",
+        "protocol": "tcp",
+        "source_ips": [
+            "123.123.123.123/32"
+        ]
+    }
+]
+```
+
+```sh
+# prepare firewall
+hcloud firewall create --name firewall-internal
+hcloud firewall create --name firewall-external --rules-file firewall-rules.json
+```
