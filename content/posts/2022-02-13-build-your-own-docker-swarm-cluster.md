@@ -173,3 +173,29 @@ If you don't need of `worker` and `runner` nodes, with only one simple standalon
 If you intend to have your own self-hosted GitLab for an enterprise grade CI/CD workflow, you should run it on node with **8 GB** of RAM.  
 **4 GB** is doable if you run just one single GitLab container on it with Prometheus mode disabled and external PostgreSQL.
 {{< /alert >}}
+
+## Let's party
+
+Before continue I presume you have :
+
+* Hetzner cloud account ready
+* Configured [hcloud cli](https://github.com/hetznercloud/cli)
+
+Firstly create the new context for your new project :
+
+{{< tabs tabTotal="2" >}}
+{{< tab tabName="Bash" >}}
+
+```sh
+cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1
+```
+
+{{< /tab >}}
+{{< tab tabName="Powershell" >}}
+
+```powershell
+-join ((48..57) + (65..90) + (97..122) | Get-Random -Count 64 | % {[char]$_})
+```
+
+{{< /tab >}}
+{{< /tabs >}}
