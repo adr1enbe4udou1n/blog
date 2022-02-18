@@ -3,7 +3,7 @@ title: "Setup a Docker Swarm cluster for less than $30 / month"
 date: 2022-02-13
 description: "Build an opinionated containerized platform for developer..."
 tags: ["docker", "swarm"]
-slug: build-your-own-homelab-docker-swarm-cluster
+slug: build-your-own-docker-swarm-cluster
 draft: true
 ---
 
@@ -429,4 +429,6 @@ You should have now good protection against any unintended external access with 
 
 And that's finally it !
 
-We've done all the boring nevertheless essential stuff of this tutorial by preparing the physical part before attacking the more interesting one with cluster initial installation.
+We've done all the boring nevertheless essential stuff of this tutorial by preparing the physical layer + OS part.
+
+Go to the [Part II]({{< ref "/posts/2022-02-18-build-your-own-docker-swarm-cluster-part-2" >}}) for the serious work !
