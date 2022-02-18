@@ -179,7 +179,7 @@ If you intend to have your own self-hosted GitLab for an enterprise grade CI/CD 
 **4 GB** is doable if you run just one single GitLab container on it with Prometheus mode disabled and external PostgreSQL.
 {{< /alert >}}
 
-## Let's party
+## Let's party 🎉
 
 Before continue I presume you have :
 
@@ -205,7 +205,7 @@ hcloud ssh-key create --name swarm --public-key-from-file .ssh/id_ed25519.pub
 
 Now we are ready to set up the above architecture !
 
-### Create the required servers and networks
+### Create the cloud servers and networks ☁️
 
 ```sh
 # create private network
@@ -230,7 +230,7 @@ hcloud server create --name data-01 --ssh-key swarm --image ubuntu-20.04 --type 
 hcloud volume create --name volume-01 --size 60 --server data-01 --automount --format ext4
 ```
 
-### Prepare the servers
+### Prepare the servers 🛠️
 
 It's time to do the classic minimal boring viable security setup for each server. Use `hcloud server ssh xxxxxx-01` for ssh connect and do the same for each.
 
@@ -294,7 +294,7 @@ Then edit `/etc/hosts` file for each server accordingly in order to add private 
 IPs are only showed here as samples, use `hcloud server describe xxxxxx-01` in order to get the right private IP under `Private Net`.
 {{< /alert >}}
 
-### Prepare the DNS and final SSH config
+### Setup DNS and SSH config 🌍
 
 Now use `hcloud server ip manager-01` to get the unique frontal IP address of the cluster that will be used for any entry point, including SSH. Then edit the DNS of your domain and apply this IP to a particular subdomain, as well as a wildcard subdomain. You will see later what this wildcard domain is it for. I will use `sw.okami101.io` as sample. It should be looks like next :
 
@@ -425,7 +425,7 @@ You should have now good protection against any unintended external access with 
 * **80** : the HTTP port for Traefik, only required for proper HTTPS redirection
 * **22** : the SSH standard port for Traefik, required for proper usage through you main Git provider container as GitLab / Gitea
 
-## 1st conclusion
+## 1st conclusion 🏁
 
 And that's finally it !
 
