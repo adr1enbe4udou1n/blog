@@ -33,4 +33,56 @@ sudo usermod -aG docker $USER
 
 Then logout and use `docker run hello-world` and be sure all is OK. Follow [official installation](https://docs.docker.com/engine/install/ubuntu/) if not.
 
-### Docker Swarm
+### Enable Docker Swarm
+
+Finally, enable Swarm mode on `manager-01` :
+
+```sh
+docker swarm init --advertise-addr 10.0.0.2
+```
+
+{{< alert >}}
+Use private network IP of manager, it' should be the same defined on `/et/hosts` on other worker servers.
+{{< /alert >}}
+
+The above command will show the command to launch to other worker nodes. Apply it on `worker-01` and `runner-01`.
+
+When done use `docker node ls` on manager node in order to confirm the presence of the 2 workers with `Ready` status and active.
+
+Yeah, cluster is already properly configured. Far less overwhelming than Kubernetes, I should say.
+
+## Network file system
+
+Before go further away, we'll quickly need of proper unique shared storage location for all managers and workers. It's mandatory in order to keep same state when your app containers are automatically rearranged by Swarm manager across multiple workers for convergence purpose.
+
+We'll use `GlusterFS` for that. You can of course use a simple NFS bind mount. It's just that GlusterFS make more sense in the sense that it allows easy replication for HA. You will not regret it when you'll need a `data-02`.
+
+{{< mermaid >}}
+flowchart TD
+subgraph manager-01
+traefik((Traefik))
+end
+subgraph worker-01
+my-app-01-01((My App 01))
+my-app-02-01((My App 02))
+end
+subgraph worker-02
+my-app-01-02((My App 01))
+my-app-02-02((My App 02))
+end
+subgraph data-01
+storage[/GlusterFS/]
+end
+traefik-->my-app-01-01
+traefik-->my-app-02-01
+traefik-->my-app-01-02
+traefik-->my-app-02-02
+worker-01-- glusterfs bind mount -->data-01
+worker-02-- glusterfs bind mount -->data-01
+{{< /mermaid >}}
+
+{{< alert >}}
+Note that manager node can be used as worker as well. However, I think it's not well suited for production apps in my opinion.
+{{< /alert >}}
+
+### Install GlusterFS
