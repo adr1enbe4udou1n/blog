@@ -165,7 +165,7 @@ Thankfully, Traefik can be configured to take cares of all SSL certificates gene
 
 Traditionally I should say that Traefik is clearly not really easy to setup for new comers. The essential part to keep in mind is that this reverse proxy has 2 types of configuration, *static* and *dynamic*. [Go here](https://doc.traefik.io/traefik/getting-started/configuration-overview/) for detail explication of difference between these types of configuration.
 
-Here we'll talk about static configuration. Create a YAML file under `/etc/traefik/traefik.yml` with following content (TOML is also supported) :
+Here we'll talk about static configuration. Create a YAML file under `/etc/traefik/traefik.yml` of `manager-01` server with following content (TOML is also supported) :
 
 ```yml
 entryPoints:
@@ -203,8 +203,6 @@ accessLog: {}
 metrics:
   prometheus: {}
 ```
-
-Bellow the explanation of each part :
 
 {{< tabs >}}
 {{< tab tabName="entryPoints" >}}
@@ -260,10 +258,13 @@ services:
     image: traefik:v2.5
     ports:
       - target: 22
+        published: 22
         mode: host
       - target: 80
+        published: 80
         mode: host
       - target: 443
+        published: 443
         mode: host
     networks:
       - public
@@ -274,15 +275,14 @@ services:
     deploy:
       placement:
         constraints:
-          - node.labels.traefik-public.traefik-public-certificates == true
+          - node.labels.traefik-public.certificates == true
       labels:
         - traefik.enable=true
         - traefik.http.middlewares.gzip.compress=true
         - traefik.http.middlewares.admin-auth.basicauth.users=admin:${HASHED_PASSWORD?Variable not set}
         - traefik.http.middlewares.admin-ip.ipwhitelist.sourcerange=78.228.120.81
-        - traefik.http.routers.traefik-public-https.entrypoints=https
-        - traefik.http.routers.traefik-public-https.service=api@internal
-        - traefik.http.routers.traefik-public-https.middlewares=admin-ip,admin-auth
+        - traefik.http.routers.traefik-public-api.service=api@internal
+        - traefik.http.routers.traefik-public-api.middlewares=admin-ip,admin-auth
         - traefik.http.services.traefik-public.loadbalancer.server.port=8080
 
 networks:
@@ -292,14 +292,83 @@ volumes:
   certificates:
 ```
 
-You should adapt to your custom needs. Some notes :
+{{< tabs >}}
+{{< tab tabName="networks" >}}
 
-* We declare 3 ports for each different entry point, note as I will use [host mode](https://docs.docker.com/network/host/), useful extra performance and getting real IPs from clients.
-* We create a `public` network that will be created with [`overlay driver`](https://docs.docker.com/network/overlay/) (this is by default on swarm). This is the very important part in order to have a dedicated NAT for container services that will be exposed to the internet.
-* 3 volumes
-  * `/etc/traefik` : we'll put our main static required configuration here
+We declare 3 ports for each entry point, note as I will use [host mode](https://docs.docker.com/network/host/), useful extra performance and getting real IPs from clients.
 
-The *dynamic* part will be done on `labels` under `deploy` docker compose section.
+Then we create a `public` network that will be created with [`overlay driver`](https://docs.docker.com/network/overlay/) (this is by default on swarm). This is the very important part in order to have a dedicated NAT for container services that will be exposed to the internet.
+
+{{< /tab >}}
+{{< tab tabName="volumes" >}}
+
+We'll declare 3 volumes :
+
+* `/etc/traefik` : location where we putted our above static configuration file
+* `/var/run/docker.sock` : Required for allowing Traefik to access to Docker API in order to have automatic dynamic docker configuration working.
+* `certificates` : named docker volume in order to store our acme.json generated file from all TLS challenge by Let's Encrypt.
+
+{{< alert >}}
+Note as we add `node.labels.traefik-public.certificates` inside `deploy.constraints` in order to ensure Traefik will run on the same server where certificates are located every time when Docker Swarm does service convergence.
+{{< /alert >}}
+
+{{< /tab >}}
+{{< tab tabName="labels" >}}
+
+This is the Traefik dynamic configuration part. I declare here many service that I will use later. Adapt for your own needs !
+
+`traefik.enable=true` : Tell Traefik to expose himself through the network
+
+##### The middlewares
+
+* `gzip` : provides [basic gzip compression](https://doc.traefik.io/traefik/middlewares/http/compress/). Note as Traefik doesn't support brotli yep, which is pretty disappointed where absolutly all other reverse proxies support it...
+* `admin-auth` : provides basic HTTP authorization. `basicauth.users` will use standard `htpasswd` format. I use `HASHED_PASSWORD` as dynamic environment variable.
+* `admin-ip` : provides IP whitelist protection, given a source range.
+
+##### The routers
+
+* `traefik-public-api` : Configured for proper redirection to internal dashboard Traefik API from `traefik.sw.okami101.io`, which is defined by default rule. It's configured with above `admin-auth` and `admin-ip` for proper protection.
+
+##### The services
+
+* `traefik-public` : allow proper redirection to the default exposed 8080 port of Traefik container. This is sadly mandatory when using [Docker Swarm](https://doc.traefik.io/traefik/providers/docker/#port-detection_1)
+
+{{< alert >}}
+Keep in mind that the middlewares here are just declared as available for further usage in our services, but not applied globally, except for `gzip` that been declared globally to HTTPS entry point above in the static configuration.
+{{< /alert >}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+It's finally time to test all this massive configuration !
+
+Go to the `manager-01`, be sure to have above /etc/traefik/traefik.yml file, and do following commands :
+
+```sh
+# declare the current node manager as main certificates host, required in order to respect above deploy constraint
+export NODE_ID=$(docker info -f '{{.Swarm.NodeID}}')
+docker node update --label-add traefik-public.certificates=true $NODE_ID
+
+# generate your main admin password hash for any admin HTTP basic auth access into specific environment variable
+export HASHED_PASSWORD=$(openssl passwd -apr1 aNyR4nd0mP@ssw0rd)
+
+# deploy our 1st stack and cross the fingers...
+docker stack deploy -c traefik-stack.yml traefik
+
+# check status of the service, it should have 1 replica
+docker service ls
+
+# check logs for detail or any errors
+docker service logs traefik_traefik
+```
+
+After few seconds, Traefik should launch and generate proper SSL certificate for his own domain. You can finally go to <https://traefik.sw.okami101.io>. `http://` should work as well thanks to permanent redirection.
+
+If properly configured, you will be prompted for access. After entering admin as user and your own chosen password, you should finally access to the traefik dashboard !
+
+![Traefik Dashboard](/traefik-dashboard.png)
+
+### Portainer
 
 <https://downloads.portainer.io/portainer-agent-stack.yml>
 
@@ -343,4 +412,16 @@ networks:
 
 volumes:
   portainer_data:
+```
+
+```sh
+# declare the current node manager as main certificates host, required in order to respect above deploy constraint
+export NODE_ID=$(docker info -f '{{.Swarm.NodeID}}')
+docker node update --label-add traefik-public.certificates=true $NODE_ID
+
+# generate your main admin password hash for any admin HTTP basic auth access into specific environment variable
+export HASHED_PASSWORD=$(openssl passwd -apr1 aNyR4nd0mP@ssw0rd)
+
+# deploy our 1st stack and cross the fingers...
+docker stack deploy -c traefik-stack.yml traefik
 ```
