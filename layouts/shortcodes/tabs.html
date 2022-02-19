@@ -1,6 +1,6 @@
-<div x-data="{ openTab: 0 }">
+<div x-data="{ openTab: 0 }" class="mb-4">
 
-    <nav class="flex p-1 space-x-1 bg-blue-900/20 rounded-md">
+    <nav class="flex p-1 space-x-1 bg-blue-900/20 rounded-t-md">
 
         {{ $tabName := .Scratch.Get "tabName" }}
         {{ $tabNameCount := len $tabName }}
@@ -15,7 +15,7 @@
 
     </nav>
 
-    <div class="-mt-4">
+    <div class="px-4 py-1 bg-blue-900/20 rounded-b-md">
 
         {{ .Inner }}
 

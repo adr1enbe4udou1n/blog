@@ -197,16 +197,19 @@ providers:
     defaultRule: Host(`{{ index .Labels "com.docker.stack.namespace" }}.sw.okami101.io`)
     exposedByDefault: false
     swarmMode: true
-    network: traefik-public
+    network: traefik_public
 api: {}
+accessLog: {}
 metrics:
   prometheus: {}
-accessLog: {}
 ```
 
-At first we declare our 3 entry points
+Bellow the explanation of each part :
 
-* **HTTPS (443)** as main Web access, I added a global middleware called `gzip` that will be configured on dynamic configuration for proper compression as well as `le`, aka *Let's encrypt*, as main certificate resolver
+{{< tabs >}}
+{{< tab tabName="entryPoints" >}}
+
+* **HTTPS (443)** as main Web access, I added a global middleware called `gzip` that will be configured on next dynamic configuration for proper compression as well as `le`, aka *Let's encrypt*, as main certificate resolver
 * **HTTP (80)** with automatic permanent HTTPS redirection, so every web service will be assured to be accessed through HTTPS only (and you should)
 * **SSH (22)** for specific advanced case, as give possibility of SSH clone through your main self-hosted Git provider
 
@@ -214,7 +217,36 @@ At first we declare our 3 entry points
 It's important to have your main SSH for terminal operations on different port than 22 as explained on 1st part of this tutorial, as the 22 port will be taken by Traefik.
 {{< /alert >}}
 
-Next the certificate resolver (aka [*Let's encrypt*](https://doc.traefik.io/traefik/https/acme/)) will be configured as simple tlsChallenge. The certificate results of this challenge will be stored on `acme.json` local cache file on the host in order to obviously avoid a certificate regeneration on every Traefik service restart.
+{{< /tab >}}
+{{< tab tabName="certificatesResolvers" >}}
+
+The certificate resolver (aka [*Let's encrypt*](https://doc.traefik.io/traefik/https/acme/)) will be configured with **TLS-ALPN-01** challenge. The certificate results of this challenge will be stored on `acme.json` local cache file on the host in order to obviously avoid a certificate regeneration on every Traefik service restart.
+
+{{< /tab >}}
+{{< tab tabName="providers" >}}
+
+This is the famous source of Traefik dynamic configuration. We only need of Docker as main provider here, but it supports [plenty else](https://doc.traefik.io/traefik/providers/overview/).
+
+It indicates Traefik to read through Docker API in order to discover any new services and apply automatic configurations as well as SSL certificate without any restart. [Docker labels](https://docs.docker.com/config/labels-custom-metadata/) will be used for dynamic configuration.
+
+* `swarmMode` : tell Traefik to uses labels found on services instead of individual containers (case of Docker Standalone mode).
+* `exposedByDefault` : when false, force us to use `traefik.enable=true` as explicit label for automatic docker service discovery
+* `network` : default network connection for all exposed containers
+* `defaultRule` : default rule that will be applied to HTTP routes, in order to redirect particular URL to the right service. Each service container can override this default value with `traefik.http.routers.my-container.rule` label.
+
+As a default route rule, I set here a value adapted for an automatic subdomain discovery. `{{ index .Labels "com.docker.stack.namespace" }}.sw.okami101.io` is a dynamic Go template string that means to use the `com.docker.stack.namespace` label that is applied by default on Docker Swarm on each deployed service. So if I deploy a swarm stack called `myapp`, Traefik will automatically set `myapp.sw.okami101.io` as default domain URL to my service, with automatic TLS challenge !
+
+All I have to do is to add a specific label `traefik.enable=true` inside the Docker service configuration and be sure that it's on the `traefik_public` network.
+
+{{< /tab >}}
+{{< tab tabName="others" >}}
+
+* `api` : enable a nice Traefik dashboard (with dark theme support !) that will be exposed on the local 8080 port by default
+* `accessLog` : show all incoming requests through Docker STDOUT
+* `metrics` : define all metrics to expose or export to a supported service. I will use Prometheus as a default here, it configures Traefik for exposing a new `/metrics` endpoint that will be consumed later by Prometheus
+
+{{< /tab >}}
+{{< /tabs >}}
 
 #### Traefik deployment
 
