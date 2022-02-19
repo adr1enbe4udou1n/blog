@@ -262,7 +262,7 @@ Finally, test your new `swarm` user by using `hcloud server ssh --user swarm --p
 
 Then edit `/etc/hosts` file for each server accordingly in order to add private ips :
 
-{{< tabs tabTotal="3" >}}
+{{< tabs >}}
 {{< tab tabName="manager-01" >}}
 
 ```txt
@@ -352,7 +352,7 @@ How can be sure that any other internal client has no access to our private netw
 
 Create the 2 firewalls as next :
 
-{{< tabs tabTotal="2" >}}
+{{< tabs >}}
 {{< tab tabName="bash" >}}
 
 ```sh
