@@ -146,7 +146,79 @@ You can ask why we use bind mounts directly on the host instead of using more fe
 It's just as I didn't find reliable GlusterFS driver working for Docker. Kubernetes is far more mature in this domain sadly. Please let me know if you know production grade solution for that !
 {{< /alert >}}
 
-### Installing the Traefik 💞 Portainer combo
+## Installing the Traefik - Portainer combo 💞
+
+It's finally time to start our first container services. The minimal setup will be :
+
+* [Traefik](https://doc.traefik.io/traefik/) as main proxy with dynamic services discovery through that Docker API
+* [Portainer](https://www.portainer.io/) as main GUI for docker containers management and deployement
+
+This 2 services will be deployed as docker services on `manager-01`.
+
+### Traefik
+
+The main task of traefik will be to redirect correct URL path to corresponding app service, according to regex rules (which domain or subdomain, which prefix URL path, etc.).
+
+Thankfully, Traefik can be configured to take cares of all SSL certificates generation automatically without any intervention. We will use simple Let's encrypt for this.
+
+#### The static Traefik configuration
+
+Traditionally I should say that Traefik is clearly not really easy to setup for new comers. The essential part to keep in mind is that this reverse proxy has 2 types of configuration, *static* and *dynamic*. [Go here](https://doc.traefik.io/traefik/getting-started/configuration-overview/) for detail explication of difference between these types of configuration.
+
+Here we'll talk about static configuration. Create a YAML file under `/etc/traefik/traefik.yml` with following content (TOML is also supported) :
+
+```yml
+entryPoints:
+  https:
+    address: :443
+    http:
+      middlewares:
+        - gzip
+      tls:
+        certResolver: le
+  http:
+    address: :80
+    http:
+      redirections:
+        entryPoint:
+          to: https
+          scheme: https
+          permanent: true
+  ssh:
+    address: :22
+certificatesResolvers:
+  le:
+    acme:
+      email: admin@sw.okami101.io
+      storage: /certificates/acme.json
+      tlsChallenge: {}
+providers:
+  docker:
+    defaultRule: Host(`{{ index .Labels "com.docker.stack.namespace" }}.sw.okami101.io`)
+    exposedByDefault: false
+    swarmMode: true
+    network: traefik-public
+api: {}
+metrics:
+  prometheus: {}
+accessLog: {}
+```
+
+At first we declare our 3 entry points
+
+* **HTTPS (443)** as main Web access, I added a global middleware called `gzip` that will be configured on dynamic configuration for proper compression as well as `le`, aka *Let's encrypt*, as main certificate resolver
+* **HTTP (80)** with automatic permanent HTTPS redirection, so every web service will be assured to be accessed through HTTPS only (and you should)
+* **SSH (22)** for specific advanced case, as give possibility of SSH clone through your main self-hosted Git provider
+
+{{< alert >}}
+It's important to have your main SSH for terminal operations on different port than 22 as explained on 1st part of this tutorial, as the 22 port will be taken by Traefik.
+{{< /alert >}}
+
+Next the certificate resolver (aka [*Let's encrypt*](https://doc.traefik.io/traefik/https/acme/)) will be configured as simple tlsChallenge. The certificate results of this challenge will be stored on `acme.json` local cache file on the host in order to obviously avoid a certificate regeneration on every Traefik service restart.
+
+#### Traefik deployment
+
+In order to deploy Traefik on our shiny new Docker Swarm, we must write a Docker Swarm deployment file that looks like to a classic Docker compose file. Create a `traefik-stack.yml` file somewhere in your manager server with following content :
 
 ```yml
 version: '3.2'
@@ -156,14 +228,17 @@ services:
     image: traefik:v2.5
     ports:
       - target: 22
-        published: 22
         mode: host
       - target: 80
-        published: 80
         mode: host
       - target: 443
-        published: 443
         mode: host
+    networks:
+      - public
+    volumes:
+      - /etc/traefik:/etc/traefik
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - certificates:/certificates
     deploy:
       placement:
         constraints:
@@ -177,23 +252,22 @@ services:
         - traefik.http.routers.traefik-public-https.service=api@internal
         - traefik.http.routers.traefik-public-https.middlewares=admin-ip,admin-auth
         - traefik.http.services.traefik-public.loadbalancer.server.port=8080
-    volumes:
-      - /etc/traefik:/etc/traefik
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - traefik-public-certificates:/certificates
-    networks:
-      - jaeger_private
-      - traefik-public
 
 networks:
-  jaeger_private:
-    external: true
-  traefik-public:
-    external: true
+  public:
 
 volumes:
-  traefik-public-certificates:
+  certificates:
 ```
+
+You should adapt to your custom needs. Some notes :
+
+* We declare 3 ports for each different entry point, note as I will use [host mode](https://docs.docker.com/network/host/), useful extra performance and getting real IPs from clients.
+* We create a `public` network that will be created with [`overlay driver`](https://docs.docker.com/network/overlay/) (this is by default on swarm). This is the very important part in order to have a dedicated NAT for container services that will be exposed to the internet.
+* 3 volumes
+  * `/etc/traefik` : we'll put our main static required configuration here
+
+The *dynamic* part will be done on `labels` under `deploy` docker compose section.
 
 <https://downloads.portainer.io/portainer-agent-stack.yml>
 
