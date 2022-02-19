@@ -364,13 +364,18 @@ docker service logs traefik_traefik
 
 After few seconds, Traefik should launch and generate proper SSL certificate for his own domain. You can finally go to <https://traefik.sw.okami101.io>. `http://` should work as well thanks to permanent redirection.
 
-If properly configured, you will be prompted for access. After entering admin as user and your own chosen password, you should finally access to the traefik dashboard !
+If properly configured, you will be prompted for access. After entering admin as user and your own chosen password, you should finally access to the traefik dashboard similar to below !
 
 ![Traefik Dashboard](traefik-dashboard.png)
 
 ### Portainer
 
-<https://downloads.portainer.io/portainer-agent-stack.yml>
+The hard part is done, we'll finish this 2nd part by installing Portainer. Portainer is constituted of
+
+* A main GUI that must be exposed through Traefik
+* An agent active for each docker node, realized by the global deployment mode of Docker Swarm. This agent will be responsible for getting all running dockers through API and send them to Portainer manager.
+
+Create `portainer-agent-stack.yml` swarm stack file with follogin content :
 
 ```yml
 version: '3.2'
@@ -385,43 +390,58 @@ services:
       - agent_network
     deploy:
       mode: global
-      placement:
-        constraints: [node.platform.os == linux]
 
   portainer:
     image: portainer/portainer-ce:2.11.1
     command: -H tcp://tasks.agent:9001 --tlsskipverify
-    ports:
-      - "9443:9443"
-      - "9000:9000"
-      - "8000:8000"
     volumes:
-      - portainer_data:/data
+      - /mnt/storage-pool/portainer:/data
     networks:
       - agent_network
+      - traefik_public
     deploy:
-      mode: replicated
-      replicas: 1
       placement:
         constraints: [node.role == manager]
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.portainer.middlewares=admin-ip
+        - traefik.http.services.portainer.loadbalancer.server.port=9000
 
 networks:
   agent_network:
-    driver: overlay
-    attachable: true
-
-volumes:
-  portainer_data:
+  traefik_public:
+    external: true
 ```
+
+This is an adapted file from the official [Portainer Agent Stack](https://downloads.portainer.io/portainer-agent-stack.yml).
+
+We use `agent_network` as overlay network for communication between agents and manager. No need of `admin-auth` middleware here as Portainer has his own authentication.
+
+{{< alert >}}
+Note that `traefik_public` must be set to **external** in order to reuse the original Traefik network.
+{{< /alert >}}
+
+Deploy the portainer stack :
 
 ```sh
-# declare the current node manager as main certificates host, required in order to respect above deploy constraint
-export NODE_ID=$(docker info -f '{{.Swarm.NodeID}}')
-docker node update --label-add traefik-public.certificates=true $NODE_ID
+# create the local storage for portainer in Gluster storage
+sudo mkdir /mnt/storage-pool/portainer
 
-# generate your main admin password hash for any admin HTTP basic auth access into specific environment variable
-export HASHED_PASSWORD=$(openssl passwd -apr1 aNyR4nd0mP@ssw0rd)
+# deploy portainer stack
+docker stack deploy -c portainer-agent-stack.yml portainer
 
-# deploy our 1st stack and cross the fingers...
-docker stack deploy -c traefik-stack.yml traefik
+# check status
+docker service ls
 ```
+
+As soon as the main portainer service has successfully started, Traefik will detect it and configure it with SSL. The specific router for Portainer should appear in Traefik dashboard on HTTP section as below.
+
+![Traefik routers](traefik-routers.png)
+
+It's time to create your admin account through <https://portainer.sw.okami101.io>. If all goes well, aka Portainer agent are accessible from Portainer portal, you should have access to your cluster home environment with 2 stacks active.
+
+![Portainer home](portainer-home.png)
+
+{{< alert >}}
+If you go to the stacks menu, you will note that both `traefik` end `portainer` are *Limited* control, because these stacks were done outside Portainer. We will create and deploy next stacks directly from Portainer GUI.
+{{< /alert >}}
