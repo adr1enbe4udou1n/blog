@@ -366,7 +366,7 @@ After few seconds, Traefik should launch and generate proper SSL certificate for
 
 If properly configured, you will be prompted for access. After entering admin as user and your own chosen password, you should finally access to the traefik dashboard !
 
-![Traefik Dashboard](/traefik-dashboard.png)
+![Traefik Dashboard](traefik-dashboard.png)
 
 ### Portainer
 
