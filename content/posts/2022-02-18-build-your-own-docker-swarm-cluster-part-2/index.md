@@ -456,4 +456,4 @@ If you go to the stacks menu, you will note that both `traefik` and `portainer` 
 
 We've done the minimal viable Swarm setup with a nice cloud native reverse proxy and a containers GUI manager, with a cloud native NFS.
 
-It's time to test all of this in [Part III]({{< ref "/posts/2022-02-20-build-your-own-docker-swarm-cluster-part-3" >}}).
+It's time to test all of this in [Part III]({{< ref "/posts/2022-02-19-build-your-own-docker-swarm-cluster-part-3" >}}).

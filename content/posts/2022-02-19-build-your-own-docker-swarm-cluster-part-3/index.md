@@ -1,6 +1,6 @@
 ---
 title: "Setup a Docker Swarm cluster - Part III"
-date: 2022-02-20
+date: 2022-02-19
 description: "Build an opinionated containerized platform for developer..."
 tags: ["docker", "swarm"]
 slug: build-your-own-docker-swarm-cluster-part-3
@@ -411,4 +411,4 @@ And voilà, it's done, n8n will automatically migrate the database and <https://
 
 We've done the databases part with some more real case app containers samples.
 
-In real world, we should have full monitoring suite, this will be [next part]({{< ref "/posts/2022-02-21-build-your-own-docker-swarm-cluster-part-4" >}}).
+In real world, we should have full monitoring suite, this will be [next part]({{< ref "/posts/2022-02-20-build-your-own-docker-swarm-cluster-part-4" >}}).
