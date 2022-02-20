@@ -74,6 +74,18 @@ Use below section of Portainer for setting all personal environment variable. In
 
 ![Diun Stack](diun-stack.png)
 
+Finally click on **Deploy the stack**, it's equivalent of precedent `docker stack deploy`, nothing magic here. At the difference that Portainer will store the YML inside his volume, allowing full control, contrary to limited Traefik and Portainer cases.
+
+Diun should now be deployed and manager host and ready to scan images for any updates !
+
+You can check the full service page which will allows manual scaling, on-fly volumes mounting, environment variable modification, and show current running tasks (aka containers).
+
+![Diun Service](diun-service.png)
+
+You can check the service logs which consist of all tasks logs aggregate.
+
+![Diun Logs](diun-logs.png)
+
 ## Installation of databases
 
 ### MySQL
