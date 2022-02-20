@@ -72,13 +72,17 @@ my-app-02-02((My App 02))
 end
 subgraph data-01
 storage[/GlusterFS/]
+db1[(MySQL)]
+db2[(PostgreSQL)]
 end
 traefik-->my-app-01-01
 traefik-->my-app-02-01
 traefik-->my-app-01-02
 traefik-->my-app-02-02
-worker-01-- glusterfs bind mount -->data-01
-worker-02-- glusterfs bind mount -->data-01
+worker-01-- glusterfs bind mount -->storage
+worker-02-- glusterfs bind mount -->storage
+my-app-02-01-->db2
+my-app-02-02-->db2
 {{< /mermaid >}}
 
 {{< alert >}}
