@@ -11,7 +11,7 @@ draft: true
 Build your own cheap while powerful self-hosted complete CI/CD solution by following this opinionated guide 🎉
 {{< /lead >}}
 
-This is the **Part II** of more global topic tutorial. [Go to first part]({{< ref "/posts/2022-02-13-build-your-own-docker-swarm-cluster" >}}) before continue.
+This is the **Part II** of more global topic tutorial. [Back to first part]({{< ref "/posts/2022-02-13-build-your-own-docker-swarm-cluster" >}}) to start from beginning.
 
 ## Installation of Docker Swarm
 
@@ -207,9 +207,11 @@ metrics:
 {{< tabs >}}
 {{< tab tabName="entryPoints" >}}
 
-* **HTTPS (443)** as main Web access, I added a global middleware called `gzip` that will be configured on next dynamic configuration for proper compression as well as `le`, aka *Let's encrypt*, as main certificate resolver
-* **HTTP (80)** with automatic permanent HTTPS redirection, so every web service will be assured to be accessed through HTTPS only (and you should)
-* **SSH (22)** for specific advanced case, as give possibility of SSH clone through your main self-hosted Git provider
+| name            | description                                                                                                                                                                                                |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **HTTPS (443)** | Main Web access, I added a global middleware called `gzip` that will be configured on next dynamic configuration for proper compression as well as `le`, aka *Let's encrypt*, as main certificate resolver |
+| **HTTP (80)**   | Automatic permanent HTTPS redirection, so every web service will be assured to be accessed through HTTPS only (and you should)                                                                             |
+| **SSH (22)**    | For specific advanced case, as give possibility of SSH clone through your main self-hosted Git provider                                                                                                    |
 
 {{< alert >}}
 It's important to have your main SSH for terminal operations on different port than 22 as explained on 1st part of this tutorial, as the 22 port will be taken by Traefik.
@@ -227,10 +229,12 @@ This is the famous source of Traefik dynamic configuration. We only need of Dock
 
 It indicates Traefik to read through Docker API in order to discover any new services and apply automatic configurations as well as SSL certificate without any restart. [Docker labels](https://docs.docker.com/config/labels-custom-metadata/) will be used for dynamic configuration.
 
-* `swarmMode` : tell Traefik to uses labels found on services instead of individual containers (case of Docker Standalone mode).
-* `exposedByDefault` : when false, force us to use `traefik.enable=true` as explicit label for automatic docker service discovery
-* `network` : default network connection for all exposed containers
-* `defaultRule` : default rule that will be applied to HTTP routes, in order to redirect particular URL to the right service. Each service container can override this default value with `traefik.http.routers.my-container.rule` label.
+| name               | description                                                                                                                                                                                                             |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `swarmMode`        | Tell Traefik to uses labels found on services instead of individual containers (case of Docker Standalone mode).                                                                                                        |
+| `exposedByDefault` | When false, force us to use `traefik.enable=true` as explicit label for automatic docker service discovery                                                                                                              |
+| `network`          | Default network connection for all exposed containers                                                                                                                                                                   |
+| `defaultRule`      | Default rule that will be applied to HTTP routes, in order to redirect particular URL to the right service. Each service container can override this default value with `traefik.http.routers.my-container.rule` label. |
 
 As a default route rule, I set here a value adapted for an automatic subdomain discovery. `{{ index .Labels "com.docker.stack.namespace" }}.sw.okami101.io` is a dynamic Go template string that means to use the `com.docker.stack.namespace` label that is applied by default on Docker Swarm on each deployed service. So if I deploy a swarm stack called `myapp`, Traefik will automatically set `myapp.sw.okami101.io` as default domain URL to my service, with automatic TLS challenge !
 
@@ -239,9 +243,11 @@ All I have to do is to add a specific label `traefik.enable=true` inside the Doc
 {{< /tab >}}
 {{< tab tabName="others" >}}
 
-* `api` : enable a nice Traefik dashboard (with dark theme support !) that will be exposed on the local 8080 port by default
-* `accessLog` : show all incoming requests through Docker STDOUT
-* `metrics` : define all metrics to expose or export to a supported service. I will use Prometheus as a default here, it configures Traefik for exposing a new `/metrics` endpoint that will be consumed later by Prometheus
+| name        | description                                                                                                                                                                                                    |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `api`       | enable a nice Traefik dashboard (with dark theme support !) that will be exposed on the local 8080 port by default                                                                                             |
+| `accessLog` | show all incoming requests through Docker STDOUT                                                                                                                                                               |
+| `metrics`   | define all metrics to expose or export to a supported service. I will use Prometheus as a default here, it configures Traefik for exposing a new `/metrics` endpoint that will be consumed later by Prometheus |
 
 {{< /tab >}}
 {{< /tabs >}}
@@ -304,9 +310,11 @@ Then we create a `public` network that will be created with [`overlay driver`](h
 
 We'll declare 3 volumes :
 
-* `/etc/traefik` : location where we putted our above static configuration file
-* `/var/run/docker.sock` : Required for allowing Traefik to access to Docker API in order to have automatic dynamic docker configuration working.
-* `certificates` : named docker volume in order to store our acme.json generated file from all TLS challenge by Let's Encrypt.
+| name                   | description                                                                                                            |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `/etc/traefik`         | location where we putted our above static configuration file                                                           |
+| `/var/run/docker.sock` | Required for allowing Traefik to access to Docker API in order to have automatic dynamic docker configuration working. |
+| `certificates`         | named docker volume in order to store our acme.json generated file from all TLS challenge by Let's Encrypt.            |
 
 {{< alert >}}
 Note as we add `node.labels.traefik-public.certificates` inside `deploy.constraints` in order to ensure Traefik will run on the same server where certificates are located every time when Docker Swarm does service convergence.
@@ -319,19 +327,13 @@ This is the Traefik dynamic configuration part. I declare here many service that
 
 `traefik.enable=true` : Tell Traefik to expose himself through the network
 
-##### The middlewares
-
-* `gzip` : provides [basic gzip compression](https://doc.traefik.io/traefik/middlewares/http/compress/). Note as Traefik doesn't support brotli yep, which is pretty disappointed where absolutly all other reverse proxies support it...
-* `admin-auth` : provides basic HTTP authorization. `basicauth.users` will use standard `htpasswd` format. I use `HASHED_PASSWORD` as dynamic environment variable.
-* `admin-ip` : provides IP whitelist protection, given a source range.
-
-##### The routers
-
-* `traefik-public-api` : Configured for proper redirection to internal dashboard Traefik API from `traefik.sw.okami101.io`, which is defined by default rule. It's configured with above `admin-auth` and `admin-ip` for proper protection.
-
-##### The services
-
-* `traefik-public` : allow proper redirection to the default exposed 8080 port of Traefik container. This is sadly mandatory when using [Docker Swarm](https://doc.traefik.io/traefik/providers/docker/#port-detection_1)
+| name                 | type       | description                                                                                                                                                                                                                    |
+| -------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `gzip`               | middleware | provides [basic gzip compression](https://doc.traefik.io/traefik/middlewares/http/compress/). Note as Traefik doesn't support brotli yep, which is pretty disappointed where absolutly all other reverse proxies support it... |
+| `admin-auth`         | middleware | provides basic HTTP authorization. `basicauth.users` will use standard `htpasswd` format. I use `HASHED_PASSWORD` as dynamic environment variable.                                                                             |
+| `admin-ip`           | middleware | provides IP whitelist protection, given a source range.                                                                                                                                                                        |
+| `traefik-public-api` | router     | Configured for proper redirection to internal dashboard Traefik API from `traefik.sw.okami101.io`, which is defined by default rule. It's configured with above `admin-auth` and `admin-ip` for proper protection.             |
+| `traefik-public`     | service    | allow proper redirection to the default exposed 8080 port of Traefik container. This is sadly mandatory when using [Docker Swarm](https://doc.traefik.io/traefik/providers/docker/#port-detection_1)                           |
 
 {{< alert >}}
 Keep in mind that the middlewares here are just declared as available for further usage in our services, but not applied globally, except for `gzip` that been declared globally to HTTPS entry point above in the static configuration.
@@ -443,5 +445,11 @@ It's time to create your admin account through <https://portainer.sw.okami101.io
 ![Portainer home](portainer-home.png)
 
 {{< alert >}}
-If you go to the stacks menu, you will note that both `traefik` end `portainer` are *Limited* control, because these stacks were done outside Portainer. We will create and deploy next stacks directly from Portainer GUI.
+If you go to the stacks menu, you will note that both `traefik` and `portainer` are *Limited* control, because these stacks were done outside Portainer. We will create and deploy next stacks directly from Portainer GUI.
 {{< /alert >}}
+
+## 2st conclusion 🏁
+
+We've done the minimal viable Swarm setup with a nice cloud native reverse proxy and a containers GUI manager, with a cloud native NFS.
+
+It's time to test all of this in [Part III]({{< ref "/posts/2022-02-20-build-your-own-docker-swarm-cluster-part-3" >}}).

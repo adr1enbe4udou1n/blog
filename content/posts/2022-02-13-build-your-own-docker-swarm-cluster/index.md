@@ -66,10 +66,10 @@ Because backup should be taken care from the beginning, I'll show you how to use
 
 ### 3. Testing the cluster ✅
 
-We will use the main portainer GUI in order to install following tools :
+We will use the main Portainer GUI in order to install following tools :
 
-* `pgAdmin` and `phpMyAdmin` as web database managers (optional)
 * [`Diun`](https://crazymax.dev/diun/) (optional), very useful in order to be notified for all used images update inside your Swarm cluster
+* `pgAdmin` and `phpMyAdmin` as web database managers (optional)
 * Some demo containerized samples that will show you how simple is it to install self-hosted web apps thanks to your shiny new cluster as `redmine`, `n8n`
 
 ### 4. Monitoring 📈
@@ -100,10 +100,12 @@ Finally, we'll finish this guide by a simple mini-app development with above CI/
 
 Note as this cluster will be intended for developer user with complete self-hosted CI/CD solution. So for a good cluster architecture starting point, we can imagine the following nodes :
 
-* `manager-01` : The frontal manager node, with proper reverse proxy and some management tools
-* `worker-01` : A worker for your production/staging apps
-* `runner-01` : An additional worker dedicated to CI/CD pipelines execution
-* `data-01` : The critical data node, with attached and resizable volume for better flexibility
+| server       | description                                                                       |
+| ------------ | --------------------------------------------------------------------------------- |
+| `manager-01` | The frontal manager node, with proper reverse proxy and some management tools     |
+| `worker-01`  | A worker for your production/staging apps                                         |
+| `runner-01`  | An additional worker dedicated to CI/CD pipelines execution                       |
+| `data-01`    | The critical data node, with attached and resizable volume for better flexibility |
 
 {{< mermaid >}}
 flowchart TD
@@ -135,10 +137,12 @@ my-app-02 -.-> files
 
 Note as the hostnames correspond to a particular type of server, dedicated for one task specifically. Each type of node can be scale as you wish :
 
-* `manager-0x` For advanced resilient Swarm quorum
-* `worker-0x` : For better scaling production apps, the easiest to set up
-* `runner-0x` : More power for pipeline execution
-* `data-0x` : The hard part for data **HA**, with GlusterFS replications, DB clustering for PostgreSQL and MySQL, etc.
+| replica      | description                                                                                              |
+| ------------ | -------------------------------------------------------------------------------------------------------- |
+| `manager-0x` | For advanced resilient Swarm quorum                                                                      |
+| `worker-0x`  | For better scaling production apps, the easiest to set up                                                |
+| `runner-0x`  | More power for pipeline execution                                                                        |
+| `data-0x`    | The hard part for data **HA**, with GlusterFS replications, DB clustering for PostgreSQL and MySQL, etc. |
 
 {{< alert >}}
 For a simple production cluster, you can start with only `manager-01` and `data-01` as absolutely minimal start.  
@@ -193,6 +197,8 @@ Initiate the project by following this simple steps :
 2. Navigate to security > API tokens
 3. Generate new API key with Read Write permissions and copy the generated token
 
+![Hetzner API Token](hetzner-api-token.png)
+
 Then go to the terminal and prepare the new context
 
 ```sh
@@ -237,6 +243,10 @@ It's time to do the classic minimal boring viable security setup for each server
 ```sh
 # ensure last upgrades
 apt update && apt upgrade -y && reboot
+
+# configure your locales and timezone
+dpkg-reconfigure locales
+dpkg-reconfigure tzdata
 
 # create your default non root and sudoer user (swarm in this sample)
 adduser swarm # enter any strong password at prompt
@@ -420,10 +430,12 @@ Adapt the 4st rule of `firewall-rules.json` accordingly to your own chosen SSH p
 
 You should have now good protection against any unintended external access with only few required ports to your `manager-01` server, aka :
 
-* **2222** : the main SSH port, with IP whitelist
-* **443** : the HTTPS port for Traefik, our main access for all of your web apps
-* **80** : the HTTP port for Traefik, only required for proper HTTPS redirection
-* **22** : the SSH standard port for Traefik, required for proper usage through you main Git provider container as GitLab / Gitea
+| port     | description                                                                                                            |
+| -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **2222** | the main SSH port, with IP whitelist                                                                                   |
+| **443**  | the HTTPS port for Traefik, our main access for all of your web apps                                                   |
+| **80**   | the HTTP port for Traefik, only required for proper HTTPS redirection                                                  |
+| **22**   | the SSH standard port for Traefik, required for proper usage through you main Git provider container as GitLab / Gitea |
 
 ## 1st conclusion 🏁
 
