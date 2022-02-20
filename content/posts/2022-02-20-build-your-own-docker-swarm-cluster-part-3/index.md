@@ -279,3 +279,136 @@ Once logged, you need to add the previously configured PostgreSQL server address
 Save it, and you have now full access to your PostgreSQL DB !
 
 ![pgAdmin](pgadmin.png)
+
+## Further cluster app testing
+
+Let's now test our cluster with 2 app samples. We'll deploy them to the worker node.
+
+### Redmine over MySQL
+
+Redmine is a popular app for ticketing based on Ruby on Rails. With the docker based cluster, no more headache for installing !
+
+We'll be starting by creating the `redmine` DB with dedicated user through above phpMyAdmin. For that simply create a new `redmine` account and always specify `10.0.0.0/8` inside host field. Don'forget to check *Create database with same name and grant all privileges*.
+
+{{< alert >}}
+Use `Native MySQL authentication` as authentication plugin, as Redmine doesn't support sha2 yet.
+{{< /alert >}}
+
+Create dedicated storage folder :
+
+```sh
+sudo mkdir /mnt/storage-pool/redmine
+
+# for config file
+sudo mkdir /mnt/storage-pool/redmine/config
+
+# for files upload
+sudo mkdir /mnt/storage-pool/redmine/files
+
+# for custom plugins
+sudo mkdir /mnt/storage-pool/redmine/plugins
+
+# for any custom themes
+sudo mkdir /mnt/storage-pool/redmine/themes
+
+# save default config locally
+sudo wget https://raw.githubusercontent.com/redmine/redmine/master/config/configuration.yml.example
+-O /mnt/storage-pool/redmine/config/configuration.yml
+
+# generate a random key for REDMINE_SECRET_KEY_BASE
+cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 40 | head -n 1
+```
+
+Next create new following `redmine` stack :
+
+```yml
+version: '3.8'
+
+services:
+  app:
+    image: redmine:4.2
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - ${ROOT_PATH}/config/configuration.yml:/usr/src/redmine/config/configuration.yml
+      - ${ROOT_PATH}/files:/usr/src/redmine/files
+      - ${ROOT_PATH}/plugins:/usr/src/redmine/plugins
+      - ${ROOT_PATH}/themes:/usr/src/redmine/public/themes
+    environment:
+      REDMINE_DB_MYSQL:
+      REDMINE_DB_DATABASE:
+      REDMINE_DB_USERNAME:
+      REDMINE_DB_PASSWORD:
+      REDMINE_SECRET_KEY_BASE:
+    networks:
+      - traefik_public
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.services.redmine.loadbalancer.server.port=3000
+      placement:
+        constraints:
+          - node.role == worker
+
+networks:
+  traefik_public:
+    external: true
+```
+
+Configure `REDMINE_DB_*` with proper above created DB credential and set the random key to `REDMINE_SECRET_KEY_BASE`.
+
+{{< alert >}}
+I use a dynamic `ROOT_PATH` here. So you must add this variable with `/mnt/storage-pool/redmine` value in the below *Environment variables* section of portainer.
+{{< /alert >}}
+
+After few seconds, <https://redmine.sw.okami101.io> should be accessible and ready to use, use admin / admin for admin connection !
+
+![Redmine](redmine.png)
+
+### N8N over PostgreSQL
+
+N8N is a popular No Code tool which can be self-hosted. Lets quick and done install with PostgreSQL.
+
+First connect to pgAdmin and create new n8n user and database. Don't forget *Can login?* in *Privileges* tab, and set n8n as owner on database creation.
+
+Create storage folder with `sudo mkdir /mnt/storage-pool/n8n` and create new following stack :
+
+```yml
+version: "3"
+
+services:
+  app:
+    image: n8nio/n8n
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /mnt/storage-pool/n8n:/home/node/.n8n
+    environment:
+      DB_TYPE:
+      DB_POSTGRESDB_DATABASE:
+      DB_POSTGRESDB_HOST:
+      DB_POSTGRESDB_USER:
+      DB_POSTGRESDB_PASSWORD:
+    networks:
+      - traefik_public
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.services.n8n.loadbalancer.server.port=5678
+        - traefik.http.routers.n8n.middlewares=admin-auth
+      placement:
+        constraints:
+          - node.role == worker
+
+networks:
+  traefik_public:
+    external: true
+```
+
+And voilà, it's done, n8n will automatically migrate the database and <https://n8n.sw.okami101.io> should be soon accessible. Note as we use `admin-auth` middleware because n8n doesn't offer authentication. Use the same Traefik credentials.
+
+![n8n](n8n.png)
+
+## 3st conclusion 🏁
+
+We've done the databases part with some more real case app containers samples.
+
+In real world, we should have full monitoring suite, this will be [next part]({{< ref "/posts/2022-02-21-build-your-own-docker-swarm-cluster-part-4" >}}).
