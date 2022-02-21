@@ -1,9 +1,8 @@
 ---
-title: "Setup a Docker Swarm cluster - Databases - Part III"
-date: 2022-02-19
+title: "Setup a Docker Swarm cluster Part IV - DB & backups"
+date: 2022-02-18
 description: "Build an opinionated containerized platform for developer..."
 tags: ["docker", "swarm"]
-slug: build-your-own-docker-swarm-cluster-part-3
 draft: true
 ---
 
@@ -11,88 +10,15 @@ draft: true
 Build your own cheap while powerful self-hosted complete CI/CD solution by following this opinionated guide 🎉
 {{< /lead >}}
 
-This is the **Part III** of more global topic tutorial. [Back to first part]({{< ref "/posts/2022-02-13-build-your-own-docker-swarm-cluster" >}}) to start from beginning.
-
-## Keep the containers image up-to-date
-
-It's finally time to test our new cluster environment by testing some images through the Portainer GUI. We'll start by installing [`Diun`](https://crazymax.dev/diun/), a nice tool for keeping our images up-to-date.
-
-Create a new `diun` stack through Portainer and set following content :
-
-```yml
-version: "3.2"
-
-services:
-  diun:
-    image: crazymax/diun:latest
-    command: serve
-    volumes:
-      - /mnt/storage-pool/diun:/data
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      TZ: Europe/Paris
-      DIUN_WATCH_SCHEDULE: 0 */6 * * *
-      DIUN_PROVIDERS_SWARM: 'true'
-      DIUN_PROVIDERS_SWARM_WATCHBYDEFAULT: 'true'
-      DIUN_NOTIF_MAIL_HOST:
-      DIUN_NOTIF_MAIL_PORT:
-      DIUN_NOTIF_MAIL_USERNAME:
-      DIUN_NOTIF_MAIL_PASSWORD:
-      DIUN_NOTIF_MAIL_FROM:
-      DIUN_NOTIF_MAIL_TO:
-    deploy:
-      placement:
-        constraints:
-          - node.role == manager
-```
-
-{{< tabs >}}
-{{< tab tabName="volumes" >}}
-
-| name                     | description                                                                                                                                                                                                                                                 |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/mnt/storage-pool/diun` | It will be used for storage of Diun db location, Diun need it for storing detection of new images version and avoid notification spams. **Don't forget** to create a new dedicated folder in the GlusterFS volume with `sudo mkdir /mnt/storage-pool/diun`. |
-| `/var/run/docker.sock`   | For proper current docker images used detection through Docker API                                                                                                                                                                                          |
-
-{{< /tab >}}
-{{< tab tabName="environment" >}}
-
-| name                                  | description                                                                           |
-| ------------------------------------- | ------------------------------------------------------------------------------------- |
-| `TZ`                                  | Required for proper timezone schedule                                                 |
-| `DIUN_WATCH_SCHEDULE`                 | The standard linux cron schedule                                                      |
-| `DIUN_PROVIDERS_SWARM`                | Required for detecting all containers on all nodes                                    |
-| `DIUN_PROVIDERS_SWARM_WATCHBYDEFAULT` | If `true`, no need of explicit docker label everywhere                                |
-| `DIUN_NOTIF_MAIL_*`                   | Set all according to your own mail provider, or use any other supported notification. |
-
-{{< alert >}}
-Use below section of Portainer for setting all personal environment variable. In all cases, all used environment variables must be declared inside YML.
-{{< /alert >}}
-
-{{< /tab >}}
-{{< /tabs >}}
-
-![Diun Stack](diun-stack.png)
-
-Finally click on **Deploy the stack**, it's equivalent of precedent `docker stack deploy`, nothing magic here. At the difference that Portainer will store the YML inside his volume, allowing full control, contrary to limited Traefik and Portainer cases.
-
-Diun should now be deployed and manager host and ready to scan images for any updates !
-
-You can check the full service page which will allows manual scaling, on-fly volumes mounting, environment variable modification, and show current running tasks (aka containers).
-
-![Diun Service](diun-service.png)
-
-You can check the service logs which consist of all tasks logs aggregate.
-
-![Diun Logs](diun-logs.png)
+This is the **Part IV** of more global topic tutorial. [Back to first part]({{< ref "/posts/02-build-your-own-docker-swarm-cluster" >}}) to start from beginning.
 
 ## Installation of databases
 
 It's finally time to install some RDBS. The most commons are *MySQL* and *PostgreSQL*. I advise the last one nowadays, but I'll show you how to install both, web GUI managers included. Choose the best suited DB for your own needs.
 
-We'll install this DB obviously on `data-01` as shown in [previous part II schema]({{< ref "/posts/2022-02-18-build-your-own-docker-swarm-cluster-part-2#network-file-system" >}}).
+We'll install this DB obviously on `data-01` as shown in [previous part II schema]({{< ref "/posts/03-build-your-own-docker-swarm-cluster-part-2#network-file-system" >}}).
 
-### MySQL 8
+### MySQL 8 🐬
 
 ```sh
 # on ubuntu 20.04, it's just as simple as next
@@ -174,7 +100,7 @@ Deploy it, and you should access to <https://phpmyadmin.sw.okami101.io> after fe
 
 ![phpMyAdmin](phpmyadmin.png)
 
-### PostgreSQL 14
+### PostgreSQL 14 🐘
 
 ```sh
 sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
@@ -407,8 +333,123 @@ And voilà, it's done, n8n will automatically migrate the database and <https://
 
 ![n8n](n8n.png)
 
-## 3st conclusion 🏁
+## Data backup 💾
+
+Because backup should be taken care from the beginning, I'll show you how to use `Restic` for simple backups to external S3 compatible bucket. We must firstly take care about databases dumps.
+
+### Database dumps
+
+Provided scripts will dump a dedicated file for each database. Fill free to adapt to your own needs.
+
+{{< tabs >}}
+{{< tab tabName="MySQL" >}}
+
+Create executable script at /usr/local/bin/backup-mysql
+
+```sh
+#!/bin/bash
+
+target=/var/backups/mysql
+mkdir -p $target
+rm -f $target/*.sql.gz
+
+databases=`mysql -Be 'show databases' | egrep -v 'Database|information_schema|performance_schema|sys'`
+
+for db in $databases; do
+  mysqldump --force $db | gzip > $target/$db.sql.gz
+done;
+```
+
+Then add `0 * * * * /usr/local/bin/backup-mysql` to system cron `/etc/crontab` for dumping every hour.
+
+{{< /tab >}}
+{{< tab tabName="PostgreSQL" >}}
+
+Create executable script at /usr/local/bin/backup-postgresql
+
+```sh
+#!/bin/bash
+
+target=/var/lib/postgresql/backups
+mkdir -p $target
+rm -f $target/*.gz
+
+databases=`psql -q -A -t -c 'SELECT datname FROM pg_database' | egrep -v 'template0|template1'`
+
+for db in $databases; do
+  pg_dump $db | gzip > $target/$db.gz
+done;
+
+pg_dumpall --roles-only | gzip > $target/roles.gz
+```
+
+> Use it via `crontab -e` as postgres user.
+> `0 * * * * /usr/local/bin/backup-postgresql`
+
+Then add `0 * * * * /usr/local/bin/backup-postgresql` to postgres cron for dumping every hour. To access postgres cron, do `sudo su postgres` and `crontab -e`.
+
+{{< /tab >}}
+{{< /tabs >}}
+
+{{< alert >}}
+This scripts doesn't provide rotation of dumps, as the next incremental backup will be sufficient.
+{{< /alert >}}
+
+### Incremental backup with Restic
+
+```sh
+wget https://github.com/restic/restic/releases/download/v0.12.1/restic_0.12.1_linux_amd64.bz2
+bzip2 -d restic_0.12.1_linux_amd64.bz2
+chmod +x restic_0.12.1_linux_amd64
+sudo mv restic_0.12.1_linux_amd64 /usr/local/bin/restic
+restic self-update
+sudo restic generate --bash-completion /etc/bash_completion.d/restic
+```
+
+Some config files :
+
+{{< tabs >}}
+{{< tab tabName="~/.restic-env" >}}
+
+Replace next environment variables with your own S3 configuration.
+
+```sh
+export AWS_ACCESS_KEY_ID="your-access-key"
+export AWS_SECRET_ACCESS_KEY="your-secret-key"
+export RESTIC_REPOSITORY="s3:server-url/bucket-name/backup"
+export RESTIC_PASSWORD="a-strong-password"
+```
+
+{{< /tab >}}
+{{< tab tabName="/etc/restic/excludes.txt" >}}
+
+Here some typical folders to exclude from backup.
+
+```txt
+.glusterfs
+node_modules
+```
+
+{{< /tab >}}
+{{< /tabs >}}
+
+1. Add `. ~/.restic-env` to `.profile`
+2. Reload profile with `source ~/.profile`
+3. Create a repository with `restic init` (if using rclone instead above keys)
+4. Add following cron for backup every hour at 42min :
+
+```txt
+42 * * * * . ~/.restic-env; /usr/local/bin/restic backup -q /mnt/HC_Volume_xxxxxxxx/gluster-storage /var/backups/mysql /var/lib/postgresql/backups --exclude-file=/etc/restic/excludes.txt; /usr/local/bin/restic forget -q --prune --keep-hourly 24 --keep-daily 7 --keep-weekly 4 --keep-monthly 3
+```
+
+You now have full and incremental backup of GlusterFS volume and dump databases !
+
+{{< alert >}}
+Always testing the restoration !
+{{< /alert >}}
+
+## 3rd check ✅
 
 We've done the databases part with some more real case app containers samples.
 
-In real world, we should have full monitoring suite, this will be [next part]({{< ref "/posts/2022-02-20-build-your-own-docker-swarm-cluster-part-4" >}}).
+In real world, we should have full monitoring suite, this will be [next part]({{< ref "/posts/05-build-your-own-docker-swarm-cluster-part-4" >}}).

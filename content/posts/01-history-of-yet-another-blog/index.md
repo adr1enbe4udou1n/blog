@@ -3,7 +3,6 @@ title: "History of yet another blog"
 date: 2021-12-23
 description: "Now I can say I finally have a blog..."
 tags: ["hugo", "docker", "drone"]
-slug: history-of-yet-another-blog
 ---
 
 {{< lead >}}

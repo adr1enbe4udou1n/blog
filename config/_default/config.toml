@@ -27,3 +27,6 @@ links = [
   { linkedin = "https://linkedin.com/in/adr1enbe4udou1n" },
   { twitter = "https://twitter.com/adr1enbe4udou1n" },
 ]
+
+[permalinks]
+posts = "/:year/:month/:title/"
