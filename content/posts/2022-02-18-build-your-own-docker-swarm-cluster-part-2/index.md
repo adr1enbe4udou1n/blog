@@ -1,5 +1,5 @@
 ---
-title: "Setup a Docker Swarm cluster - Part II"
+title: "Setup a Docker Swarm cluster - Install - Part II"
 date: 2022-02-18
 description: "Build an opinionated containerized platform for developer..."
 tags: ["docker", "swarm"]
