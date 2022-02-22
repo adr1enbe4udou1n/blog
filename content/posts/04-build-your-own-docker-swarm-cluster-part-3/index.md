@@ -449,6 +449,17 @@ It's time to create your admin account through <https://portainer.sw.okami101.io
 If you go to the stacks menu, you will note that both `traefik` and `portainer` are *Limited* control, because these stacks were done outside Portainer. We will create and deploy next stacks directly from Portainer GUI.
 {{< /alert >}}
 
+## CLI tools
+
+[`ctop`](https://github.com/bcicen/ctop) is a very useful CLI tools that works like `htop` but dedicated for docker containers. Install it on every docker hosts :
+
+```sh
+echo "deb http://packages.azlux.fr/debian/ buster main" | sudo tee /etc/apt/sources.list.d/azlux.list
+wget -qO - https://azlux.fr/repo.gpg.key | sudo apt-key add -
+sudo apt update
+sudo apt install -y docker-ctop
+```
+
 ## Keep the containers image up-to-date ⬆️
 
 It's finally time to test our new cluster environment by testing some images through the Portainer GUI. We'll start by installing [`Diun`](https://crazymax.dev/diun/), a very useful tool which notify us when used docker images has available update in his Docker registry.
