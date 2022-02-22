@@ -50,6 +50,7 @@ For all data critical part, I choose to use **1 dedicated VPS**. We will install
 * `GlusterFS` as network filesystem, configured for cluster nodes
 * `PostgreSQL` as main production database
 * `MySQL` as additional secondary database (optional)
+* `Redis` as fast database cache (optional)
 * S3 Backup with `Restic`
 
 Note as I will not set up this for **HA** (High Availability) here, as it's a complete another topic. So this data node will be our **SPF** (Single Point of Failure) with only one file system and DB.

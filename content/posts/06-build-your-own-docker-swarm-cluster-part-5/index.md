@@ -112,15 +112,194 @@ In *Status > Targets*, you should have 2 endpoints enabled, which correspond to 
 
 ![Prometheus targets](prometheus-targets.png)
 
-### Nodes & Containers metrics with cAdvisor & Node exporter
+### Get cluster metrics
+
+We have the monitor brain, new it's time to have some more relevant metrics data from all containers as well as docker nodes. It's doable thanks to exporters :
+
+* `cAdvisor` from Google which scrape metrics of all running containers
+* `Node exporter` for more global cluster evaluation
+
+Before edit above stack, we need to make a specific docker entrypoint for node exporter that will help us to fetch the original hostname of the docker host machine name. This is because we run node exporter as docker container, which have no clue of docker hostname.
+
+Besides this node exporter (like cAdvisor) work as an agent which must be deployed in *global* mode. In order to avoid have a file to put on each host, we'll use the *config* docker feature availabe in swarm mode.
+
+Go to *Configs* menu inside Portainer and add a `node_exporter_entrypoint` config file with next content :
+
+```sh
+#!/bin/sh -e
+
+NODE_NAME=$(cat /etc/nodename)
+echo "node_meta{node_id=\"$NODE_ID\", container_label_com_docker_swarm_node_id=\"$NODE_ID\", node_name=\"$NODE_NAME\"} 1" > /home/node-meta.prom
+
+set -- /bin/node_exporter "$@"
+
+exec "$@"
+```
+
+It will take the node hostname and create an exploitable data metric for prometheus.
+
+Next we'll edit our `prometheus` stack by expanding YML config with next 2 additional services :
+
+```yml
+#...
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.39.3
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - private
+    command:
+      - --docker_only
+      - --housekeeping_interval=5s
+      - --disable_metrics=disk,diskIO,tcp,udp,percpu,sched,process
+    deploy:
+      mode: global
+
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    environment:
+      - NODE_ID={{.Node.ID}}
+    networks:
+      - private
+    volumes:
+      - /:/host:ro,rslave
+      - /etc/hostname:/etc/nodename
+    command:
+      - --collector.textfile.directory=/home
+    configs:
+      - source: node_exporter_entrypoint
+        target: /docker-entrypoint.sh
+    entrypoint:
+      - /bin/sh
+      - /docker-entrypoint.sh
+    deploy:
+      mode: global
+#...
+
+# Don't forget to add this lines in the end !
+configs:
+  node_exporter_entrypoint:
+    external: true
+```
+
+Finally, add the 2 next jobs on `/etc/prometheus/prometheus.yml` :
+
+```yml
+#...
+  - job_name: "cadvisor"
+    dns_sd_configs:
+      - names:
+          - "tasks.cadvisor"
+        type: "A"
+        port: 8080
+
+  - job_name: "node-exporter"
+    dns_sd_configs:
+      - names:
+          - "tasks.node-exporter"
+        type: "A"
+        port: 9100
+#...
+```
+
+The `tasks.*` is a specific DNS from specific to Docker Swarm which allows multiple communication at once when using *global* mode, similarly as `tcp://tasks.agent:9001` for Portainer.
+
+You need to restart Prometheus service in order to apply above config.
+
+Go back to the Prometheus targets UI in order to confirm the apparition of 2 new targets.
+
+![Prometheus targets all](prometheus-targets-all.png)
+
+Confirm you fetch the `node_meta` metric with proper hostnames :
+
+![Prometheus targets all](prometheus-node-meta.png)
 
 ## Visualization with Grafana 📈
 
+Okay so now we have plenty metrics from our cluster and containers, but Prometheus UI Graph is a bit rude to use. It's time to go to the next level.
+
+### Redis
+
+Before install Grafana, let's quickly install a powerful key-value database cache on `data-01` :
+
+```sh
+sudo add-apt-repository ppa:redislabs/redis
+sudo apt install -y redis-server
+sudo systemctl enable redis-server.service
+```
+
 ### Grafana install 💽
+
+As always, it's just a Swarm stack to deploy ! Like [N8N]({{< ref "/posts/05-build-your-own-docker-swarm-cluster-part-4#n8n-over-postgresql" >}}), we'll use a proper real production database and production cache.
+
+First connect to pgAdmin and create new grafana user and database. Don't forget *Can login?* in *Privileges* tab, and set grafana as owner on database creation.
+
+Create storage folder with :
+
+```sh
+sudo mkdir /mnt/storage-pool/grafana
+sudo chown -R 472:472 /mnt/storage-pool/grafana
+```
+
+Next create new following `grafana` stack :
+
+```yml
+version: '3.7'
+
+services:
+  grafana:
+    image: grafana/grafana:8.4.1
+    environment:
+      GF_SERVER_DOMAIN: grafana.sw.okami101.io
+      GF_SERVER_ROOT_URL: https://grafana.sw.okami101.io
+      GF_DATABASE_TYPE: postgres
+      GF_DATABASE_HOST: data-01:5432
+      GF_DATABASE_NAME: grafana
+      GF_DATABASE_USER: grafana
+      GF_DATABASE_PASSWORD:
+      GF_REMOTE_CACHE_TYPE: redis
+      GF_REMOTE_CACHE_CONNSTR: addr=data-01:6379,pool_size=100,db=0,ssl=false
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /mnt/storage-pool/grafana:/var/lib/grafana
+    networks:
+      - traefik_public
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.grafana.middlewares=admin-ip
+        - traefik.http.services.grafana.loadbalancer.server.port=3000
+      placement:
+        constraints:
+          - node.role == manager
+
+networks:
+  traefik_public:
+    external: true
+```
+
+Set proper `GF_DATABASE_PASSWORD` and deploy. Database migration should be automatic (don't hesitate to check inside pgAdmin). Go to <https://grafana.sw.okami101.io> and login as admin / admin.
+
+![Grafana home](grafana-home.png)
 
 ### Docker Swarm dashboard
 
+For best show-case scenario of Grafana, let's import an [existing dashboard](https://grafana.com/grafana/dashboards/11939) suited for complete Swarm monitor overview.
+
+First we need to add Prometheus as main metrics data source. Go to *Configuration > Data source* menu and click on *Add data source*. Select Prometheus and set the internal docker prometheus URL, which should be `http://prometheus:9090`.
+
+Then go to *Create > Import*, load `11939` as dashboard ID, and select Prometheus source and woha!
+
+![Grafana home](grafana-docker-swarm-dashboard.png)
+
+The *Available Disk Space* metrics card should indicate N/A because not properly configured for Hetzner disks. Just edit the card and change the PromQL inside *Metrics browser* field by replacing `device="rootfs", mountpoint="/"` by `device="/dev/sda1", mountpoint="/host"`.
+
 ## External node, MySQL and PostgreSQL exports
+
+We have done.
 
 ### Grafana dashboards for data
 
