@@ -430,4 +430,4 @@ Nothing more to do !
 
 We've done all the monitoring part with installation of DB times series, exports and UI visualization.
 
-We have all the metrics part. What about logging and tracing, which are an other essential aspects for perfect production analyzing and debugging. We'll see that in the [next part]({{< ref "/posts/07-build-your-own-docker-swarm-cluster-part-6" >}}).
+What about logging and tracing, which are another essential aspects for production analyzing and debugging. We'll see that in the [next part]({{< ref "/posts/07-build-your-own-docker-swarm-cluster-part-6" >}}).
