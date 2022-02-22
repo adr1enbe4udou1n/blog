@@ -299,9 +299,132 @@ The *Available Disk Space* metrics card should indicate N/A because not properly
 
 ## External node, MySQL and PostgreSQL exports
 
-We have done.
+We have done for the cluster metrics part but what about the external `data-01` host and databases ? Just more exporters of course !
+
+### Node exporter for data
+
+For node exporter, we have no other choice to install it locally as a service binary, so we must go through old fashion install.
+
+```sh
+wget https://github.com/prometheus/node_exporter/releases/download/v1.3.1/node_exporter-1.3.1.linux-amd64.tar.gz
+tar xzf node_exporter-1.3.1.linux-amd64.tar.gz
+rm node_exporter-1.3.1.linux-amd64.tar.gz
+sudo mv node_exporter-1.3.1.linux-amd64/node_exporter /usr/local/bin/
+rm -r node_exporter-1.3.1.linux-amd64/
+```
+
+Create a new systemd file service `/etc/systemd/system/node-exporter.service` :
+
+```conf
+[Unit]
+Description=Node Exporter
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/node_exporter
+
+[Install]
+WantedBy=default.target
+```
+
+Then enable the service and check status :
+
+```sh
+sudo systemctl enable node-exporter.service
+sudo systemctl start node-exporter.service
+sudo systemctl status node-exporter.service
+```
+
+### Exporter for databases
+
+For MySQL, we need to create a specific `exporter` user. Do `sudo mysql` and execute following SQL (replace *** by your password) :
+
+```sql
+CREATE USER 'exporter'@'10.0.0.0/8' IDENTIFIED BY '***' WITH MAX_USER_CONNECTIONS 3;
+GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'exporter'@'10.0.0.0/8';
+```
+
+Then we just have to expand the above `prometheus` stack description with 2 new exporter services, one for MySQL, and other for PostgreSQL :
+
+```yml
+#...
+  mysql-exporter:
+    image: prom/mysqld-exporter
+    environment:
+      DATA_SOURCE_NAME: exporter:${MYSQL_PASSWORD}@(data-01:3306)/
+    networks:
+      - private
+    volumes:
+      - /etc/hosts:/etc/hosts
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter
+    environment:
+      DATA_SOURCE_URI: data-01:5432/postgres?sslmode=disable
+      DATA_SOURCE_USER: swarm
+      DATA_SOURCE_PASS: ${POSTGRES_PASSWORD}
+    networks:
+      - private
+    volumes:
+      - /etc/hosts:/etc/hosts
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+#...
+```
+
+Set proper `MYSQL_PASSWORD` and `POSTGRES_PASSWORD` environment variables and deploy the stack. Be sure that the 2 new services have started.
+
+### Configure Prometheus
+
+Expand the prometheus config with 3 new jobs :
+
+```yml
+  - job_name: "node-exporter-data-01"
+    static_configs:
+      - targets: ["data-01:9100"]
+
+  - job_name: "mysql-exporter-data-01"
+    static_configs:
+      - targets: ["mysql-exporter:9104"]
+
+  - job_name: "postgres-exporter-data-01"
+    static_configs:
+      - targets: ["postgres-exporter:9187"]
+```
+
+Then restart Prometheus service and go back to targets to check you have all new `data-01` endpoints.
+
+![Prometheus targets data](prometheus-targets-data.png)
 
 ### Grafana dashboards for data
+
+Now it's time to end this by some new optimized dashboards for data metrics !
+
+It's simple just import the next dashboards, with Prometheus as data source, same as previous for Docker Swarm dashboard :
+
+* `1860` : For Node exporter
+* `7362` : For MySQL exporter
+* `9628` : For PostgreSQL exporter
+
+Nothing more to do !
+
+#### Node Dashboard
+
+![Prometheus targets data](grafana-node-exporter.png)
+
+#### MySQL Dashboard
+
+![Prometheus targets data](grafana-mysql-exporter.png)
+
+#### PostgreSQL Dashboard
+
+![Prometheus targets data](grafana-postgres-exporter.png)
 
 ## 4th check ✅
 
