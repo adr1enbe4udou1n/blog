@@ -136,6 +136,8 @@ set -- /bin/node_exporter "$@"
 exec "$@"
 ```
 
+![Portainer configs](portainer-configs.png)
+
 It will take the node hostname and create an exploitable data metric for prometheus.
 
 Next we'll edit our `prometheus` stack by expanding YML config with next 2 additional services :
@@ -430,4 +432,4 @@ Nothing more to do !
 
 We've done all the monitoring part with installation of DB times series, exports and UI visualization.
 
-What about logging and tracing, which are another essential aspects for production analyzing and debugging. We'll see that in the [next part]({{< ref "/posts/07-build-your-own-docker-swarm-cluster-part-6" >}}).
+What about logging and tracing, which are another essential aspects for production analyzing and debugging ? We'll see that in the [next part]({{< ref "/posts/07-build-your-own-docker-swarm-cluster-part-6" >}}).
