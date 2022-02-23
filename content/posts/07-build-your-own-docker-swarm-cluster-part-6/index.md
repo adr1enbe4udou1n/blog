@@ -217,6 +217,133 @@ After this primary testing, let's use the power of Grafana with variables :
 
 ## Tracing with Jaeger 🔍
 
+For further advanced development or any complex troubleshoot analysis, notably in a performance point of view, a tracing tool can be a real capital gain. It really helps for getting a high detail level of all code execution stacks, with granular time execution for each function call, like an SQL query executed from a backend stack, etc.
+
+We'll not discuss development side here, as it's a subject that will be treated in next part. But we'll use Traefik as a perfect integration example.
+
+It's important to use a really efficient asynchronous tool for this task as it will receive potentially a huge amount of calls. A popular tracing tool nowadays is Jaeger, which is CNCF compliant. Jaeger is a flexible tool made of multiple little services that serves specific task.
+
+### Elasticsearch for Jaeger
+
+Elasticsearch is the recommended production choice for trace storage. I don't really like it because it can be pretty heavy to manage. But it should be okay for our usage with our 4 GB `data-01`, even with both MySQL and PostgreSQL (when minimal/personal usage...).
+
+Let's install it on `data-01` :
+
+```sh
+wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+sudo apt-get install apt-transport-https
+echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" | sudo tee /etc/apt/sources.list.d/elastic-7.x.list
+sudo apt-get update && sudo apt-get install elasticsearch
+```
+
+{{< alert >}}
+Jaeger is not yet compatible with Elasticsearch 8...
+{{< /alert >}}
+
+Then allow remote network access add docker hosts by editing `/etc/elasticsearch/elasticsearch.yml` :
+
+```yml
+#...
+network.host: 0.0.0.0
+#...
+discovery.seed_hosts: ["manager-01", "worker-01", "runner-01"]
+#...
+```
+
+Before starting, let's calm down Java legendary memory consumption by creating `/etc/elasticsearch/jvm.options.d/hs.options` with following content :
+
+```conf
+-Xms512m
+-Xmx512m
+```
+
+Then start the service :
+
+```sh
+sudo /bin/systemctl daemon-reload
+sudo /bin/systemctl enable elasticsearch.service
+sudo systemctl start elasticsearch.service
+```
+
+Be sure that Elasticsearch is correctly responding from docker nodes by doing `curl http://data-01:9200`.
+
+As a bonus, expand above `/etc/loki/promtail-local-config.yaml` by adding a new job :
+
+```yml
+#...
+        - labels:
+          job: elasticsearch-logs
+          host: data-01
+          __path__: /var/log/elasticsearch/*log
+#...
+```
+
+Restart Promtail with `sudo service promtail restart`.
+
+### Jaeger cluster installation
+
+It's just a new `jaeger` docker stack to deploy :
+
+```yml
+version: '3.8'
+
+services:
+  collector:
+    image: jaegertracing/jaeger-collector:1.31
+    volumes:
+      - /etc/hosts:/etc/hosts
+    networks:
+      - private
+    environment:
+      SPAN_STORAGE_TYPE: elasticsearch
+      ES_SERVER_URLS: http://data-01:9200
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+  agent:
+    image: jaegertracing/jaeger-agent:1.31
+    networks:
+      - private
+    command: --reporter.grpc.host-port=collector:14250
+    deploy:
+      mode: global
+
+  query:
+    image: jaegertracing/jaeger-query:1.31
+    volumes:
+      - /etc/hosts:/etc/hosts
+    networks:
+      - traefik_public
+    environment:
+      SPAN_STORAGE_TYPE: elasticsearch
+      ES_SERVER_URLS: http://data-01:9200
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.jaeger.middlewares=admin-auth
+        - traefik.http.services.jaeger.loadbalancer.server.port=16686
+      placement:
+        constraints:
+          - node.role == manager
+
+networks:
+  private:
+  traefik_public:
+    external: true
+```
+
+| name        | description                                                                                                                                                              |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `collector` | acts as a simple GRPC endpoint for saving all traces in particular span storage, as Elasticsearch.                                                                       |
+| `agent`     | a simple REST endpoint for receiving traces, the latter being forwarded to the collector. An agent should be proper to a machine host, similarly as the portainer agent. |
+| `query`     | a simple UI that connects to the span storage and allows simple visualization.                                                                                           |
+
+After few seconds, go to <https://jaeger.sw.okami101.io> and enter Traefik credentials. You will land to Jaeger Query UI with empty data.
+
+It's time to inject some trace data. Be sure all above Jaeger services are started through Portainer before continue.
+
 ### Traefik integration
 
 ## 5th check ✅
