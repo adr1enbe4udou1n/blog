@@ -293,6 +293,8 @@ For best show-case scenario of Grafana, let's import an [existing dashboard](htt
 
 First we need to add Prometheus as main metrics data source. Go to *Configuration > Data source* menu and click on *Add data source*. Select Prometheus and set the internal docker prometheus URL, which should be `http://prometheus:9090`.
 
+![Grafana prometheus datasource](grafana-prometheus-datasource.png)
+
 Then go to *Create > Import*, load `11939` as dashboard ID, and select Prometheus source and woha!
 
 ![Grafana home](grafana-docker-swarm-dashboard.png)
