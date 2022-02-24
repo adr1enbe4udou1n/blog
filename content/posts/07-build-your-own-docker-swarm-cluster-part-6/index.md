@@ -346,8 +346,50 @@ It's time to inject some trace data. Be sure all above Jaeger services are start
 
 ### Traefik integration
 
+Edit `/etc/traefik/traefik.yml` and add following `tracing` option :
+
+```yml
+#...
+tracing:
+  jaeger:
+    samplingServerURL: http://tasks.jaeger_agent:5778/sampling
+    localAgentHostPort: tasks.jaeger_agent:6831
+#...
+```
+
+Then edit original `traefik-stack.yml` file and add `traefik` service into `jaeger` network.
+
+```yml
+version: '3.2'
+
+services:
+  traefik:
+    #...
+    networks:
+      - public
+      - jaeger_private
+    #...
+#...
+networks:
+  public:
+  jaeger_private:
+    external: true
+```
+
+Then redeploy the stack by `docker stack deploy -c traefik-stack.yml traefik`. You'll probably need to reexport the `HASHED_PASSWORD` variable environment.
+
+Go back to Traefik dashboard and ensure Jaeger is enabled in *Features* section. Traefik should now correctly send traces to Jaeger agent.
+
+Go back now to Jaeger UI. You should have a new `traefik` service available. Click on *Find Traces* in order to get a simple graph a all traces, aka requests with duration !
+
+![Jaeger UI Traefik](jaeger-ui-traefik.png)
+
+Detail view of request with duration time on each operation, aka traefik middlewares, docker container request process duration, etc.
+
+![Jaeger UI Request](jaeger-ui-request.png)
+
 ## 5th check ✅
 
 We've done all the logging part with complete centralized logging for cluster + data, as well as tracing.
 
-Now it's time to test a real case scenario for a developer perspective. We'll see that in the [last part]({{< ref "/posts/08-build-your-own-docker-swarm-cluster-part-7" >}}).
+Now it's time to test a real case scenario usage for a developer perspective. We'll see that in the [last part]({{< ref "/posts/08-build-your-own-docker-swarm-cluster-part-7" >}}).
