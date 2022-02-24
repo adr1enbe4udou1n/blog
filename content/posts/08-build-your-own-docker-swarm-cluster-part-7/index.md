@@ -164,6 +164,62 @@ For that execute `registry garbage-collect /etc/docker/registry/config.yml` insi
 
 ## CI/CD with Drone 🪁
 
+```sh
+# get the docker node id of runner
+docker node ls
+
+# update environment label
+docker node update --label-add environment=runner xxxxxx
+```
+
+Let's create a new `drone` PostgreSQL database and create a new `drone` stack :
+
+```yml
+version: '3.8'
+
+services:
+  drone:
+    image: drone/drone:2
+    volumes:
+      - /etc/hosts:/etc/hosts
+    environment:
+      DRONE_DATABASE_DRIVER: postgres
+      DRONE_DATABASE_DATASOURCE: postgres://drone:${DRONE_DATABASE_PASSWORD}@data-01:5432/drone?sslmode=disable
+      DRONE_GITEA_CLIENT_ID:
+      DRONE_GITEA_CLIENT_SECRET:
+      DRONE_RPC_SECRET:
+      DRONE_SERVER_HOST: drone.sw.okami101.io
+      DRONE_SERVER_PROTO: https
+      DRONE_USER_CREATE: username:adr1enbe4udou1n,admin:true
+      DRONE_USER_FILTER: okami101
+    networks:
+      - traefik_public
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.services.drone.loadbalancer.server.port=80
+      placement:
+        constraints:
+          - node.role == manager
+
+  runner-docker:
+    image: drone/drone-runner-docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      DRONE_RPC_SECRET:
+      DRONE_RPC_HOST: ${DRONE_SERVER_HOST}
+      DRONE_RPC_PROTO: ${DRONE_SERVER_PROTO}
+    deploy:
+      placement:
+        constraints:
+          - node.labels.environment == runner
+
+networks:
+  traefik_public:
+    external: true
+```
+
 ## SonarQube 📈
 
 ## Tracing with Jaeger with OpenTelemetry 🕰️
