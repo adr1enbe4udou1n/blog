@@ -12,7 +12,7 @@ Build your own cheap while powerful self-hosted complete CI/CD solution by follo
 
 This is the **Part VII** of more global topic tutorial. [Back to first part]({{< ref "/posts/02-build-your-own-docker-swarm-cluster" >}}) to start from beginning.
 
-## Self-hosted VCS
+## Self-hosted VCS 🍵
 
 This specific VCS part is optional and is only for developers that would be completely independent of any cloud VCS providers, by self-hosting his own system.
 
@@ -22,7 +22,7 @@ A backup is highly critical ! Don't underestimate that part and be sure to have 
 
 Of course, in a ~$30 cluster, forget about running a self-hosted GitLab, you will be forced to have an additionnal worker node with at least 4Gb fully dedicated just for running it. I will privilege here a super lightweight solution, Gitea. Besides, the last version 1.16 finally support dark mode !
 
-### Install Gitea 🍵
+### Install Gitea 💽
 
 You guess it, it's just an additional stack to run !
 
@@ -77,6 +77,90 @@ Next just create your first account. The 1st account will be automatically grant
 You should now test creating some repos and be sure that git cloning works on both HTTPS and SSH protocol. For SSH be sure to add your own SSH public key in your profile.
 
 ## Private docker registry
+
+Before attack the CI/CD part, we should take care of where we put our main docker images that will be automatically be built when every code pushes. You have the choice to use main Docker hub of course but honestly, we have a full cluster now, let's use it fully !
+
+### Install official docker registry 💽
+
+We'll use the official docker registry with addition of nice simple UI for images navigation. It's always the same, do `sudo mkdir /mnt/storage-pool/registry` and create `registry` stack :
+
+```yml
+version: '3.3'
+
+services:
+  app:
+    image: registry:2
+    environment:
+      REGISTRY_STORAGE_DELETE_ENABLED: 'true'
+    volumes:
+      - /mnt/storage-pool/registry:/var/lib/registry
+    networks:
+      traefik_public:
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.registry.rule=Host(`registry.sw.okami101.io`) && PathPrefix(`/v2`)
+        - traefik.http.routers.registry.middlewares=admin-auth
+        - traefik.http.services.registry.loadbalancer.server.port=5000
+      placement:
+        constraints:
+          - node.role == manager
+
+  ui:
+    image: joxit/docker-registry-ui
+    environment:
+      DELETE_IMAGES: 'true'
+      SINGLE_REGISTRY: 'true'
+    networks:
+      traefik_public:
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.registryui.middlewares=admin-auth
+        - traefik.http.services.registryui.loadbalancer.server.port=80
+      placement:
+        constraints:
+          - node.role == manager
+
+networks:
+  traefik_public:
+    external: true
+```
+
+{{< alert >}}
+Note as both service must be exposed to Traefik. In order to keep the same subdomain, we made usage of `PathPrefix` feature provided by Traefik with `/v2`.  
+It gives us have an additional condition for redirect to the correct service. It's ok in our case because the official docker registry use only `/v2` as endpoint.
+{{< /alert >}}
+
+Go to <https://registry.sw.okami101.io> and use Traefik credentials. We have no images yet let's create one.
+
+### Test our private registry
+
+Login into the `manager-01` server, do `docker login registry.sw.okami101.io` and enter proper credentials. You should see *Login Succeeded*. Don't worry about the warning. Create the next Dockerfile somewhere :
+
+```Dockerfile
+FROM alpine:latest
+RUN apk add --no-cache git
+```
+
+Then build and push the image :
+
+```sh
+docker build -t alpinegit .
+docker tag alpinegit registry.sw.okami101.io/alpinegit
+docker push registry.sw.okami101.io/alpinegit
+```
+
+Go back to above <https://registry.sw.okami101.io>. You should see 1 new image !
+
+![Docker registry](docker-registry.png)
+
+Delete the image test through UI and from local docker with `docker image rm registry.sw.okami101.io/alpinegit`.
+
+{{< alert >}}
+Note as the blobs of image is always physically in the disk, even when "deleted". You must launch manually the docker GC in order to cleanup unused images.  
+For that execute `registry garbage-collect /etc/docker/registry/config.yml` inside docker registry.
+{{< /alert >}}
 
 ## CI/CD with Drone 🪁
 
