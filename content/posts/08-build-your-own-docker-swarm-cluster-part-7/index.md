@@ -473,7 +473,7 @@ Push and back to your API, and the title and version should be automatically upd
 
 [![Weather API](weather-api.png)](weather-api.png)
 
-## Tracing with OpenTelemetry 🕰️
+### Tracing with OpenTelemetry 🕰️
 
 Now it's time to test our Jaeger tracing for further integration to our cluster. For that we'll use [OpenTelemetry toolkit](https://opentelemetry.io/).
 
