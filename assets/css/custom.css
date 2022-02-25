@@ -2,6 +2,11 @@
   position: static
 }
 
+.my-0 {
+  margin-top: 0px;
+  margin-bottom: 0px
+}
+
 .mb-4 {
   margin-bottom: 1rem
 }

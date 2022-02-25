@@ -166,6 +166,8 @@ For that execute `registry garbage-collect /etc/docker/registry/config.yml` insi
 
 ## CI/CD with Drone 🪁
 
+It's finally time to use our currently unused `runner-01` ! We'll use Drone as free self-hosted solution for docker image building. The all CI/CD process can be summarized to this flow chart :
+
 {{< mermaid >}}
 flowchart TD
 subgraph manager-01
@@ -191,9 +193,9 @@ drone-runner-- push built docker image -->registry
 registry-- pull image when deploy stack -->my-app
 {{< /mermaid >}}
 
-Let's follow [the official docs](https://docs.drone.io/server/provider/gitea/) in order to generate a OAuth2 application, which is necessary for Drone integration.
+Let's follow [the official docs](https://docs.drone.io/server/provider/gitea/) for generating a OAuth2 application on Gitea, which is necessary for Drone integration. Set `https://drone.sw.okami101.io` as redirect UI after successful authentication.
 
-![Gitea drone application](gitea-drone-application.png)
+[![Gitea drone application](gitea-drone-application.png)](gitea-drone-application.png)
 
 Save and keep the client and secret tokens. Then create a new `drone` PostgreSQL database and create a new `drone` stack :
 
@@ -257,11 +259,11 @@ Don't forget to have proper docker labels on nodes, as explain [here]({{< ref "0
 
 It's time to go to <https://drone.sw.okami101.io/> and generate your first Drone account through OAuth2 from Gitea. You should be properly redirected to Gitea, where you'll just have to authorize Drone application.
 
-![Gitea oauth2](gitea-oauth2.png)
+[![Gitea oauth2](gitea-oauth2.png)](gitea-oauth2.png)
 
 Finalize registration, and you should finally arrive to main Drone dashboard. If you have already created some repositories, they should appear in the list.
 
-![Drone dashboard](drone-dashboard.png)
+[![Drone dashboard](drone-dashboard.png)](drone-dashboard.png)
 
 ## SonarQube 📈
 
