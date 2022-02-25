@@ -652,6 +652,111 @@ Besides, you should cache `/root/.sonar/cache` directory for quickest analysis.
 This above 2 methods will speed up CI drastically.
 {{< /alert >}}
 
+## Load testing 💣
+
+We have now a perfect environment for a proper load testing ! There are 2 popular options, which are `Locust` and `k6`. I'll personally use the last one because more efficient and less resource demanding for the same load.
+
+Note that `k6` can be integrated to a time series database for a nice graphical extraction. And guess what, Grafana is the perfect tool for that ! Let's profit of our powerful tools we have !
+
+### TSDB with InfluxDB
+
+Create a new influxdb stack :
+
+```yml
+version: '3.8'
+
+services:
+  db:
+    image: influxdb:1.8
+    volumes:
+      - data:/var/lib/influxdb
+    networks:
+      - private
+    deploy:
+      placement:
+        constraints:
+          - node.labels.influx.data == true
+
+networks:
+  private:
+
+volumes:
+  data:
+```
+
+{{< alert >}}
+Add proper `influx.data` docker label in the node you want to store the influx data.
+{{< /alert >}}
+
+Add InfluxDB private network to Grafana stack :
+
+```yml
+version: '3.7'
+
+services:
+  grafana:
+    #...
+    networks:
+      - influxdb_private
+      - traefik_public
+    #...
+
+networks:
+  influxdb_private:
+    external: true
+  traefik_public:
+    external: true
+```
+
+### Test loading with k6
+
+First create a simple JS script as docker *Config* names `k6_weather_test_01` through Portainer UI :
+
+```js
+import http from "k6/http";
+import { check } from "k6";
+
+export default function () {
+  http.get('https://weather.sw.okami101.io/WeatherForecast');
+}
+```
+
+```yml
+version: '3.8'
+
+services:
+  load:
+    image: grafana/k6
+    configs:
+      - source: k6_weather_test_01
+        target: /scripts/k6-weather-test-01.js
+    environment:
+      - K6_VUS=100
+      - K6_DURATION=1m
+      - K6_OUT=influxdb=http://db:8086/k6weather
+    entrypoint: ['k6', 'run', '/scripts/k6-weather-test-01.js']
+    networks:
+      - influxdb_private
+    deploy:
+      restart_policy:
+        condition: none
+      placement:
+        constraints:
+          - node.labels.environment == build
+
+networks:
+  influxdb_private:
+    external: true
+
+configs:
+  k6_weather_test_01:
+    external: true
+```
+
+### Visualization through Grafana
+
+It's now time to go back to Grafana and try to get some charts. First Add a new InfluxDB *Data source*.
+
 ## Final check 🎊🏁🎊
 
 Congratulation if you're getting that far !!!
