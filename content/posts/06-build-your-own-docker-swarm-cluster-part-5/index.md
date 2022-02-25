@@ -30,7 +30,7 @@ I'll not use GlusterFS volume for storing Prometheus data, because :
 
 First go to the `manager-01` node settings in Portainer inside *Swarm Cluster overview*, and apply a new label that indicates that this node is the host of Prometheus data.
 
-![Prometheus host overview](portainer-host-overview.png)
+[![Prometheus host overview](portainer-host-overview.png)](portainer-host-overview.png)
 
 It's equivalent of doing :
 
@@ -105,11 +105,11 @@ Deploy it and <https://prometheus.sw.okami101.io> should be available after few 
 
 You should now have access to some metrics !
 
-![Prometheus graph](prometheus-graph.png)
+[![Prometheus graph](prometheus-graph.png)](prometheus-graph.png)
 
 In *Status > Targets*, you should have 2 endpoints enabled, which correspond to above scrape config.
 
-![Prometheus targets](prometheus-targets.png)
+[![Prometheus targets](prometheus-targets.png)](prometheus-targets.png)
 
 ### Get cluster metrics
 
@@ -135,7 +135,7 @@ set -- /bin/node_exporter "$@"
 exec "$@"
 ```
 
-![Portainer configs](portainer-configs.png)
+[![Portainer configs](portainer-configs.png)](portainer-configs.png)
 
 It will take the node hostname and create an exploitable data metric for prometheus.
 
@@ -212,11 +212,11 @@ You need to restart Prometheus service in order to apply above config.
 
 Go back to the Prometheus targets UI in order to confirm the apparition of 2 new targets.
 
-![Prometheus targets all](prometheus-targets-all.png)
+[![Prometheus targets all](prometheus-targets-all.png)](prometheus-targets-all.png)
 
 Confirm you fetch the `node_meta` metric with proper hostnames :
 
-![Prometheus targets all](prometheus-node-meta.png)
+[![Prometheus targets all](prometheus-node-meta.png)](prometheus-node-meta.png)
 
 ## Visualization with Grafana 📈
 
@@ -284,7 +284,7 @@ networks:
 
 Set proper `GF_DATABASE_PASSWORD` and deploy. Database migration should be automatic (don't hesitate to check inside pgAdmin). Go to <https://grafana.sw.okami101.io> and login as admin / admin.
 
-![Grafana home](grafana-home.png)
+[![Grafana home](grafana-home.png)](grafana-home.png)
 
 ### Docker Swarm dashboard
 
@@ -292,11 +292,11 @@ For best show-case scenario of Grafana, let's import an [existing dashboard](htt
 
 First we need to add Prometheus as main metrics data source. Go to *Configuration > Data source* menu and click on *Add data source*. Select Prometheus and set the internal docker prometheus URL, which should be `http://prometheus:9090`.
 
-![Grafana prometheus datasource](grafana-prometheus-datasource.png)
+[![Grafana prometheus datasource](grafana-prometheus-datasource.png)](grafana-prometheus-datasource.png)
 
 Then go to *Create > Import*, load `11939` as dashboard ID, and select Prometheus source and woha!
 
-![Grafana home](grafana-docker-swarm-dashboard.png)
+[![Grafana home](grafana-docker-swarm-dashboard.png)](grafana-docker-swarm-dashboard.png)
 
 The *Available Disk Space* metrics card should indicate N/A because not properly configured for Hetzner disks. Just edit the card and change the PromQL inside *Metrics browser* field by replacing `device="rootfs", mountpoint="/"` by `device="/dev/sda1", mountpoint="/host"`.
 
@@ -403,7 +403,7 @@ Expand the prometheus config with 3 new jobs :
 
 Then restart Prometheus service and go back to targets to check you have all new `data-01` endpoints.
 
-![Prometheus targets data](prometheus-targets-data.png)
+[![Prometheus targets data](prometheus-targets-data.png)](prometheus-targets-data.png)
 
 ### Grafana dashboards for data
 
@@ -419,15 +419,15 @@ Nothing more to do !
 
 #### Node Dashboard
 
-![Prometheus targets data](grafana-node-exporter.png)
+[![Prometheus targets data](grafana-node-exporter.png)](grafana-node-exporter.png)
 
 #### MySQL Dashboard
 
-![Prometheus targets data](grafana-mysql-exporter.png)
+[![Prometheus targets data](grafana-mysql-exporter.png)](grafana-mysql-exporter.png)
 
 #### PostgreSQL Dashboard
 
-![Prometheus targets data](grafana-postgres-exporter.png)
+[![Prometheus targets data](grafana-postgres-exporter.png)](grafana-postgres-exporter.png)
 
 ## 4th check ✅
 

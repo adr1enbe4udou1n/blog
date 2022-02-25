@@ -98,7 +98,7 @@ The important part is `/etc/hosts` in order to allow proper DNS resolving for `d
 
 Deploy it, and you should access to <https://phpmyadmin.sw.okami101.io> after few seconds, with full admin access to your MySQL DB !
 
-![phpMyAdmin](phpmyadmin.png)
+[![phpMyAdmin](phpmyadmin.png)](phpmyadmin.png)
 
 ### PostgreSQL 14 🐘
 
@@ -204,7 +204,7 @@ Once logged, you need to add the previously configured PostgreSQL server address
 
 Save it, and you have now full access to your PostgreSQL DB !
 
-![pgAdmin](pgadmin.png)
+[![pgAdmin](pgadmin.png)](pgadmin.png)
 
 ## Further cluster app testing
 
@@ -288,7 +288,7 @@ I use a dynamic `ROOT_PATH` here. So you must add this variable with `/mnt/stora
 
 After few seconds, <https://redmine.sw.okami101.io> should be accessible and ready to use, use admin / admin for admin connection !
 
-![Redmine](redmine.png)
+[![Redmine](redmine.png)](redmine.png)
 
 ### N8N over PostgreSQL
 
@@ -331,7 +331,7 @@ networks:
 
 And voilà, it's done, n8n will automatically migrate the database and <https://n8n.sw.okami101.io> should be soon accessible. Note as we use `admin-auth` middleware because n8n doesn't offer authentication. Use the same Traefik credentials.
 
-![n8n](n8n.png)
+[![n8n](n8n.png)](n8n.png)
 
 ## Data backup 💾
 

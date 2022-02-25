@@ -68,13 +68,13 @@ Create a new `gitea` PostgreSQL database as usual from pgAdmin or `psql` for pro
 
 Don't forgive to change all domain related field by the proper current domain URL, which is `gitea.sw.okami101.io` in my case. You should set proper SMTP settings for notifications.
 
-![Gitea admin dashboard](gitea-install.png)
+[![Gitea admin dashboard](gitea-install.png)](gitea-install.png)
 
 For information all these settings are saved in `/mnt/storage-pool/gitea/gitea/conf/app.ini` file. You can change them at any time. You may want to disable registration by changing `DISABLE_REGISTRATION`.
 
 Next just create your first account. The 1st account will be automatically granted to administrator.
 
-![Gitea admin dashboard](gitea-admin-dashboard.png)
+[![Gitea admin dashboard](gitea-admin-dashboard.png)](gitea-admin-dashboard.png)
 
 You should now test creating some repos and be sure that git cloning works on both HTTPS and SSH protocol. For SSH be sure to add your own SSH public key in your profile.
 
@@ -155,7 +155,7 @@ docker push registry.sw.okami101.io/alpinegit
 
 Go back to above <https://registry.sw.okami101.io>. You should see 1 new image !
 
-![Docker registry](docker-registry.png)
+[![Docker registry](docker-registry.png)](docker-registry.png)
 
 Delete the image test through UI and from local docker with `docker image rm registry.sw.okami101.io/alpinegit`.
 
@@ -195,7 +195,7 @@ registry-- pull image when deploy stack -->my-app
 
 Let's follow [the official docs](https://docs.drone.io/server/provider/gitea/) for generating a OAuth2 application on Gitea, which is necessary for Drone integration. Set `https://drone.sw.okami101.io` as redirect UI after successful authentication.
 
-![Gitea drone application](gitea-drone-application.png)
+[![Gitea drone application](gitea-drone-application.png)](gitea-drone-application.png)
 
 Save and keep the client and secret tokens. Then create a new `drone` PostgreSQL database and create a new `drone` stack :
 
@@ -259,11 +259,11 @@ Don't forget to have proper docker labels on nodes, as explain [here]({{< ref "0
 
 It's time to go to <https://drone.sw.okami101.io/> and generate your first Drone account through OAuth2 from Gitea. You should be properly redirected to Gitea, where you'll just have to authorize Drone application.
 
-![Gitea oauth2](gitea-oauth2.png)
+[![Gitea oauth2](gitea-oauth2.png)](gitea-oauth2.png)
 
 Finalize registration, and you should finally arrive to main Drone dashboard. If you have already created some repositories, they should appear in the list.
 
-![Drone dashboard](drone-dashboard.png)
+[![Drone dashboard](drone-dashboard.png)](drone-dashboard.png)
 
 ## SonarQube 📈
 

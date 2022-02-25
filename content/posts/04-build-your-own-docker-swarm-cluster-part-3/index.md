@@ -379,7 +379,7 @@ After few seconds, Traefik should launch and generate proper SSL certificate for
 
 If properly configured, you will be prompted for access. After entering admin as user and your own chosen password, you should finally access to the traefik dashboard similar to below !
 
-![Traefik Dashboard](traefik-dashboard.png)
+[![Traefik Dashboard](traefik-dashboard.png)](traefik-dashboard.png)
 
 ### Portainer ⛵
 
@@ -449,11 +449,11 @@ docker service ls
 
 As soon as the main portainer service has successfully started, Traefik will detect it and configure it with SSL. The specific router for Portainer should appear in Traefik dashboard on HTTP section as below.
 
-![Traefik routers](traefik-routers.png)
+[![Traefik routers](traefik-routers.png)](traefik-routers.png)
 
 It's time to create your admin account through <https://portainer.sw.okami101.io>. If all goes well, aka Portainer agent are accessible from Portainer portal, you should have access to your cluster home environment with 2 stacks active.
 
-![Portainer home](portainer-home.png)
+[![Portainer home](portainer-home.png)](portainer-home.png)
 
 {{< alert >}}
 If you go to the stacks menu, you will note that both `traefik` and `portainer` are *Limited* control, because these stacks were done outside Portainer. We will create and deploy next stacks directly from Portainer GUI.
@@ -529,7 +529,7 @@ Use below section of Portainer for setting all personal environment variable. In
 {{< /tab >}}
 {{< /tabs >}}
 
-![Diun Stack](diun-stack.png)
+[![Diun Stack](diun-stack.png)](diun-stack.png)
 
 Finally click on **Deploy the stack**, it's equivalent of precedent `docker stack deploy`, nothing magic here. At the difference that Portainer will store the YML inside his volume, allowing full control, contrary to limited Traefik and Portainer cases.
 
@@ -537,11 +537,11 @@ Diun should now be deployed and manager host and ready to scan images for any up
 
 You can check the full service page which will allows manual scaling, on-fly volumes mounting, environment variable modification, and show current running tasks (aka containers).
 
-![Diun Service](diun-service.png)
+[![Diun Service](diun-service.png)](diun-service.png)
 
 You can check the service logs which consist of all tasks logs aggregate.
 
-![Diun Logs](diun-logs.png)
+[![Diun Logs](diun-logs.png)](diun-logs.png)
 
 ## 2nd check ✅
 

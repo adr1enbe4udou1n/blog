@@ -26,7 +26,7 @@ Initiate the project by following this simple steps :
 2. Navigate to security > API tokens
 3. Generate new API key with Read Write permissions and copy the generated token
 
-![Hetzner API Token](hetzner-api-token.png)
+[![Hetzner API Token](hetzner-api-token.png)](hetzner-api-token.png)
 
 Then go to the terminal and prepare the new context
 

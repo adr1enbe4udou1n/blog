@@ -189,7 +189,7 @@ And voilà, Loki is the default log driver for all containers. Note as you can s
 
 Now it's time to set up our central logs dashboard. First add *Loki* as a new data source inside Grafana, similarly to previous Prometheus. Set `http://data-01:3100` inside URL field and save it.
 
-![Grafana loki datasource](grafana-loki-datasource.png)
+[![Grafana loki datasource](grafana-loki-datasource.png)](grafana-loki-datasource.png)
 
 Then create a new Dashboard. No need to import this time :
 
@@ -198,7 +198,7 @@ Then create a new Dashboard. No need to import this time :
 3. Select Loki in Data source
 4. Test some basic LogQL in Log browser in order to confirm all is working. Simply type `{` It should have full autocomplete. You should have plenty of access logs when using `{swarm_stack="traefik"}`
 
-![Grafana loki datasource](grafana-panel-editor.png)
+[![Grafana loki datasource](grafana-panel-editor.png)](grafana-panel-editor.png)
 
 After this primary testing, let's use the power of Grafana with variables :
 
@@ -207,13 +207,13 @@ After this primary testing, let's use the power of Grafana with variables :
 3. Create a `stack` variable, select Prometheus as *Data source*, and insert following value inside *Query* field : `label_values(container_last_seen, container_label_com_docker_stack_namespace)`
 4. It's a PromQL which fetch all detected docker stacks, click on *Update* to confirm the validity of *Preview of values* that will be show up
 
-![Grafana loki datasource](grafana-variables.png)
+[![Grafana loki datasource](grafana-variables.png)](grafana-variables.png)
 
 1. Return to your panel editor. A new *stack* selector will appear in the top will all you to select the stack logs to show !
 2. Let's apply for saving the panel and test the selector. The Panel should reactive with the *stack* selector.
 3. Save the dashboard.
 
-![Grafana loki datasource](grafana-logs-dashboard.png)
+[![Grafana loki datasource](grafana-logs-dashboard.png)](grafana-logs-dashboard.png)
 
 ## Tracing with Jaeger 🔍
 
@@ -382,11 +382,11 @@ Go back to Traefik dashboard and ensure Jaeger is enabled in *Features* section.
 
 Go back now to Jaeger UI. You should have a new `traefik` service available. Click on *Find Traces* in order to get a simple graph a all traces, aka requests with duration !
 
-![Jaeger UI Traefik](jaeger-ui-traefik.png)
+[![Jaeger UI Traefik](jaeger-ui-traefik.png)](jaeger-ui-traefik.png)
 
 Detail view of request with duration time on each operation, aka traefik middlewares, docker container request process duration, etc.
 
-![Jaeger UI Request](jaeger-ui-request.png)
+[![Jaeger UI Request](jaeger-ui-request.png)](jaeger-ui-request.png)
 
 ## 5th check ✅
 
