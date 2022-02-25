@@ -473,9 +473,76 @@ Push and back to your API, and the title and version should be automatically upd
 
 [![Weather API](weather-api.png)](weather-api.png)
 
-## SonarQube 📈
-
 ## Tracing with Jaeger with OpenTelemetry 🕰️
+
+Now it's time to test our Jaeger tracing for further integration to our cluster. For that we'll use [OpenTelemetry toolkit](https://opentelemetry.io/).
+
+Install all the required libraries to above weather project :
+
+```sh
+# we use prerelease for better .NET 6 compatibility
+dotnet add package OpenTelemetry.Extensions.Hosting --prerelease
+dotnet add package OpenTelemetry.Instrumentation.AspNetCore --prerelease
+dotnet add package OpenTelemetry.Exporter.Jaeger --prerelease
+```
+
+Then add automatic ASP.NET instrumentation and configure Jaeger exporter in `Program.cs` by adding following lines before `builder.Build()` :
+
+```cs
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+
+//...
+
+builder.Services.AddOpenTelemetryTracing(b => b
+    .SetResourceBuilder(ResourceBuilder
+        .CreateDefault()
+        .AddService("Weather API"))
+    .AddAspNetCoreInstrumentation()
+    .AddJaegerExporter(o =>
+    {
+        o.AgentHost = builder.Configuration.GetValue<string>("Jaeger:Host");
+        o.AgentPort = builder.Configuration.GetValue<int>("Jaeger:Port");
+    })
+);
+
+//...
+```
+
+Push the code and ensure all CI/CD workflow passes.
+
+Then edit the `weather` docker stack and configure Jaeger connection.
+
+```yml
+version: "3"
+
+services:
+  app:
+    image: registry.sw.okami101.io/adr1enbe4udou1n/my-weather-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      Jaeger__Host: tasks.jaeger_agent
+      Jaeger__Port: 6831
+    networks:
+      - traefik_public
+      - jaeger_private
+    #...
+
+networks:
+  traefik_public:
+    external: true
+  jaeger_private:
+    external: true
+```
+
+Ensure the weather API is deployed and do some API calls. Finally, go back to Jaeger UI, a second service `Weather API` should appear, select it and click on *Find Traces*. You should get all API call traces detail !
+
+Feel free to add any other traces. There are 2 types of traces :
+
+* Automatic : like above ASP.NET instrumentation, for any standardized library integration. If you use PostgreSQL, use [Npgsql OpenTelemetry package](https://www.nuget.org/packages/Npgsql.OpenTelemetry/) for each SQL call traces.
+* Manual : simple manual traces inside your application, for even further granular view.
+
+## SonarQube 📈
 
 ## Final check 🎊🏁🎊
 
