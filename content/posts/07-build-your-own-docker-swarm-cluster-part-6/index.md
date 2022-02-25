@@ -219,7 +219,7 @@ After this primary testing, let's use the power of Grafana with variables :
 
 For further advanced development or any complex troubleshoot analysis, notably in a performance point of view, a tracing tool can be a real capital gain. It really helps for getting a high detail level of all code execution stacks, with granular time execution for each function call, like an SQL query executed from a backend stack, etc.
 
-We'll not discuss development side here, as it's a subject that will be treated in [next part]({{< ref "08-build-your-own-docker-swarm-cluster-part-7#tracing-with-jaeger-with-opentelemetry-" >}}). But we'll use Traefik as a perfect integration example.
+We'll not discuss development side here, as it's a subject that will be treated in [next part]({{< ref "08-build-your-own-docker-swarm-cluster-part-7#tracing-with-opentelemetry-" >}}). But we'll use Traefik as a perfect integration example.
 
 It's important to use a really efficient asynchronous tool for this task as it will receive potentially a huge amount of calls. A popular tracing tool nowadays is Jaeger, which is CNCF compliant. Jaeger is a flexible tool made of multiple little services that serves specific task.
 
