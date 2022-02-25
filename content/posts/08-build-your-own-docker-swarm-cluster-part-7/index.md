@@ -544,6 +544,118 @@ Feel free to add any other traces. There are 2 types of traces :
 
 ## SonarQube 📈
 
+Let's get some automatic quality code metrics.
+
+On `manager-01` :
+
+```sh
+sudo mkdir -p /mnt/storage-pool/sonarqube/data
+sudo mkdir -p /mnt/storage-pool/sonarqube/logs
+sudo mkdir -p /mnt/storage-pool/sonarqube/extensions
+
+# specific thing for embed elasticsearch of sonarqube
+echo "vm.max_map_count=262144" | tee /etc/sysctl.d/local.conf
+sudo service procps restart
+```
+
+Create a `sonar` PostgresSQL database, and create a `sonar` stack :
+
+```yml
+version: '3.8'
+
+services:
+  server:
+    image: sonarqube:9-community
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - ${SONAR_DATA}/data:/opt/sonarqube/data
+      - ${SONAR_DATA}/logs:/opt/sonarqube/logs
+      - ${SONAR_DATA}/extensions:/opt/sonarqube/extensions
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://data-01:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD:
+    networks:
+      - traefik_public
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.services.sonarqube.loadbalancer.server.port=9000
+      placement:
+        constraints:
+          - node.role == manager
+
+networks:
+  traefik_public:
+    external: true
+```
+
+Set proper `SONAR_DATA` with `/mnt/storage-pool/sonarqube` and `SONAR_JDBC_PASSWORD` with above DB password.
+
+Go to <https://sonar.swadmin.okami101.io>, use admin / admin credentials and update password.
+
+### Project analysis
+
+Create manual project "My Weather API" and go to *Other CI*. Generate a token, select *.NET* project, back to above `my-weather-api` project, and go through all prerequisite.
+
+{{< alert >}}
+You must have at least Java 11 installed locally.
+{{< /alert >}}
+
+```sh
+dotnet tool install --global dotnet-sonarscanner
+
+dotnet sonarscanner begin /k:"My-Weather-API" /d:sonar.host.url="https://sonar.sw.okami101.io"  /d:sonar.login="above-generated-token"
+
+dotnet build
+
+dotnet sonarscanner end /d:sonar.login="above-generated-token"
+```
+
+Wait few minutes and the final rapport analysis should automatically appear. Add `.sonarqube` to `.gitignore`.
+
+[![Sonarqube analysis](sonarqube-analysis.png)](sonarqube-analysis.png)
+
+### CI integration
+
+Because running scanner manually is boring, let's integrate it in our favorite CI. Create following secrets through Drone UI :
+
+| name             | level        | description                                           |
+| ---------------- | ------------ | ----------------------------------------------------- |
+| `sonar_host_url` | organization | Set the sonar host URL `https://sonar.sw.okami101.io` |
+| `sonar_token`    | repository   | Set the above token                                   |
+
+Change the `build` step on `.drone.yml` file :
+
+```yml
+#...
+  - name: build
+    image: mcr.microsoft.com/dotnet/sdk:6.0
+    commands:
+      - apt-get update
+      - apt-get install --yes openjdk-11-jre
+      - dotnet tool install --global dotnet-sonarscanner
+      - export PATH="$PATH:$HOME/.dotnet/tools"
+      - dotnet sonarscanner begin /k:"My-Weather-API" /d:sonar.login="$SONAR_TOKEN" /d:"sonar.host.url=$SONAR_HOST_URL"
+      - dotnet build
+      - dotnet sonarscanner end /d:sonar.login="$SONAR_TOKEN"
+      - dotnet publish -c Release -o ./publish
+#...
+```
+
+And voilà ! You should have automatic code analysis on every code push.
+
+{{< alert >}}
+This is not an optimized build for sonar analysis, because the first 3 command lines will be done every time !  
+You should build a proper custom dedicated docker image for build, based on .NET SDK and with JRE and `dotnet-sonarscanner` preinstalled.  
+Besides, you should cache `/root/.sonar/cache` directory for quickest analysis.  
+This above 2 methods will speed up CI drastically.
+{{< /alert >}}
+
 ## Final check 🎊🏁🎊
 
-We've done all the basics part of installing, using, testing a professional grade Docker Swarm cluster.
+Congratulation if you're getting that far !!!
+
+I'm personally happy to finish this pretty massive tutorial...
+
+You've done all the basic parts of installing, using, testing a professional grade Docker Swarm cluster.
