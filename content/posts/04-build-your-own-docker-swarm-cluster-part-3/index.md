@@ -48,6 +48,17 @@ When done use `docker node ls` on manager node in order to confirm the presence 
 
 Yeah, cluster is already properly configured. Far less overwhelming than Kubernetes, I should say.
 
+### Add environment labels
+
+Before continue, let's add some labels on nodes in order to differentiate properly *production* nodes from *build* nodes :
+
+```sh
+# worker-01 is intended for running production app container
+docker node update --label-add environment=production worker-01
+# runner-01 is intended to build docker image through CI/CD pipeline
+docker node update --label-add environment=build runner-01
+```
+
 ## Network file system 📄
 
 Before go further away, we'll quickly need of proper unique shared storage location for all managers and workers. It's mandatory in order to keep same state when your app containers are automatically rearranged by Swarm manager across multiple workers for convergence purpose.
@@ -349,8 +360,7 @@ Go to the `manager-01`, be sure to have above /etc/traefik/traefik.yml file, and
 
 ```sh
 # declare the current node manager as main certificates host, required in order to respect above deploy constraint
-export NODE_ID=$(docker info -f '{{.Swarm.NodeID}}')
-docker node update --label-add traefik-public.certificates=true $NODE_ID
+docker node update --label-add traefik-public.certificates=true manager-01
 
 # generate your main admin password hash for any admin HTTP basic auth access into specific environment variable
 export HASHED_PASSWORD=$(openssl passwd -apr1 aNyR4nd0mP@ssw0rd)

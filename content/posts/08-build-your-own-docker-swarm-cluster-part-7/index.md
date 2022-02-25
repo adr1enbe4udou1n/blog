@@ -166,13 +166,30 @@ For that execute `registry garbage-collect /etc/docker/registry/config.yml` insi
 
 ## CI/CD with Drone 🪁
 
-```sh
-# get the docker node id of runner
-docker node ls
-
-# update environment label
-docker node update --label-add environment=runner xxxxxx
-```
+{{< mermaid >}}
+flowchart TD
+subgraph manager-01
+traefik((Traefik))
+drone((Drone))
+gitea((Gitea))
+registry((Registry))
+end
+subgraph worker-01
+my-app((My App 01))
+end
+subgraph runner-01
+drone-runner((Drone runner))
+end
+traefik-->drone
+traefik-->gitea
+traefik-->registry
+traefik-->my-app
+gitea-- webhook on pushed code -->drone
+drone-- start pipeline in runner -->drone-runner
+gitea-- repo clone -->drone-runner
+drone-runner-- push built docker image -->registry
+registry-- pull image when deploy stack -->my-app
+{{< /mermaid >}}
 
 Let's follow [the official docs](https://docs.drone.io/server/provider/gitea/) in order to generate a OAuth2 application, which is necessary for Drone integration.
 
@@ -197,6 +214,7 @@ services:
       DRONE_RPC_SECRET:
       DRONE_SERVER_HOST: drone.sw.okami101.io
       DRONE_SERVER_PROTO: https
+      DRONE_USER_CREATE: username:adr1enbe4udou1n,admin:true
     networks:
       - traefik_public
     deploy:
@@ -218,19 +236,24 @@ services:
     deploy:
       placement:
         constraints:
-          - node.labels.environment == runner
+          - node.labels.environment == build
 
 networks:
   traefik_public:
     external: true
 ```
 
-| variable                    | description                                                                                                                    |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `DRONE_GITEA_CLIENT_ID`     | Use the above client ID token                                                                                                  |
-| `DRONE_GITEA_CLIENT_SECRET` | Use the above client secret token                                                                                              |
-| `DRONE_DATABASE_PASSWORD`   | Use the database password                                                                                                      |
-| `DRONE_RPC_SECRET`          | Necessary for proper secured authentication between Drone and runners. Use `openssl rand -hex 16` for generating a valid token |
+{{< alert >}}
+Don't forget to have proper docker labels on nodes, as explain [here]({{< ref "04-build-your-own-docker-swarm-cluster-part-3#add-environment-labels" >}}), otherwise docker runner will not run because of `node.labels.environment == build`.
+{{< /alert >}}
+
+| variable                    | description                                                                                                                     |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `DRONE_GITEA_CLIENT_ID`     | Use the above client ID token                                                                                                   |
+| `DRONE_GITEA_CLIENT_SECRET` | Use the above client secret token                                                                                               |
+| `DRONE_DATABASE_PASSWORD`   | Use the database password                                                                                                       |
+| `DRONE_RPC_SECRET`          | Necessary for proper secured authentication between Drone and runners. Use `openssl rand -hex 16` for generating a valid token. |
+| `DRONE_USER_CREATE`         | The initial user to create at launch. Put your Gitea username here for setting automatically Gitea user as drone administrator. |
 
 It's time to go to <https://drone.sw.okami101.io/> and generate your first Drone account through OAuth2 from Gitea. You should be properly redirected to Gitea, where you'll just have to authorize Drone application.
 

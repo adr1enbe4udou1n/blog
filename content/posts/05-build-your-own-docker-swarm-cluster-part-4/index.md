@@ -273,7 +273,7 @@ services:
         - traefik.http.services.redmine.loadbalancer.server.port=3000
       placement:
         constraints:
-          - node.role == worker
+          - node.labels.environment == production
 
 networks:
   traefik_public:
@@ -322,7 +322,7 @@ services:
         - traefik.http.routers.n8n.middlewares=admin-auth
       placement:
         constraints:
-          - node.role == worker
+          - node.labels.environment == production
 
 networks:
   traefik_public:

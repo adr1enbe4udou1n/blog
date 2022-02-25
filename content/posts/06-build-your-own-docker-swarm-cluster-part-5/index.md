@@ -28,18 +28,17 @@ I'll not use GlusterFS volume for storing Prometheus data, because :
 * No critical data, it's just metrics
 * No need of backup, and it can be pretty huge
 
-First go to the `master-01` node settings in Portainer inside *Swarm Cluster overview*, and apply a new label that indicates that this node is the host of Prometheus data.
+First go to the `manager-01` node settings in Portainer inside *Swarm Cluster overview*, and apply a new label that indicates that this node is the host of Prometheus data.
 
 ![Prometheus host overview](portainer-host-overview.png)
 
 It's equivalent of doing :
 
 ```sh
-export NODE_ID=$(docker info -f '{{.Swarm.NodeID}}')
-docker node update --label-add prometheus.data=true $NODE_ID
+docker node update --label-add prometheus.data=true manager-01
 ```
 
-Then create a config file at `/etc/prometheus/prometheus.yml` in `master-01` node :
+Then create a config file at `/etc/prometheus/prometheus.yml` in `manager-01` node :
 
 ```yml
 global:
