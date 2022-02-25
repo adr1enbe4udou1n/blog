@@ -46,6 +46,7 @@ services:
         - traefik.enable=true
         - traefik.http.services.gitea.loadbalancer.server.port=3000
         - traefik.tcp.routers.gitea-ssh.rule=HostSNI(`*`)
+        - traefik.tcp.routers.gitea-ssh.entrypoints=ssh
         - traefik.tcp.services.gitlab-ssh.loadbalancer.server.port=22
       placement:
         constraints:
@@ -57,7 +58,8 @@ networks:
 ```
 
 {{< alert >}}
-Note as we're adding a specific TCP router in order to allow SSH cloning. The SSH Traefik entry point will redirect to the first available service with TCP router.
+We added a specific TCP router in order to allow SSH cloning. The SSH Traefik entry point will redirect to the first available service with TCP router.  
+Note as we need to indicate entry points in order to avoid bad redirection from other HTTPS based service.
 {{< /alert >}}
 
 Now go to <https://gitea.sw.okami101.io> and go through the installation procedure. Change default SQLite provider by a more production purpose database.
@@ -172,7 +174,11 @@ docker node ls
 docker node update --label-add environment=runner xxxxxx
 ```
 
-Let's create a new `drone` PostgreSQL database and create a new `drone` stack :
+Let's follow [the official docs](https://docs.drone.io/server/provider/gitea/) in order to generate a OAuth2 application, which is necessary for Drone integration.
+
+![Gitea drone application](gitea-drone-application.png)
+
+Save and keep the client and secret tokens. Then create a new `drone` PostgreSQL database and create a new `drone` stack :
 
 ```yml
 version: '3.8'
@@ -187,11 +193,10 @@ services:
       DRONE_DATABASE_DATASOURCE: postgres://drone:${DRONE_DATABASE_PASSWORD}@data-01:5432/drone?sslmode=disable
       DRONE_GITEA_CLIENT_ID:
       DRONE_GITEA_CLIENT_SECRET:
+      DRONE_GITEA_SERVER: https://gitea.sw.okami101.io
       DRONE_RPC_SECRET:
       DRONE_SERVER_HOST: drone.sw.okami101.io
       DRONE_SERVER_PROTO: https
-      DRONE_USER_CREATE: username:adr1enbe4udou1n,admin:true
-      DRONE_USER_FILTER: okami101
     networks:
       - traefik_public
     deploy:
@@ -219,6 +224,21 @@ networks:
   traefik_public:
     external: true
 ```
+
+| variable                    | description                                                                                                                    |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `DRONE_GITEA_CLIENT_ID`     | Use the above client ID token                                                                                                  |
+| `DRONE_GITEA_CLIENT_SECRET` | Use the above client secret token                                                                                              |
+| `DRONE_DATABASE_PASSWORD`   | Use the database password                                                                                                      |
+| `DRONE_RPC_SECRET`          | Necessary for proper secured authentication between Drone and runners. Use `openssl rand -hex 16` for generating a valid token |
+
+It's time to go to <https://drone.sw.okami101.io/> and generate your first Drone account through OAuth2 from Gitea. You should be properly redirected to Gitea, where you'll just have to authorize Drone application.
+
+![Gitea oauth2](gitea-oauth2.png)
+
+Finalize registration, and you should finally arrive to main Drone dashboard. If you have already created some repositories, they should appear in the list.
+
+![Drone dashboard](drone-dashboard.png)
 
 ## SonarQube 📈
 
