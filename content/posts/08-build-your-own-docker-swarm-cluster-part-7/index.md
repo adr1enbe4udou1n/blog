@@ -62,11 +62,11 @@ We added a specific TCP router in order to allow SSH cloning. The SSH Traefik en
 Note as we need to indicate entry points in order to avoid bad redirection from other HTTPS based service.
 {{< /alert >}}
 
-Now go to <https://gitea.sw.mydomain.cool> and go through the installation procedure. Change default SQLite provider by a more production purpose database.
+Now go to <https://gitea.sw.mydomain.rocks> and go through the installation procedure. Change default SQLite provider by a more production purpose database.
 
 Create a new `gitea` PostgreSQL database as usual from pgAdmin or `psql` for pro-CLI user, and set the according DB info access to Gitea installer. Host should be `data-01`.
 
-Don't forgive to change all domain related field by the proper current domain URL, which is `gitea.sw.mydomain.cool` in my case. You should set proper SMTP settings for notifications.
+Don't forgive to change all domain related field by the proper current domain URL, which is `gitea.sw.mydomain.rocks` in my case. You should set proper SMTP settings for notifications.
 
 [![Gitea admin dashboard](gitea-install.png)](gitea-install.png)
 
@@ -101,7 +101,7 @@ services:
     deploy:
       labels:
         - traefik.enable=true
-        - traefik.http.routers.registry.rule=Host(`registry.sw.mydomain.cool`) && PathPrefix(`/v2`)
+        - traefik.http.routers.registry.rule=Host(`registry.sw.mydomain.rocks`) && PathPrefix(`/v2`)
         - traefik.http.routers.registry.middlewares=admin-auth
         - traefik.http.services.registry.loadbalancer.server.port=5000
       placement:
@@ -134,11 +134,11 @@ Note as both service must be exposed to Traefik. In order to keep the same subdo
 It gives us have an additional condition for redirect to the correct service. It's ok in our case because the official docker registry use only `/v2` as endpoint.
 {{< /alert >}}
 
-Go to <https://registry.sw.mydomain.cool> and use Traefik credentials. We have no images yet let's create one.
+Go to <https://registry.sw.mydomain.rocks> and use Traefik credentials. We have no images yet let's create one.
 
 ### Test our private registry
 
-Login into the `manager-01` server, do `docker login registry.sw.mydomain.cool` and enter proper credentials. You should see *Login Succeeded*. Don't worry about the warning. Create the next Dockerfile somewhere :
+Login into the `manager-01` server, do `docker login registry.sw.mydomain.rocks` and enter proper credentials. You should see *Login Succeeded*. Don't worry about the warning. Create the next Dockerfile somewhere :
 
 ```Dockerfile
 FROM alpine:latest
@@ -149,15 +149,15 @@ Then build and push the image :
 
 ```sh
 docker build -t alpinegit .
-docker tag alpinegit registry.sw.mydomain.cool/alpinegit
-docker push registry.sw.mydomain.cool/alpinegit
+docker tag alpinegit registry.sw.mydomain.rocks/alpinegit
+docker push registry.sw.mydomain.rocks/alpinegit
 ```
 
-Go back to above <https://registry.sw.mydomain.cool>. You should see 1 new image !
+Go back to above <https://registry.sw.mydomain.rocks>. You should see 1 new image !
 
 [![Docker registry](docker-registry.png)](docker-registry.png)
 
-Delete the image test through UI and from local docker with `docker image rm registry.sw.mydomain.cool/alpinegit`.
+Delete the image test through UI and from local docker with `docker image rm registry.sw.mydomain.rocks/alpinegit`.
 
 {{< alert >}}
 Note as the blobs of image is always physically in the disk, even when "deleted". You must launch manually the docker GC in order to cleanup unused images.  
@@ -201,7 +201,7 @@ drone-runner-- push built docker image -->registry
 registry-- pull image when deploy stack -->my-app
 {{< /mermaid >}}
 
-Let's follow [the official docs](https://docs.drone.io/server/provider/gitea/) for generating a OAuth2 application on Gitea, which is necessary for Drone integration. Set `https://drone.sw.mydomain.cool` as redirect UI after successful authentication.
+Let's follow [the official docs](https://docs.drone.io/server/provider/gitea/) for generating a OAuth2 application on Gitea, which is necessary for Drone integration. Set `https://drone.sw.mydomain.rocks` as redirect UI after successful authentication.
 
 [![Gitea drone application](gitea-drone-application.png)](gitea-drone-application.png)
 
@@ -220,7 +220,7 @@ services:
       DRONE_DATABASE_DATASOURCE: postgres://drone:${DRONE_DATABASE_PASSWORD}@data-01:5432/drone?sslmode=disable
       DRONE_GITEA_CLIENT_ID:
       DRONE_GITEA_CLIENT_SECRET:
-      DRONE_GITEA_SERVER: https://gitea.sw.mydomain.cool
+      DRONE_GITEA_SERVER: https://gitea.sw.mydomain.rocks
       DRONE_RPC_SECRET:
       DRONE_SERVER_HOST:
       DRONE_SERVER_PROTO:
@@ -259,7 +259,7 @@ Don't forget to have proper docker labels on nodes, as explain [here]({{< ref "0
 
 | variable                    | description                                                                                                                     |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `DRONE_SERVER_HOST`         | The host of main Drone server. I'll use `drone.sw.mydomain.cool` here.                                                          |
+| `DRONE_SERVER_HOST`         | The host of main Drone server. I'll use `drone.sw.mydomain.rocks` here.                                                         |
 | `DRONE_SERVER_PROTO`        | The scheme protocol, which is `https`.                                                                                          |
 | `DRONE_GITEA_CLIENT_ID`     | Use the above client ID token.                                                                                                  |
 | `DRONE_GITEA_CLIENT_SECRET` | Use the above client secret token.                                                                                              |
@@ -267,7 +267,7 @@ Don't forget to have proper docker labels on nodes, as explain [here]({{< ref "0
 | `DRONE_RPC_SECRET`          | Necessary for proper secured authentication between Drone and runners. Use `openssl rand -hex 16` for generating a valid token. |
 | `DRONE_USER_CREATE`         | The initial user to create at launch. Put your Gitea username here for setting automatically Gitea user as drone administrator. |
 
-It's time to go to <https://drone.sw.mydomain.cool/> and generate your first Drone account through OAuth2 from Gitea. You should be properly redirected to Gitea, where you'll just have to authorize Drone application.
+It's time to go to <https://drone.sw.mydomain.rocks/> and generate your first Drone account through OAuth2 from Gitea. You should be properly redirected to Gitea, where you'll just have to authorize Drone application.
 
 [![Gitea oauth2](gitea-oauth2.png)](gitea-oauth2.png)
 
@@ -301,7 +301,7 @@ dotnet new gitignore
 git init
 git add .
 git commit -m "first commit"
-git remote add origin git@gitea.sw.mydomain.cool:adr1enbe4udou1n/my-weather-api.git # if you use ssh
+git remote add origin git@gitea.sw.mydomain.rocks:adr1enbe4udou1n/my-weather-api.git # if you use ssh
 git push -u origin main
 ```
 
@@ -324,10 +324,10 @@ It will create a webhook inside repository settings, triggered on every code pus
 Now generate a new SSH key on `manager-01` :
 
 ```sh
-ssh-keygen -t ed25519 -C "admin@sw.mydomain.cool"
+ssh-keygen -t ed25519 -C "admin@sw.mydomain.rocks"
 cat .ssh/id_ed25519 # the private key to set in swarm_ssh_key
 cat .ssh/id_ed25519.pub # the public key to add just below
-echo "ssh-ed25519 AAAA... admin@sw.mydomain.cool" | tee -a .ssh/authorized_keys
+echo "ssh-ed25519 AAAA... admin@sw.mydomain.rocks" | tee -a .ssh/authorized_keys
 ```
 
 Then configure the repository settings on Drone. Go to *Organization > Secrets* section and add some global secrets.
@@ -358,8 +358,8 @@ steps:
   - name: image
     image: plugins/docker
     settings:
-      registry: registry.sw.mydomain.cool
-      repo: registry.sw.mydomain.cool/adr1enbe4udou1n/my-weather-api
+      registry: registry.sw.mydomain.rocks
+      repo: registry.sw.mydomain.rocks/adr1enbe4udou1n/my-weather-api
       tags: latest
       username:
         from_secret: registry_username
@@ -395,7 +395,7 @@ Commit both above files and push to remote repo. Drone should be automatically t
 
 [![Drone build](drone-build.png)](drone-build.png)
 
-If all's going well, the final image should be pushed in our docker registry. You can ensure it by navigating to <https://registry.sw.mydomain.cool>.
+If all's going well, the final image should be pushed in our docker registry. You can ensure it by navigating to <https://registry.sw.mydomain.rocks>.
 
 ### Deployment (the CD part) 🚀
 
@@ -406,7 +406,7 @@ version: "3"
 
 services:
   app:
-    image: registry.sw.mydomain.cool/adr1enbe4udou1n/my-weather-api
+    image: registry.sw.mydomain.rocks/adr1enbe4udou1n/my-weather-api
     environment:
       ASPNETCORE_ENVIRONMENT: Development
     networks:
@@ -429,13 +429,13 @@ I use `Development` in order to have the swagger UI.
 Be sure to have registered the private registry in Portainer before deploying as [explained here](#register-registry-in-portainer).
 {{< /alert >}}
 
-Finally, deploy and see the result in <https://weather.sw.mydomain.cool/swagger>. You should access to the swagger UI, and API endpoints should correctly respond.
+Finally, deploy and see the result in <https://weather.sw.mydomain.rocks/swagger>. You should access to the swagger UI, and API endpoints should correctly respond.
 
 #### Continuous deployment
 
 Now it's clear that we don't want to deploy manually every time when the code is pushed.
 
-First be sure that following `docker service update --image registry.sw.mydomain.cool/adr1enbe4udou1n/my-weather-api:latest weather_app --with-registry-auth` command works well in `manager-01`. It's simply update the current `weather_app` service with the last available image version from the private registry.
+First be sure that following `docker service update --image registry.sw.mydomain.rocks/adr1enbe4udou1n/my-weather-api:latest weather_app --with-registry-auth` command works well in `manager-01`. It's simply update the current `weather_app` service with the last available image version from the private registry.
 
 Now we must be sure that the `runner-01` host can reach the `manager-01` server from outside. If you have applied the firewall at the beginning of this tutorial, only our own IP is authorized. Let's add the public IP of `runner-01` to your `firewall-external` inside Hetzner console.
 
@@ -446,13 +446,13 @@ Now let's add a new `deploy` step inside `.drone.yml` into our pipeline for auto
   - name: deploy
     image: appleboy/drone-ssh
     settings:
-      host: sw.mydomain.cool
+      host: sw.mydomain.rocks
       port: 2222
       username: swarm
       key:
         from_secret: swarm_ssh_key
       script:
-        - docker service update --image registry.sw.mydomain.cool/adr1enbe4udou1n/my-weather-api:latest weather_app --with-registry-auth
+        - docker service update --image registry.sw.mydomain.rocks/adr1enbe4udou1n/my-weather-api:latest weather_app --with-registry-auth
 #...
 ```
 

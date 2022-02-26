@@ -18,7 +18,7 @@ This part is totally optional, as it's mainly focused on monitoring. Feel free t
 
 ## Metrics with Prometheus 🔦
 
-Prometheus is become the standard de facto for self-hosted monitoring in part thanks to his architecture. It's a TSDB (Time Series Database) that will poll (aka scrape) standard metrics REST endpoints, provided by the tools to monitor. It's the case of Traefik, as we seen in [part III]({{< ref "04-build-your-own-docker-swarm-cluster-part-3#traefik-" >}}). For tools that don't support it natively, like databases, you'll find many exporters that will do the job for you.
+Prometheus is become the standard de facto for self-hosted monitoring in part thanks to his architecture. It's a TSDB (Time Series Database) that will poll (aka scrape) standard metrics REST endpoints, provided by the tools to monitor. It's the case of Traefik, as we have seen in [part III]({{< ref "04-build-your-own-docker-swarm-cluster-part-3#traefik-" >}}). For tools that don't support it natively, like databases, you'll find many exporters that will do the job for you.
 
 ### Prometheus install 💽
 
@@ -101,7 +101,7 @@ The `private` network will serve us later for exporters. Next config are useful 
 | storage.tsdb.retention.size | The max DB size             |
 | storage.tsdb.retention.time | The max data retention date |
 
-Deploy it and <https://prometheus.sw.mydomain.cool> should be available after few seconds. Use same traefik credentials for login.
+Deploy it and <https://prometheus.sw.mydomain.rocks> should be available after few seconds. Use same traefik credentials for login.
 
 You should now have access to some metrics !
 
@@ -254,8 +254,8 @@ services:
   grafana:
     image: grafana/grafana:8.4.1
     environment:
-      GF_SERVER_DOMAIN: grafana.sw.mydomain.cool
-      GF_SERVER_ROOT_URL: https://grafana.sw.mydomain.cool
+      GF_SERVER_DOMAIN: grafana.sw.mydomain.rocks
+      GF_SERVER_ROOT_URL: https://grafana.sw.mydomain.rocks
       GF_DATABASE_TYPE: postgres
       GF_DATABASE_HOST: data-01:5432
       GF_DATABASE_NAME: grafana
@@ -282,7 +282,7 @@ networks:
     external: true
 ```
 
-Set proper `GF_DATABASE_PASSWORD` and deploy. Database migration should be automatic (don't hesitate to check inside pgAdmin). Go to <https://grafana.sw.mydomain.cool> and login as admin / admin.
+Set proper `GF_DATABASE_PASSWORD` and deploy. Database migration should be automatic (don't hesitate to check inside pgAdmin). Go to <https://grafana.sw.mydomain.rocks> and login as admin / admin.
 
 [![Grafana home](grafana-home.png)](grafana-home.png)
 

@@ -57,7 +57,7 @@ version: "3"
 
 services:
   app:
-    image: registry.sw.mydomain.cool/adr1enbe4udou1n/my-weather-api
+    image: registry.sw.mydomain.rocks/adr1enbe4udou1n/my-weather-api
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       Jaeger__Host: tasks.jaeger_agent
@@ -131,7 +131,7 @@ networks:
 
 Set proper `ROOT_PATH` with `/mnt/storage-pool/sonar` and `SONAR_JDBC_PASSWORD` with above DB password.
 
-Go to <https://sonar.sw.mydomain.cool>, use admin / admin credentials and update password.
+Go to <https://sonar.sw.mydomain.rocks>, use admin / admin credentials and update password.
 
 ### Project analysis
 
@@ -144,7 +144,7 @@ You must have at least Java 11 installed locally.
 ```sh
 dotnet tool install --global dotnet-sonarscanner
 
-dotnet sonarscanner begin /k:"My-Weather-API" /d:sonar.host.url="https://sonar.sw.mydomain.cool"  /d:sonar.login="above-generated-token"
+dotnet sonarscanner begin /k:"My-Weather-API" /d:sonar.host.url="https://sonar.sw.mydomain.rocks"  /d:sonar.login="above-generated-token"
 
 dotnet build
 
@@ -159,10 +159,10 @@ Wait few minutes and the final rapport analysis should automatically appear. Add
 
 Because running scanner manually is boring, let's integrate it in our favorite CI. Create following secrets through Drone UI :
 
-| name             | level        | description                                             |
-| ---------------- | ------------ | ------------------------------------------------------- |
-| `sonar_host_url` | organization | Set the sonar host URL `https://sonar.sw.mydomain.cool` |
-| `sonar_token`    | repository   | Set the above token                                     |
+| name             | level        | description                                              |
+| ---------------- | ------------ | -------------------------------------------------------- |
+| `sonar_host_url` | organization | Set the sonar host URL `https://sonar.sw.mydomain.rocks` |
+| `sonar_token`    | repository   | Set the above token                                      |
 
 Change the `build` step on `.drone.yml` file :
 
@@ -259,7 +259,7 @@ import http from "k6/http";
 import { check } from "k6";
 
 export default function () {
-  http.get('https://weather.sw.mydomain.cool/WeatherForecast');
+  http.get('https://weather.sw.mydomain.rocks/WeatherForecast');
 }
 ```
 
@@ -362,7 +362,7 @@ export const options = {
 };
 
 export default function () {
-  http.get('https://weather.sw.mydomain.cool/WeatherForecast');
+  http.get('https://weather.sw.mydomain.rocks/WeatherForecast');
 }
 ```
 

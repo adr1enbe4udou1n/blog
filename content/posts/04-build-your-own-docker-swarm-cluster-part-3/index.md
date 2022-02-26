@@ -59,105 +59,6 @@ docker node update --label-add environment=production worker-01
 docker node update --label-add environment=build runner-01
 ```
 
-## Network file system 📄
-
-Before go further away, we'll quickly need of proper unique shared storage location for all managers and workers. It's mandatory in order to keep same state when your app containers are automatically rearranged by Swarm manager across multiple workers for convergence purpose.
-
-We'll use `GlusterFS` for that. You can of course use a simple NFS bind mount. But GlusterFS make more sense in the sense that it allows easy replication for HA. You will not regret it when you'll need a `data-02`. We'll not cover GlusterFS replication here, just a unique master replica.
-
-{{< mermaid >}}
-flowchart TD
-subgraph manager-01
-traefik((Traefik))
-end
-subgraph worker-01
-my-app-01-01((My App 01))
-my-app-02-01((My App 02))
-end
-subgraph worker-02
-my-app-01-02((My App 01))
-my-app-02-02((My App 02))
-end
-subgraph data-01
-storage[/GlusterFS/]
-db1[(MySQL)]
-db2[(PostgreSQL)]
-end
-traefik-->my-app-01-01
-traefik-->my-app-02-01
-traefik-->my-app-01-02
-traefik-->my-app-02-02
-worker-01-- glusterfs bind mount -->storage
-worker-02-- glusterfs bind mount -->storage
-my-app-02-01-->db2
-my-app-02-02-->db2
-{{< /mermaid >}}
-
-{{< alert >}}
-Note that manager node can be used as worker as well. However, I think it's not well suited for production apps in my opinion.
-{{< /alert >}}
-
-### Install GlusterFS 🐜
-
-It's 2 steps :
-
-* Installing the file system server on dedicated volume mounted on `data-01`
-* Mount the above volume on all clients where docker is installed
-
-{{< tabs >}}
-{{< tab tabName="1. master (data-01)" >}}
-
-```sh
-sudo add-apt-repository -y ppa:gluster/glusterfs-10
-
-sudo apt install -y glusterfs-server
-sudo systemctl enable glusterd.service
-sudo systemctl start glusterd.service
-
-# get the path of you mounted disk from part 1 of this tuto
-df -h # it should be like /mnt/HC_Volume_xxxxxxxx
-
-# create the volume
-sudo gluster volume create volume-01 data-01:/mnt/HC_Volume_xxxxxxxx/gluster-storage
-sudo gluster volume start volume-01
-
-# ensure volume is present with this command
-sudo gluster volume status
-
-# next line for testing purpose
-sudo touch /mnt/HC_Volume_xxxxxxxx/gluster-storage/test.txt
-```
-
-{{< /tab >}}
-{{< tab tabName="2. clients (docker hosts)" >}}
-
-```sh
-# do following commands on every docker client host
-sudo add-apt-repository -y ppa:gluster/glusterfs-10
-
-sudo apt install -y glusterfs-client
-
-# I will choose this path as main bind mount
-sudo mkdir /mnt/storage-pool
-
-# edit /etc/fstab with following line for persistent mount
-data-01:/volume-01 /mnt/storage-pool glusterfs defaults,_netdev,x-systemd.automount 0 0
-
-# test fstab with next command
-sudo mount -a
-
-# you should see test.txt
-ls /mnt/storage-pool/
-```
-
-{{< /tab >}}
-{{< /tabs >}}
-
-{{< alert >}}
-You can ask why we use bind mounts directly on the host instead of using more featured docker volumes directly (Kubernetes does similar way). Moreover, it's not really the first recommendation on [official docs](https://docs.docker.com/storage/bind-mounts/), as it states to prefer volumes directly.  
-It's just as I didn't find reliable GlusterFS driver working for Docker. Kubernetes is far more mature in this domain sadly. Please let me know if you know production grade solution for that !
-{{< /alert >}}
-
 ## Installing the Traefik - Portainer combo 💞
 
 It's finally time to start our first container services. The minimal setup will be :
@@ -201,12 +102,12 @@ entryPoints:
 certificatesResolvers:
   le:
     acme:
-      email: admin@sw.mydomain.cool
+      email: admin@sw.mydomain.rocks
       storage: /certificates/acme.json
       tlsChallenge: {}
 providers:
   docker:
-    defaultRule: Host(`{{ index .Labels "com.docker.stack.namespace" }}.sw.mydomain.cool`)
+    defaultRule: Host(`{{ index .Labels "com.docker.stack.namespace" }}.sw.mydomain.rocks`)
     exposedByDefault: false
     swarmMode: true
     network: traefik_public
@@ -248,7 +149,7 @@ It indicates Traefik to read through Docker API in order to discover any new ser
 | `network`          | Default network connection for all exposed containers                                                                                                                                                                   |
 | `defaultRule`      | Default rule that will be applied to HTTP routes, in order to redirect particular URL to the right service. Each service container can override this default value with `traefik.http.routers.my-container.rule` label. |
 
-As a default route rule, I set here a value adapted for an automatic subdomain discovery. `{{ index .Labels "com.docker.stack.namespace" }}.sw.mydomain.cool` is a dynamic Go template string that means to use the `com.docker.stack.namespace` label that is applied by default on Docker Swarm on each deployed service. So if I deploy a swarm stack called `myapp`, Traefik will automatically set `myapp.sw.mydomain.cool` as default domain URL to my service, with automatic TLS challenge !
+As a default route rule, I set here a value adapted for an automatic subdomain discovery. `{{ index .Labels "com.docker.stack.namespace" }}.sw.mydomain.rocks` is a dynamic Go template string that means to use the `com.docker.stack.namespace` label that is applied by default on Docker Swarm on each deployed service. So if I deploy a swarm stack called `myapp`, Traefik will automatically set `myapp.sw.mydomain.rocks` as default domain URL to my service, with automatic TLS challenge !
 
 All I have to do is to add a specific label `traefik.enable=true` inside the Docker service configuration and be sure that it's on the `traefik_public` network.
 
@@ -344,7 +245,7 @@ This is the Traefik dynamic configuration part. I declare here many service that
 | `gzip`               | middleware | provides [basic gzip compression](https://doc.traefik.io/traefik/middlewares/http/compress/). Note as Traefik doesn't support brotli yep, which is pretty disappointed where absolutly all other reverse proxies support it... |
 | `admin-auth`         | middleware | provides basic HTTP authorization. `basicauth.users` will use standard `htpasswd` format. I use `HASHED_PASSWORD` as dynamic environment variable.                                                                             |
 | `admin-ip`           | middleware | provides IP whitelist protection, given a source range.                                                                                                                                                                        |
-| `traefik-public-api` | router     | Configured for proper redirection to internal dashboard Traefik API from `traefik.sw.mydomain.cool`, which is defined by default rule. It's configured with above `admin-auth` and `admin-ip` for proper protection.           |
+| `traefik-public-api` | router     | Configured for proper redirection to internal dashboard Traefik API from `traefik.sw.mydomain.rocks`, which is defined by default rule. It's configured with above `admin-auth` and `admin-ip` for proper protection.          |
 | `traefik-public`     | service    | allow proper redirection to the default exposed 8080 port of Traefik container. This is sadly mandatory when using [Docker Swarm](https://doc.traefik.io/traefik/providers/docker/#port-detection_1)                           |
 
 {{< alert >}}
@@ -375,7 +276,7 @@ docker service ls
 docker service logs traefik_traefik
 ```
 
-After few seconds, Traefik should launch and generate proper SSL certificate for his own domain. You can finally go to <https://traefik.sw.mydomain.cool>. `http://` should work as well thanks to permanent redirection.
+After few seconds, Traefik should launch and generate proper SSL certificate for his own domain. You can finally go to <https://traefik.sw.mydomain.rocks>. `http://` should work as well thanks to permanent redirection.
 
 If properly configured, you will be prompted for access. After entering admin as user and your own chosen password, you should finally access to the traefik dashboard similar to below !
 
@@ -451,7 +352,7 @@ As soon as the main portainer service has successfully started, Traefik will det
 
 [![Traefik routers](traefik-routers.png)](traefik-routers.png)
 
-It's time to create your admin account through <https://portainer.sw.mydomain.cool>. If all goes well, aka Portainer agent are accessible from Portainer portal, you should have access to your cluster home environment with 2 stacks active.
+It's time to create your admin account through <https://portainer.sw.mydomain.rocks>. If all goes well, aka Portainer agent are accessible from Portainer portal, you should have access to your cluster home environment with 2 stacks active.
 
 [![Portainer home](portainer-home.png)](portainer-home.png)
 
@@ -545,6 +446,6 @@ You can check the service logs which consist of all tasks logs aggregate.
 
 ## 2nd check ✅
 
-We've done the minimal viable Swarm setup with a nice cloud native reverse proxy and a containers GUI manager, with a cloud native NFS.
+We've done the minimal viable Swarm setup with a nice cloud native reverse proxy and a containers GUI manager.
 
 It's time to test more advanced cases with self-hosted managed databases in [next part]({{< ref "/posts/04-build-your-own-docker-swarm-cluster-part-3" >}}).

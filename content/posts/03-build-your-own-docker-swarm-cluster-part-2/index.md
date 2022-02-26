@@ -1,5 +1,5 @@
 ---
-title: "Setup a Docker Swarm cluster Part II - Hetzner Cloud"
+title: "Setup a Docker Swarm cluster Part II - Hetzner Cloud & NFS"
 date: 2022-02-15
 description: "Build an opinionated containerized platform for developer..."
 tags: ["docker", "swarm"]
@@ -64,6 +64,10 @@ hcloud server create --name data-01 --ssh-key swarm --image ubuntu-20.04 --type 
 # create the volume that will be used by gluster and automount it to the data server (fstab will be already setted)
 hcloud volume create --name volume-01 --size 60 --server data-01 --automount --format ext4
 ```
+
+{{< alert >}}
+Location is important ! Choose wisely between Germany, Finland and US. Here I go for `nbg1`, aka Nuremberg.
+{{< /alert >}}
 
 ## Prepare the servers 🛠️
 
@@ -135,14 +139,14 @@ IPs are only showed here as samples, use `hcloud server describe xxxxxx-01` in o
 
 ## Setup DNS and SSH config 🌍
 
-Now use `hcloud server ip manager-01` to get the unique frontal IP address of the cluster that will be used for any entry point, including SSH. Then edit the DNS of your domain and apply this IP to a particular subdomain, as well as a wildcard subdomain. You will see later what this wildcard domain is it for. I will use `sw.mydomain.cool` as sample. It should be looks like next :
+Now use `hcloud server ip manager-01` to get the unique frontal IP address of the cluster that will be used for any entry point, including SSH. Then edit the DNS of your domain and apply this IP to a particular subdomain, as well as a wildcard subdomain. You will see later what this wildcard domain is it for. I will use `sw.mydomain.rocks` as sample. It should be looks like next :
 
 ```txt
 sw      3600    IN A        123.123.123.123
 *.sw    43200   IN CNAME    sw
 ```
 
-As soon as the above DNS is applied, you should ping `sw.mydomain.cool` or any `xyz.sw.mydomain.cool` domains.
+As soon as the above DNS is applied, you should ping `sw.mydomain.rocks` or any `xyz.sw.mydomain.rocks` domains.
 
 It's now time to finalize your local SSH config for optimal access. Go to `~/.ssh/config` and add following hosts (change it accordingly to your own setup) :
 
@@ -150,7 +154,7 @@ It's now time to finalize your local SSH config for optimal access. Go to `~/.ss
 Host sw
     User swarm
     Port 2222
-    HostName sw.mydomain.cool
+    HostName sw.mydomain.rocks
 
 Host sw-data-01
     User swarm
@@ -171,7 +175,7 @@ Host sw-worker-01
 And that's it ! You should now quickly ssh to these servers easily by `ssh sw`, `ssh sw-worker-01`, `ssh sw-runner-01`, `ssh sw-data-01`, which will be far more practical.
 
 {{< alert >}}
-Note as I only use the `sw.mydomain.cool` as unique endpoint for ssh access to all internal server, without need of external SSH access to servers different from `manager-01`. It's known as SSH proxy, which allows single access point for better security perspective by simply jumping from main SSH access.
+Note as I only use the `sw.mydomain.rocks` as unique endpoint for ssh access to all internal server, without need of external SSH access to servers different from `manager-01`. It's known as SSH proxy, which allows single access point for better security perspective by simply jumping from main SSH access.
 {{< /alert >}}
 
 ## The firewall 🧱
@@ -266,8 +270,107 @@ You should have now good protection against any unintended external access with 
 | **80**   | the HTTP port for Traefik, only required for proper HTTPS redirection                                                  |
 | **22**   | the SSH standard port for Traefik, required for proper usage through you main Git provider container as GitLab / Gitea |
 
+## Network file system 📄
+
+Before go further away, we'll quickly need of proper unique shared storage location for all managers and workers. It's mandatory in order to keep same state when your app containers are automatically rearranged by Swarm manager across multiple workers for convergence purpose.
+
+We'll use `GlusterFS` for that. You can of course use a simple NFS bind mount. But GlusterFS make more sense in the sense that it allows easy replication for HA. You will not regret it when you'll need a `data-02`. We'll not cover GlusterFS replication here, just a unique master replica.
+
+{{< mermaid >}}
+flowchart TD
+subgraph manager-01
+traefik((Traefik))
+end
+subgraph worker-01
+my-app-01-01((My App 01))
+my-app-02-01((My App 02))
+end
+subgraph worker-02
+my-app-01-02((My App 01))
+my-app-02-02((My App 02))
+end
+subgraph data-01
+storage[/GlusterFS/]
+db1[(MySQL)]
+db2[(PostgreSQL)]
+end
+traefik-->my-app-01-01
+traefik-->my-app-02-01
+traefik-->my-app-01-02
+traefik-->my-app-02-02
+worker-01-- glusterfs bind mount -->storage
+worker-02-- glusterfs bind mount -->storage
+my-app-02-01-->db2
+my-app-02-02-->db2
+{{< /mermaid >}}
+
+{{< alert >}}
+Note that manager node can be used as worker as well. However, I think it's not well suited for production apps in my opinion.
+{{< /alert >}}
+
+### Install GlusterFS 🐜
+
+It's 2 steps :
+
+* Installing the file system server on dedicated volume mounted on `data-01`
+* Mount the above volume on all clients where docker is installed
+
+{{< tabs >}}
+{{< tab tabName="1. master (data-01)" >}}
+
+```sh
+sudo add-apt-repository -y ppa:gluster/glusterfs-10
+
+sudo apt install -y glusterfs-server
+sudo systemctl enable glusterd.service
+sudo systemctl start glusterd.service
+
+# get the path of you mounted disk from part 1 of this tuto
+df -h # it should be like /mnt/HC_Volume_xxxxxxxx
+
+# create the volume
+sudo gluster volume create volume-01 data-01:/mnt/HC_Volume_xxxxxxxx/gluster-storage
+sudo gluster volume start volume-01
+
+# ensure volume is present with this command
+sudo gluster volume status
+
+# next line for testing purpose
+sudo touch /mnt/HC_Volume_xxxxxxxx/gluster-storage/test.txt
+```
+
+{{< /tab >}}
+{{< tab tabName="2. clients (docker hosts)" >}}
+
+```sh
+# do following commands on every docker client host
+sudo add-apt-repository -y ppa:gluster/glusterfs-10
+
+sudo apt install -y glusterfs-client
+
+# I will choose this path as main bind mount
+sudo mkdir /mnt/storage-pool
+
+# edit /etc/fstab with following line for persistent mount
+data-01:/volume-01 /mnt/storage-pool glusterfs defaults,_netdev,x-systemd.automount 0 0
+
+# test fstab with next command
+sudo mount -a
+
+# you should see test.txt
+ls /mnt/storage-pool/
+```
+
+{{< /tab >}}
+{{< /tabs >}}
+
+{{< alert >}}
+You can ask why we use bind mounts directly on the host instead of using more featured docker volumes directly (Kubernetes does similar way). Moreover, it's not really the first recommendation on [official docs](https://docs.docker.com/storage/bind-mounts/), as it states to prefer volumes directly.  
+It's just as I didn't find reliable GlusterFS driver working for Docker. Kubernetes is far more mature in this domain sadly. Please let me know if you know production grade solution for that !
+{{< /alert >}}
+
 ## 1st check ✅
 
-We've done all the boring nevertheless essential stuff of this tutorial by preparing the physical layer + OS part.
+We've done all the boring nevertheless essential stuff of this tutorial by preparing the physical layer + OS part + cloud native NFS.
 
 Go to the [next part]({{< ref "/posts/04-build-your-own-docker-swarm-cluster-part-3" >}}) for the serious work !

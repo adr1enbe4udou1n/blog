@@ -25,8 +25,8 @@ So the prerequisites before continue :
 * Have some knowledge on docker-compose setups
 * Be comfortable with SSH terminal
 * Registered for a [Hetzner Cloud account](https://accounts.hetzner.com/signUp)
-* A custom domain, I'll use `mydomain.cool` here as example
-* A account to a transactional mail provider as mailgun, sendgrid, sendingblue, etc.
+* A custom domain, I'll use `mydomain.rocks` here as example
+* A account to a transactional mail provider as Mailgun, SendGrid, Sendinblue, etc.
 
 {{< alert >}}
 You can of course apply this guide on any other cloud provider, but I doubt that you can achieve lower price.
