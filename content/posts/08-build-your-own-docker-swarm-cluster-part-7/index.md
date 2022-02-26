@@ -772,6 +772,8 @@ Deploy the stack, and it should launch a load testing for 1 minute. In the end, 
 
 With Loki as the default log driver, we get only current logs of running tasks in Portainer, so when completed, the logs are wiped. You must go through Grafana in the *Logs* dashboard that we built on previous part in order to check the final raw results.
 
+[![Grafana k6 logs](grafana-k6-logs.png)](grafana-k6-logs.png)
+
 ### Visualization through Grafana
 
 It's now time to go back to Grafana and try to get some charts. First Add a new InfluxDB *Data source*. Set `http://influxdb_db:8086` inside *URL* field and `k6weather` in *Database* field, then *Save & test*.
@@ -831,11 +833,7 @@ Then use this script on above `k6` stack and be sure to comment `K6_VUS` and `K6
 
 [![Portainer k6 logs](portainer-k6-logs.png)](portainer-k6-logs.png)
 
-The final raw result will be available at Grafana logs :
-
-[![Grafana k6 logs](grafana-k6-logs.png)](grafana-k6-logs.png)
-
-Here the corresponding *Chart.js* result for the 1st minute :
+Check the raw and graph result in Grafana as previous scenario. Here the corresponding *Chart.js* result in my case for the 1st minute :
 
 {{< chart >}}
 type: 'line',

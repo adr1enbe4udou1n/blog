@@ -90,6 +90,7 @@ This is an optional part, feel free to skip. We'll set up production grade monit
 * `Private docker registry` with minimal UI for all your custom app images that will be built on your development process and be used as based image for your production docker on cluster
 * `Drone CI` as self-hosted CI/CD solution
 * `SonarQube` as self-hosted quality code control
+* Get perfect load testing environment with `k6` + `InfluxDB` + `Grafana` combo
 
 Finally, we'll finish this guide by a simple mini-app development with above CI/CD integration !
 
