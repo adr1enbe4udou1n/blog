@@ -734,12 +734,12 @@ services:
     image: grafana/k6
     configs:
       - source: k6_weather_test_01
-        target: /scripts/k6-weather-test-01.js
+        target: /scripts/k6-weather.js
     environment:
       - K6_VUS=100
       - K6_DURATION=1m
       - K6_OUT=influxdb=http://db:8086/k6weather
-    entrypoint: ['k6', 'run', '/scripts/k6-weather-test-01.js']
+    entrypoint: ['k6', 'run', '/scripts/k6-weather.js']
     networks:
       - influxdb_private
     deploy:
@@ -790,17 +790,72 @@ options: {
       ticks: {
         autoSkip: false,
         callback: function(val, index) {
-          return val % 5 === 0 ? (val + 's') : '';
+          return val % 5 === 0 ? (this.getLabelForValue(val) + 's') : '';
         },
       }
     }
   },
 },
 data: {
-  labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60],
+  labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59],
   datasets: [{
     label: 'HTTP reqs count',
     data: [486, 822, 1224, 1051, 1034, 826, 1237, 1224, 1164, 1249, 1178, 1239, 1269, 1230, 1189, 1041, 1343, 1375, 1194, 1260, 1008, 1283, 1363, 1370, 1435, 994, 1424, 967, 1280, 1354, 1084, 1142, 1642, 1291, 1185, 1131, 1333, 1454, 1248, 1459, 986, 1300, 1361, 1331, 1246, 1018, 1171, 1378, 1381, 1274, 1053, 1236, 1503, 1355, 1194, 1276, 821, 1622, 1471, 1241],
+    tension: 0.2
+  }]
+}
+{{< /chart >}}
+
+### Test loading scenario
+
+You can go even further with more progressive scenario. Create a new `k6_weather_test_02` docker config script :
+
+```js
+import http from "k6/http";
+import { check } from "k6";
+
+export const options = {
+  stages: [
+    { duration: '5m', target: 200 },
+  ],
+};
+
+export default function () {
+  http.get('https://weather.sw.okami101.io/WeatherForecast');
+}
+```
+
+This is a progressive 5 minutes load testing scenario from 1 user to 200 concurrent users.
+
+Then use this script on above `k6` stack and be sure to comment `K6_VUS` and `K6_DURATION` environment variables. Check the logs to ensure that you have correct scenario :
+
+[![Portainer k6 logs](portainer-k6-logs.png)](portainer-k6-logs.png)
+
+The final raw result will be available at Grafana logs :
+
+[![Grafana k6 logs](grafana-k6-logs.png)](grafana-k6-logs.png)
+
+Here the corresponding *Chart.js* result for the 1st minute :
+
+{{< chart >}}
+type: 'line',
+options: {
+  scales: {
+    x: {
+      ticks: {
+        autoSkip: false,
+        callback: function(val, index) {
+          return val % 5 === 0 ? (this.getLabelForValue(val) + 's') : '';
+        },
+      }
+    }
+  },
+},
+data: {
+  labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59],
+  datasets: [{
+    label: 'HTTP reqs count',
+    data: [28, 211, 321, 464, 588, 720, 671, 589, 639, 743, 913, 895, 912, 896, 1085, 939, 936, 1024, 844, 1020, 994, 1068, 1064, 951, 1105, 1140, 1186, 1079, 951, 1326, 1199, 1288, 1053, 866, 1193, 1318, 1214, 1047, 954, 1153, 1250, 1144, 1191, 992, 1254, 1313, 1102, 1232, 933, 1044, 1326, 1453, 1210, 941, 1263, 1121, 1205, 1111, 1119, 1153],
     tension: 0.2
   }]
 }
