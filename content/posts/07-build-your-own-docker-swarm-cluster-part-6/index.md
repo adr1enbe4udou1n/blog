@@ -392,4 +392,4 @@ Detail view of request with duration time on each operation, aka traefik middlew
 
 We've done all the logging part with complete centralized logging for cluster + data, as well as tracing.
 
-Now it's time to test a real case scenario usage for a developer perspective. We'll see that in the [last part]({{< ref "/posts/08-build-your-own-docker-swarm-cluster-part-7" >}}).
+Now it's time to test a real case scenario usage for a developer perspective. We'll see that in the [next part]({{< ref "/posts/08-build-your-own-docker-swarm-cluster-part-7" >}}).
