@@ -201,12 +201,12 @@ entryPoints:
 certificatesResolvers:
   le:
     acme:
-      email: admin@sw.okami101.io
+      email: admin@sw.mydomain.cool
       storage: /certificates/acme.json
       tlsChallenge: {}
 providers:
   docker:
-    defaultRule: Host(`{{ index .Labels "com.docker.stack.namespace" }}.sw.okami101.io`)
+    defaultRule: Host(`{{ index .Labels "com.docker.stack.namespace" }}.sw.mydomain.cool`)
     exposedByDefault: false
     swarmMode: true
     network: traefik_public
@@ -248,7 +248,7 @@ It indicates Traefik to read through Docker API in order to discover any new ser
 | `network`          | Default network connection for all exposed containers                                                                                                                                                                   |
 | `defaultRule`      | Default rule that will be applied to HTTP routes, in order to redirect particular URL to the right service. Each service container can override this default value with `traefik.http.routers.my-container.rule` label. |
 
-As a default route rule, I set here a value adapted for an automatic subdomain discovery. `{{ index .Labels "com.docker.stack.namespace" }}.sw.okami101.io` is a dynamic Go template string that means to use the `com.docker.stack.namespace` label that is applied by default on Docker Swarm on each deployed service. So if I deploy a swarm stack called `myapp`, Traefik will automatically set `myapp.sw.okami101.io` as default domain URL to my service, with automatic TLS challenge !
+As a default route rule, I set here a value adapted for an automatic subdomain discovery. `{{ index .Labels "com.docker.stack.namespace" }}.sw.mydomain.cool` is a dynamic Go template string that means to use the `com.docker.stack.namespace` label that is applied by default on Docker Swarm on each deployed service. So if I deploy a swarm stack called `myapp`, Traefik will automatically set `myapp.sw.mydomain.cool` as default domain URL to my service, with automatic TLS challenge !
 
 All I have to do is to add a specific label `traefik.enable=true` inside the Docker service configuration and be sure that it's on the `traefik_public` network.
 
@@ -273,7 +273,7 @@ version: '3.2'
 
 services:
   traefik:
-    image: traefik:v2.5
+    image: traefik:v2.6
     ports:
       - target: 22
         published: 22
@@ -344,7 +344,7 @@ This is the Traefik dynamic configuration part. I declare here many service that
 | `gzip`               | middleware | provides [basic gzip compression](https://doc.traefik.io/traefik/middlewares/http/compress/). Note as Traefik doesn't support brotli yep, which is pretty disappointed where absolutly all other reverse proxies support it... |
 | `admin-auth`         | middleware | provides basic HTTP authorization. `basicauth.users` will use standard `htpasswd` format. I use `HASHED_PASSWORD` as dynamic environment variable.                                                                             |
 | `admin-ip`           | middleware | provides IP whitelist protection, given a source range.                                                                                                                                                                        |
-| `traefik-public-api` | router     | Configured for proper redirection to internal dashboard Traefik API from `traefik.sw.okami101.io`, which is defined by default rule. It's configured with above `admin-auth` and `admin-ip` for proper protection.             |
+| `traefik-public-api` | router     | Configured for proper redirection to internal dashboard Traefik API from `traefik.sw.mydomain.cool`, which is defined by default rule. It's configured with above `admin-auth` and `admin-ip` for proper protection.           |
 | `traefik-public`     | service    | allow proper redirection to the default exposed 8080 port of Traefik container. This is sadly mandatory when using [Docker Swarm](https://doc.traefik.io/traefik/providers/docker/#port-detection_1)                           |
 
 {{< alert >}}
@@ -375,7 +375,7 @@ docker service ls
 docker service logs traefik_traefik
 ```
 
-After few seconds, Traefik should launch and generate proper SSL certificate for his own domain. You can finally go to <https://traefik.sw.okami101.io>. `http://` should work as well thanks to permanent redirection.
+After few seconds, Traefik should launch and generate proper SSL certificate for his own domain. You can finally go to <https://traefik.sw.mydomain.cool>. `http://` should work as well thanks to permanent redirection.
 
 If properly configured, you will be prompted for access. After entering admin as user and your own chosen password, you should finally access to the traefik dashboard similar to below !
 
@@ -451,7 +451,7 @@ As soon as the main portainer service has successfully started, Traefik will det
 
 [![Traefik routers](traefik-routers.png)](traefik-routers.png)
 
-It's time to create your admin account through <https://portainer.sw.okami101.io>. If all goes well, aka Portainer agent are accessible from Portainer portal, you should have access to your cluster home environment with 2 stacks active.
+It's time to create your admin account through <https://portainer.sw.mydomain.cool>. If all goes well, aka Portainer agent are accessible from Portainer portal, you should have access to your cluster home environment with 2 stacks active.
 
 [![Portainer home](portainer-home.png)](portainer-home.png)
 

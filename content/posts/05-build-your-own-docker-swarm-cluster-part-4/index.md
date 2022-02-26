@@ -96,7 +96,7 @@ networks:
 
 The important part is `/etc/hosts` in order to allow proper DNS resolving for `data-01` configured in `PMA_HOST` environment variable. This will avoid us from dragging the real IP of data server everywhere...
 
-Deploy it, and you should access to <https://phpmyadmin.sw.okami101.io> after few seconds, with full admin access to your MySQL DB !
+Deploy it, and you should access to <https://phpmyadmin.sw.mydomain.cool> after few seconds, with full admin access to your MySQL DB !
 
 [![phpMyAdmin](phpmyadmin.png)](phpmyadmin.png)
 
@@ -198,7 +198,7 @@ networks:
 
 You'll need both `PGADMIN_DEFAULT_EMAIL` and `PGADMIN_DEFAULT_PASSWORD` variable environment for proper initialization.
 
-Deploy it, and you should access after few seconds to <https://pgadmin.sw.okami101.io> with the default logins just above.
+Deploy it, and you should access after few seconds to <https://pgadmin.sw.mydomain.cool> with the default logins just above.
 
 Once logged, you need to add the previously configured PostgreSQL server address via *Add new server*. Just add relevant host informations in *Connection* tab. Host must stay `data-01` with swarm as superuser access.
 
@@ -286,7 +286,7 @@ Configure `REDMINE_DB_*` with proper above created DB credential and set the ran
 I use a dynamic `ROOT_PATH` here. So you must add this variable with `/mnt/storage-pool/redmine` value in the below *Environment variables* section of portainer.
 {{< /alert >}}
 
-After few seconds, <https://redmine.sw.okami101.io> should be accessible and ready to use, use admin / admin for admin connection !
+After few seconds, <https://redmine.sw.mydomain.cool> should be accessible and ready to use, use admin / admin for admin connection !
 
 [![Redmine](redmine.png)](redmine.png)
 
@@ -329,7 +329,7 @@ networks:
     external: true
 ```
 
-And voilà, it's done, n8n will automatically migrate the database and <https://n8n.sw.okami101.io> should be soon accessible. Note as we use `admin-auth` middleware because n8n doesn't offer authentication. Use the same Traefik credentials.
+And voilà, it's done, n8n will automatically migrate the database and <https://n8n.sw.mydomain.cool> should be soon accessible. Note as we use `admin-auth` middleware because n8n doesn't offer authentication. Use the same Traefik credentials.
 
 [![n8n](n8n.png)](n8n.png)
 

@@ -135,22 +135,22 @@ IPs are only showed here as samples, use `hcloud server describe xxxxxx-01` in o
 
 ## Setup DNS and SSH config 🌍
 
-Now use `hcloud server ip manager-01` to get the unique frontal IP address of the cluster that will be used for any entry point, including SSH. Then edit the DNS of your domain and apply this IP to a particular subdomain, as well as a wildcard subdomain. You will see later what this wildcard domain is it for. I will use `sw.okami101.io` as sample. It should be looks like next :
+Now use `hcloud server ip manager-01` to get the unique frontal IP address of the cluster that will be used for any entry point, including SSH. Then edit the DNS of your domain and apply this IP to a particular subdomain, as well as a wildcard subdomain. You will see later what this wildcard domain is it for. I will use `sw.mydomain.cool` as sample. It should be looks like next :
 
 ```txt
 sw      3600    IN A        123.123.123.123
 *.sw    43200   IN CNAME    sw
 ```
 
-As soon as the above DNS is applied, you should ping `sw.okami101.io` or any `xyz.sw.okami101.io` domains.
+As soon as the above DNS is applied, you should ping `sw.mydomain.cool` or any `xyz.sw.mydomain.cool` domains.
 
-It's now time to finalize your local SSH config for optimal access. Go to `~/.ssh/config` and add following hosts (change *okami101.io* and *swarm* accordingly to your own setup) :
+It's now time to finalize your local SSH config for optimal access. Go to `~/.ssh/config` and add following hosts (change it accordingly to your own setup) :
 
 ```ssh
 Host sw
     User swarm
     Port 2222
-    HostName sw.okami101.io
+    HostName sw.mydomain.cool
 
 Host sw-data-01
     User swarm
@@ -171,7 +171,7 @@ Host sw-worker-01
 And that's it ! You should now quickly ssh to these servers easily by `ssh sw`, `ssh sw-worker-01`, `ssh sw-runner-01`, `ssh sw-data-01`, which will be far more practical.
 
 {{< alert >}}
-Note as I only use the `sw.okami101.io` as unique endpoint for ssh access to all internal server, without need of external SSH access to servers different from `manager-01`. It's known as SSH proxy, which allows single access point for better security perspective by simply jumping from main SSH access.
+Note as I only use the `sw.mydomain.cool` as unique endpoint for ssh access to all internal server, without need of external SSH access to servers different from `manager-01`. It's known as SSH proxy, which allows single access point for better security perspective by simply jumping from main SSH access.
 {{< /alert >}}
 
 ## The firewall 🧱

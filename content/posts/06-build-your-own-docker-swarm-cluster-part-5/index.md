@@ -101,7 +101,7 @@ The `private` network will serve us later for exporters. Next config are useful 
 | storage.tsdb.retention.size | The max DB size             |
 | storage.tsdb.retention.time | The max data retention date |
 
-Deploy it and <https://prometheus.sw.okami101.io> should be available after few seconds. Use same traefik credentials for login.
+Deploy it and <https://prometheus.sw.mydomain.cool> should be available after few seconds. Use same traefik credentials for login.
 
 You should now have access to some metrics !
 
@@ -254,8 +254,8 @@ services:
   grafana:
     image: grafana/grafana:8.4.1
     environment:
-      GF_SERVER_DOMAIN: grafana.sw.okami101.io
-      GF_SERVER_ROOT_URL: https://grafana.sw.okami101.io
+      GF_SERVER_DOMAIN: grafana.sw.mydomain.cool
+      GF_SERVER_ROOT_URL: https://grafana.sw.mydomain.cool
       GF_DATABASE_TYPE: postgres
       GF_DATABASE_HOST: data-01:5432
       GF_DATABASE_NAME: grafana
@@ -282,7 +282,7 @@ networks:
     external: true
 ```
 
-Set proper `GF_DATABASE_PASSWORD` and deploy. Database migration should be automatic (don't hesitate to check inside pgAdmin). Go to <https://grafana.sw.okami101.io> and login as admin / admin.
+Set proper `GF_DATABASE_PASSWORD` and deploy. Database migration should be automatic (don't hesitate to check inside pgAdmin). Go to <https://grafana.sw.mydomain.cool> and login as admin / admin.
 
 [![Grafana home](grafana-home.png)](grafana-home.png)
 

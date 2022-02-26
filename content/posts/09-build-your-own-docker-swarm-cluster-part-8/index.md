@@ -57,7 +57,7 @@ version: "3"
 
 services:
   app:
-    image: registry.sw.okami101.io/adr1enbe4udou1n/my-weather-api
+    image: registry.sw.mydomain.cool/adr1enbe4udou1n/my-weather-api
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       Jaeger__Host: tasks.jaeger_agent
@@ -88,9 +88,9 @@ Let's get some automatic quality code metrics.
 On `manager-01` :
 
 ```sh
-sudo mkdir -p /mnt/storage-pool/sonarqube/data
-sudo mkdir -p /mnt/storage-pool/sonarqube/logs
-sudo mkdir -p /mnt/storage-pool/sonarqube/extensions
+sudo mkdir -p /mnt/storage-pool/sonar/data
+sudo mkdir -p /mnt/storage-pool/sonar/logs
+sudo mkdir -p /mnt/storage-pool/sonar/extensions
 
 # specific thing for embed elasticsearch of sonarqube
 echo "vm.max_map_count=262144" | tee /etc/sysctl.d/local.conf
@@ -107,9 +107,9 @@ services:
     image: sonarqube:9-community
     volumes:
       - /etc/hosts:/etc/hosts
-      - ${SONAR_DATA}/data:/opt/sonarqube/data
-      - ${SONAR_DATA}/logs:/opt/sonarqube/logs
-      - ${SONAR_DATA}/extensions:/opt/sonarqube/extensions
+      - ${ROOT_PATH}/data:/opt/sonarqube/data
+      - ${ROOT_PATH}/logs:/opt/sonarqube/logs
+      - ${ROOT_PATH}/extensions:/opt/sonarqube/extensions
     environment:
       SONAR_JDBC_URL: jdbc:postgresql://data-01:5432/sonar
       SONAR_JDBC_USERNAME: sonar
@@ -129,9 +129,9 @@ networks:
     external: true
 ```
 
-Set proper `SONAR_DATA` with `/mnt/storage-pool/sonarqube` and `SONAR_JDBC_PASSWORD` with above DB password.
+Set proper `ROOT_PATH` with `/mnt/storage-pool/sonar` and `SONAR_JDBC_PASSWORD` with above DB password.
 
-Go to <https://sonar.swadmin.okami101.io>, use admin / admin credentials and update password.
+Go to <https://sonar.sw.mydomain.cool>, use admin / admin credentials and update password.
 
 ### Project analysis
 
@@ -144,7 +144,7 @@ You must have at least Java 11 installed locally.
 ```sh
 dotnet tool install --global dotnet-sonarscanner
 
-dotnet sonarscanner begin /k:"My-Weather-API" /d:sonar.host.url="https://sonar.sw.okami101.io"  /d:sonar.login="above-generated-token"
+dotnet sonarscanner begin /k:"My-Weather-API" /d:sonar.host.url="https://sonar.sw.mydomain.cool"  /d:sonar.login="above-generated-token"
 
 dotnet build
 
@@ -159,10 +159,10 @@ Wait few minutes and the final rapport analysis should automatically appear. Add
 
 Because running scanner manually is boring, let's integrate it in our favorite CI. Create following secrets through Drone UI :
 
-| name             | level        | description                                           |
-| ---------------- | ------------ | ----------------------------------------------------- |
-| `sonar_host_url` | organization | Set the sonar host URL `https://sonar.sw.okami101.io` |
-| `sonar_token`    | repository   | Set the above token                                   |
+| name             | level        | description                                             |
+| ---------------- | ------------ | ------------------------------------------------------- |
+| `sonar_host_url` | organization | Set the sonar host URL `https://sonar.sw.mydomain.cool` |
+| `sonar_token`    | repository   | Set the above token                                     |
 
 Change the `build` step on `.drone.yml` file :
 
@@ -259,7 +259,7 @@ import http from "k6/http";
 import { check } from "k6";
 
 export default function () {
-  http.get('https://weather.sw.okami101.io/WeatherForecast');
+  http.get('https://weather.sw.mydomain.cool/WeatherForecast');
 }
 ```
 
@@ -362,7 +362,7 @@ export const options = {
 };
 
 export default function () {
-  http.get('https://weather.sw.okami101.io/WeatherForecast');
+  http.get('https://weather.sw.mydomain.cool/WeatherForecast');
 }
 ```
 

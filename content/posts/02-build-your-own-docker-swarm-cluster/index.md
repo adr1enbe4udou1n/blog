@@ -25,7 +25,7 @@ So the prerequisites before continue :
 * Have some knowledge on docker-compose setups
 * Be comfortable with SSH terminal
 * Registered for a [Hetzner Cloud account](https://accounts.hetzner.com/signUp)
-* A custom domain, I'll use `okami101.io` here
+* A custom domain, I'll use `mydomain.cool` here as example
 * A account to a transactional mail provider as mailgun, sendgrid, sendingblue, etc.
 
 {{< alert >}}
