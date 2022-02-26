@@ -66,7 +66,7 @@ We will use the main Portainer GUI in order to install following tools :
 
 * [`Diun`](https://crazymax.dev/diun/) (optional), very useful in order to be notified for all used images update inside your Swarm cluster
 * `pgAdmin` and `phpMyAdmin` as web database managers (optional)
-* Some demo containerized samples that will show you how simple is it to install self-hosted web apps thanks to your shiny new cluster as `redmine`, `n8n`
+* Some demo containerized samples that will show you how simple is it to install self-hosted web apps thanks to your shiny new cluster as `matomo`, `redmine`, `n8n`
 
 ### 4. Monitoring 📈
 

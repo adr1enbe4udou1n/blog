@@ -208,13 +208,47 @@ Save it, and you have now full access to your PostgreSQL DB !
 
 ## Further cluster app testing
 
-Let's now test our cluster with 2 app samples. We'll deploy them to the worker node.
+Let's now test our cluster with 3 app samples. We'll deploy them to the worker node.
+
+### Matomo over MySQL
+
+Be free from Google Analytics with Matomo. It's incredibly simple to install with our cluster. Note as Matomo only supports MySQL or MariaDB database. Let's create dedicated storage folder with `sudo mkdir /mnt/storage-pool/matomo` and create following `matomo` stack :
+
+```yml
+version: '3'
+
+services:
+  app:
+    image: matomo
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - /mnt/storage-pool/matomo:/var/www/html
+    networks:
+      - traefik_public
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.services.matomo.loadbalancer.server.port=80
+      placement:
+        constraints:
+          - node.role == manager
+
+networks:
+  traefik_public:
+    external: true
+```
+
+Now we'll creating the `matomo` DB with dedicated user through above *phpMyAdmin*. For that simply create a new `matomo` account and always specify `10.0.0.0/8` inside host field. Don't forget to check *Create database with same name and grant all privileges*.
+
+Then go to <https://matomo.sw.mydomain.rocks> and go through all installation. At the DB install step, use the above credentials and use the hostname of your data server, which is `data-01` in our case.
+
+[![Redmine](matomo.png)](matomo.png)
 
 ### Redmine over MySQL
 
 Redmine is a popular app for ticketing based on Ruby on Rails. With the docker based cluster, no more headache for installing !
 
-We'll be starting by creating the `redmine` DB with dedicated user through above phpMyAdmin. For that simply create a new `redmine` account and always specify `10.0.0.0/8` inside host field. Don'forget to check *Create database with same name and grant all privileges*.
+Let's create the `redmine` DB exactly as the same way as above Matomo.
 
 {{< alert >}}
 Use `Native MySQL authentication` as authentication plugin, as Redmine doesn't support sha2 yet.
