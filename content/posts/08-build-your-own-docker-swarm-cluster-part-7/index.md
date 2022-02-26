@@ -654,9 +654,12 @@ This above 2 methods will speed up CI drastically.
 
 ## Load testing 💣
 
-We have now a perfect environment for a proper load testing ! There are 2 popular options, which are `Locust` and `k6`. I'll personally use the last one because more efficient and less resource demanding for the same load.
+We have now a perfect environment for a well-balanced load testing ! There are 2 popular options :
 
-Note that `k6` can be integrated to a time series database for a nice graphical extraction. And guess what, Grafana is the perfect tool for that ! Let's profit of our powerful tools we have !
+* **Locust** which offers a nice integrated chart web UI and master-workers architecture which allows distributed loading. Load scripts are written on Python.
+* **k6** which is more efficient and less resource demanding for the same load. Load scripts are written on Javascript.
+
+Here I'll cover usage of k6. Note that it can be integrated to a time series database for a nice graphical extraction. And guess what, Grafana is the perfect tool for that ! Let's profit of our powerful tools we have !
 
 ### TSDB with InfluxDB
 
@@ -675,7 +678,7 @@ services:
     deploy:
       placement:
         constraints:
-          - node.labels.influx.data == true
+          - node.labels.influxdb.data=true == true
 
 networks:
   private:
@@ -685,7 +688,7 @@ volumes:
 ```
 
 {{< alert >}}
-Add proper `influx.data` docker label in the node you want to store the influx data.
+Add proper `influxdb.data=true` docker label in the node you want to store the influx data. Here I chose to put in the `runner-01` node by taping this command : `docker node update --label-add influxdb.data=true runner-01`.
 {{< /alert >}}
 
 Add InfluxDB private network to Grafana stack :
@@ -710,7 +713,7 @@ networks:
 
 ### Test loading with k6
 
-First create a simple JS script as docker *Config* names `k6_weather_test_01` through Portainer UI :
+First create a simple JS script as docker swarm *Config* named `k6_weather_test_01` through Portainer UI :
 
 ```js
 import http from "k6/http";
@@ -720,6 +723,8 @@ export default function () {
   http.get('https://weather.sw.okami101.io/WeatherForecast');
 }
 ```
+
+[![Portainer config k6](portainer-configs-k6.png)](portainer-configs-k6.png)
 
 ```yml
 version: '3.8'
@@ -753,9 +758,53 @@ configs:
     external: true
 ```
 
+| variable      | description                                     |
+| ------------- | ----------------------------------------------- |
+| `K6_VUS`      | The number of active user connections.          |
+| `K6_DURATION` | Duration of test.                               |
+| `K6_OUT`      | The data source where to store current results. |
+
+{{< alert >}}
+The `restart_policy` in above deploy section is important here, as we don't want the service restarting every time. This is a specific stack intended to be launch once.
+{{< /alert >}}
+
+Deploy the stack, and it should launch a load testing for 1 minute. In the end, the task status of docker service should indicate `complete` status.
+
+With Loki as the default log driver, we get only current logs of running tasks in Portainer, so when completed, the logs are wiped. You must go through Grafana in the *Logs* dashboard that we built on previous part in order to check the final raw results.
+
 ### Visualization through Grafana
 
-It's now time to go back to Grafana and try to get some charts. First Add a new InfluxDB *Data source*.
+It's now time to go back to Grafana and try to get some charts. First Add a new InfluxDB *Data source*. Set `http://influxdb_db:8086` inside *URL* field and `k6weather` in *Database* field, then *Save & test*.
+
+Now create a new dashboard, a new panel, and keep *Time series* as main graph system. Select above InfluxDB data source and switch to raw query expression. Finally, put following query `SELECT sum("value") FROM "http_reqs" WHERE $timeFilter GROUP BY time(1s)` in fields. Some graph should appear, select the right time interval where you have done previous load testing and voilà !
+
+[![Grafana load testing](grafana-load-testing.png)](grafana-load-testing)
+
+We now have the current HTTP requests count for every second. Below the *Chart.js* result of my own loading test.
+
+{{< chart >}}
+type: 'line',
+options: {
+  scales: {
+    x: {
+      ticks: {
+        autoSkip: false,
+        callback: function(val, index) {
+          return val % 5 === 0 ? (val + 's') : '';
+        },
+      }
+    }
+  },
+},
+data: {
+  labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60],
+  datasets: [{
+    label: 'HTTP reqs count',
+    data: [486, 822, 1224, 1051, 1034, 826, 1237, 1224, 1164, 1249, 1178, 1239, 1269, 1230, 1189, 1041, 1343, 1375, 1194, 1260, 1008, 1283, 1363, 1370, 1435, 994, 1424, 967, 1280, 1354, 1084, 1142, 1642, 1291, 1185, 1131, 1333, 1454, 1248, 1459, 986, 1300, 1361, 1331, 1246, 1018, 1171, 1378, 1381, 1274, 1053, 1236, 1503, 1355, 1194, 1276, 821, 1622, 1471, 1241],
+    tension: 0.2
+  }]
+}
+{{< /chart >}}
 
 ## Final check 🎊🏁🎊
 
