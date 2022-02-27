@@ -38,7 +38,9 @@ It's equivalent of doing :
 docker node update --label-add prometheus.data=true manager-01
 ```
 
-Then create a config file at `/etc/prometheus/prometheus.yml` in `manager-01` node :
+Then create following config file :
+
+{{< highlight host="manager-01" file="/etc/prometheus/prometheus.yml" >}}
 
 ```yml
 global:
@@ -52,7 +54,10 @@ scrape_configs:
   - job_name: "traefik"
     static_configs:
       - targets: ["traefik_traefik:8080"]
+
 ```
+
+{{< /highlight >}}
 
 It consists on 2 scrapes job, use `targets` in order to indicate to Prometheus the `/metrics` endpoint locations. I configure `5s` as interval, that means Prometheus will scrape `/metrics` endpoints every 5 seconds.
 
@@ -96,10 +101,10 @@ volumes:
 
 The `private` network will serve us later for exporters. Next config are useful in order to control the DB usage, as metrics can go up very quickly :
 
-| argument                    | description                 |
-| --------------------------- | --------------------------- |
-| storage.tsdb.retention.size | The max DB size             |
-| storage.tsdb.retention.time | The max data retention date |
+| argument                      | description                 |
+| ----------------------------- | --------------------------- |
+| `storage.tsdb.retention.size` | The max DB size             |
+| `storage.tsdb.retention.time` | The max data retention date |
 
 Deploy it and <https://prometheus.sw.dockerswarm.rocks> should be available after few seconds. Use same traefik credentials for login.
 
@@ -115,14 +120,16 @@ In *Status > Targets*, you should have 2 endpoints enabled, which correspond to 
 
 We have the monitor brain, new it's time to have some more relevant metrics data from all containers as well as docker nodes. It's doable thanks to exporters :
 
-* `cAdvisor` from Google which scrape metrics of all running containers
-* `Node exporter` for more global cluster evaluation
+* **cAdvisor** from Google which scrape metrics of all running containers
+* **Node exporter** for more global cluster evaluation
 
 Before edit above stack, we need to make a specific docker entrypoint for node exporter that will help us to fetch the original hostname of the docker host machine name. This is because we run node exporter as docker container, which have no clue of docker hostname.
 
 Besides this node exporter (like cAdvisor) work as an agent which must be deployed in *global* mode. In order to avoid have a file to put on each host, we'll use the *config* docker feature availabe in swarm mode.
 
 Go to *Configs* menu inside Portainer and add a `node_exporter_entrypoint` config file with next content :
+
+{{< highlight host="config" file="node_exporter_entrypoint" >}}
 
 ```sh
 #!/bin/sh -e
@@ -134,6 +141,8 @@ set -- /bin/node_exporter "$@"
 
 exec "$@"
 ```
+
+{{< /highlight >}}
 
 [![Portainer configs](portainer-configs.png)](portainer-configs.png)
 
@@ -186,7 +195,9 @@ configs:
     external: true
 ```
 
-Finally, add the 2 next jobs on `/etc/prometheus/prometheus.yml` :
+Finally, add the 2 next jobs in previous Prometheus config file :
+
+{{< highlight host="manager-01" file="/etc/prometheus/prometheus.yml" >}}
 
 ```yml
 #...
@@ -205,6 +216,8 @@ Finally, add the 2 next jobs on `/etc/prometheus/prometheus.yml` :
         port: 9100
 #...
 ```
+
+{{< /highlight >}}
 
 The `tasks.*` is a specific DNS from specific to Docker Swarm which allows multiple communication at once when using *global* mode, similarly as `tcp://tasks.agent:9001` for Portainer.
 
@@ -226,11 +239,15 @@ Okay so now we have plenty metrics from our cluster and containers, but Promethe
 
 Before install Grafana, let's quickly install a powerful key-value database cache on `data-01` :
 
+{{< highlight host="data-01" >}}
+
 ```sh
 sudo add-apt-repository ppa:redislabs/redis
 sudo apt install -y redis-server
 sudo systemctl enable redis-server.service
 ```
+
+{{< /highlight >}}
 
 ### Grafana install 💽
 
@@ -240,10 +257,14 @@ First connect to pgAdmin and create new grafana user and database. Don't forget 
 
 Create storage folder with :
 
+{{< highlight host="manager-01" >}}
+
 ```sh
 sudo mkdir /mnt/storage-pool/grafana
 sudo chown -R 472:472 /mnt/storage-pool/grafana
 ```
+
+{{< /highlight >}}
 
 Next create new following `grafana` stack :
 
@@ -308,6 +329,8 @@ We have done for the cluster metrics part but what about the external `data-01` 
 
 For node exporter, we have no other choice to install it locally as a service binary, so we must go through old fashion install.
 
+{{< highlight host="data-01" >}}
+
 ```sh
 wget https://github.com/prometheus/node_exporter/releases/download/v1.3.1/node_exporter-1.3.1.linux-amd64.tar.gz
 tar xzf node_exporter-1.3.1.linux-amd64.tar.gz
@@ -316,9 +339,13 @@ sudo mv node_exporter-1.3.1.linux-amd64/node_exporter /usr/local/bin/
 rm -r node_exporter-1.3.1.linux-amd64/
 ```
 
-Create a new systemd file service `/etc/systemd/system/node-exporter.service` :
+{{< /highlight >}}
 
-```conf
+Create a new systemd file service :
+
+{{< highlight host="data-01" file="/etc/systemd/system/node-exporter.service" >}}
+
+```txt
 [Unit]
 Description=Node Exporter
 
@@ -330,13 +357,19 @@ ExecStart=/usr/local/bin/node_exporter
 WantedBy=default.target
 ```
 
+{{< /highlight >}}
+
 Then enable the service and check status :
+
+{{< highlight host="data-01" >}}
 
 ```sh
 sudo systemctl enable node-exporter.service
 sudo systemctl start node-exporter.service
 sudo systemctl status node-exporter.service
 ```
+
+{{< /highlight >}}
 
 ### Exporter for databases
 
@@ -387,8 +420,11 @@ Set proper `MYSQL_PASSWORD` and `POSTGRES_PASSWORD` environment variables and de
 
 Expand the prometheus config with 3 new jobs :
 
+{{< highlight host="manager-01" file="/etc/prometheus/prometheus.yml" >}}
+
 ```yml
-  - job_name: "node-exporter-data-01"
+#...
+- job_name: "node-exporter-data-01"
     static_configs:
       - targets: ["data-01:9100"]
 
@@ -399,7 +435,10 @@ Expand the prometheus config with 3 new jobs :
   - job_name: "postgres-exporter-data-01"
     static_configs:
       - targets: ["postgres-exporter:9187"]
+#...
 ```
+
+{{< /highlight >}}
 
 Then restart Prometheus service and go back to targets to check you have all new `data-01` endpoints.
 

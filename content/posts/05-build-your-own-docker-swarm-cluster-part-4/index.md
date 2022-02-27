@@ -260,7 +260,7 @@ services:
         - traefik.http.services.matomo.loadbalancer.server.port=80
       placement:
         constraints:
-          - node.role == manager
+          - node.labels.environment == production
 
 networks:
   traefik_public:

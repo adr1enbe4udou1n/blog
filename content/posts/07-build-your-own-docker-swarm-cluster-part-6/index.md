@@ -39,6 +39,8 @@ The mains exporters are :
 
 First, let's install the main Loki service on `data-01` (be sure to have unzip with `sudo apt install -y unzip`) :
 
+{{< highlight host="data-01" >}}
+
 ```sh
 curl -O -L "https://github.com/grafana/loki/releases/download/v2.4.2/loki-linux-amd64.zip"
 unzip "loki-linux-amd64.zip"
@@ -46,7 +48,11 @@ chmod a+x "loki-linux-amd64"
 sudo mv loki-linux-amd64 /usr/local/bin/loki
 ```
 
+{{< /highlight >}}
+
 Prepare the config file :
+
+{{< highlight host="data-01" >}}
 
 ```sh
 wget https://raw.githubusercontent.com/grafana/loki/master/cmd/loki/loki-local-config.yaml
@@ -56,9 +62,13 @@ sudo mkdir /var/lib/loki
 sudo chown swarm:swarm /var/lib/loki
 ```
 
+{{< /highlight >}}
+
 Edit `/etc/loki/loki-local-config.yaml` and change `/tmp/loki` by `/var/lib/loki`.
 
-Then prepare the service `/etc/systemd/system/loki.service` :
+Then prepare the service :
+
+{{< highlight host="data-01" file="/etc/systemd/system/loki.service" >}}
 
 ```conf
 [Unit]
@@ -74,7 +84,11 @@ ExecStart=/usr/local/bin/loki -config.file=/etc/loki/loki-local-config.yaml
 WantedBy=multi-user.target
 ```
 
+{{< /highlight >}}
+
 Finally, start the service :
+
+{{< highlight host="data-01" >}}
 
 ```sh
 sudo systemctl enable loki.service
@@ -82,11 +96,15 @@ sudo systemctl start loki.service
 sudo systemctl status loki.service
 ```
 
+{{< /highlight >}}
+
 It's running !
 
 ### Data logs with Promtail
 
 It's time to feed the Loki database with Promtail. First, let's install the main service, always in `data-01` (we don't need it on docker hosts) :
+
+{{< highlight host="data-01" >}}
 
 ```sh
 curl -O -L "https://github.com/grafana/loki/releases/download/v2.4.2/promtail-linux-amd64.zip"
@@ -95,7 +113,11 @@ chmod a+x "promtail-linux-amd64"
 sudo mv promtail-linux-amd64 /usr/local/bin/promtail
 ```
 
-Create `/etc/loki/promtail-local-config.yaml` :
+{{< /highlight >}}
+
+Create following file :
+
+{{< highlight host="data-01" file="/etc/loki/promtail-local-config.yaml" >}}
 
 ```yml
 server:
@@ -123,11 +145,16 @@ scrape_configs:
           job: postgresql-logs
           host: data-01
           __path__: /var/log/postgresql/*log
+
 ```
+
+{{< /highlight >}}
 
 The above config is pretty itself explanatory. We declare the URL of Loki rest API endpoint, and a list of jobs which consist of simple regex where to tail log files. The `positions.yaml` avoid duplications by keeping the last line where the service stopped for each log file.
 
-Then prepare the service `/etc/systemd/system/promtail.service` :
+Then prepare the service :
+
+{{< highlight host="data-01" file="/etc/systemd/system/promtail.service" >}}
 
 ```conf
 [Unit]
@@ -142,13 +169,19 @@ ExecStart=/usr/local/bin/promtail -config.file=/etc/loki/promtail-local-config.y
 WantedBy=multi-user.target
 ```
 
+{{< /highlight >}}
+
 Finally, start the service :
+
+{{< highlight host="data-01" >}}
 
 ```sh
 sudo systemctl enable promtail.service
 sudo systemctl start promtail.service
 sudo systemctl status promtail.service
 ```
+
+{{< /highlight >}}
 
 Recheck status after few seconds to confirm local var logs have been pushed successfully to Loki. Check `sudo cat /tmp/positions.yaml` for current tail status.
 
@@ -158,7 +191,7 @@ You can eventually repeat all this Promtail install procedure for each Docker ho
 
 ### Docker hosts
 
-Now we need to push all container logs to Loki. The official [Docker driver](https://grafana.com/docs/loki/latest/clients/docker-driver) is a nice way to do it for perfect integration.
+Now we need to push all container logs to Loki. The official [Docker driver](https://grafana.com/docs/loki/latest/clients/docker-driver) is a nice way to do it for perfect integration. Install it on all docker hosts :
 
 ```sh
 docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
@@ -169,7 +202,9 @@ docker plugin ls
 
 Now we have 2 options, reedit all active docker stack YAML description to use the Loki driver (boring), or downright consider it as default driver for all containers, which is relevant in our case, I think.
 
-Create `/etc/docker/daemon.json` on each docker host with following content :
+Create following file on each docker host with following content :
+
+{{< highlight file="/etc/docker/daemon.json" >}}
 
 ```json
 {
@@ -180,6 +215,8 @@ Create `/etc/docker/daemon.json` on each docker host with following content :
   }
 }
 ```
+
+{{< /highlight >}}
 
 Then restart docker service `sudo service docker restart`.
 
@@ -229,6 +266,8 @@ Elasticsearch is the recommended production choice for trace storage. I don't re
 
 Let's install it on `data-01` :
 
+{{< highlight host="data-01" >}}
+
 ```sh
 wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
 sudo apt-get install apt-transport-https
@@ -236,11 +275,15 @@ echo "deb https://artifacts.elastic.co/packages/7.x/apt stable main" | sudo tee 
 sudo apt-get update && sudo apt-get install elasticsearch
 ```
 
+{{< /highlight >}}
+
 {{< alert >}}
 Jaeger is not yet compatible with Elasticsearch 8...
 {{< /alert >}}
 
-Then allow remote network access add docker hosts by editing `/etc/elasticsearch/elasticsearch.yml` :
+Then allow remote network access by adding docker hosts :
+
+{{< highlight host="data-01" file="/etc/elasticsearch/elasticsearch.yml" >}}
 
 ```yml
 #...
@@ -250,14 +293,22 @@ discovery.seed_hosts: ["manager-01", "worker-01", "runner-01"]
 #...
 ```
 
-Before starting, let's calm down Java legendary memory consumption by creating `/etc/elasticsearch/jvm.options.d/hs.options` with following content :
+{{< /highlight >}}
+
+Before starting, let's calm down Java legendary memory consumption by creating following file :
+
+{{< highlight host="data-01" file="/etc/elasticsearch/jvm.options.d/hs.options" >}}
 
 ```conf
 -Xms512m
 -Xmx512m
 ```
 
+{{< /highlight >}}
+
 Then start the service :
+
+{{< highlight host="data-01" >}}
 
 ```sh
 sudo /bin/systemctl daemon-reload
@@ -265,9 +316,13 @@ sudo /bin/systemctl enable elasticsearch.service
 sudo systemctl start elasticsearch.service
 ```
 
+{{< /highlight >}}
+
 Be sure that Elasticsearch is correctly responding from docker nodes by doing `curl http://data-01:9200`.
 
-As a bonus, expand above `/etc/loki/promtail-local-config.yaml` by adding a new job :
+As a bonus, expand above promtail config file by adding a new job :
+
+{{< highlight host="data-01" file="/etc/loki/promtail-local-config.yaml" >}}
 
 ```yml
 #...
@@ -277,6 +332,8 @@ As a bonus, expand above `/etc/loki/promtail-local-config.yaml` by adding a new 
           __path__: /var/log/elasticsearch/*log
 #...
 ```
+
+{{< /highlight >}}
 
 Restart Promtail with `sudo service promtail restart`.
 
@@ -346,7 +403,9 @@ It's time to inject some trace data. Be sure all above Jaeger services are start
 
 ### Traefik integration
 
-Edit `/etc/traefik/traefik.yml` and add following `tracing` option :
+Edit Traefik config file and add following `tracing` option :
+
+{{< highlight host="manager-01" file="/etc/traefik/traefik.yml" >}}
 
 ```yml
 #...
@@ -357,7 +416,11 @@ tracing:
 #...
 ```
 
-Then edit original `traefik-stack.yml` file and add `traefik` service into `jaeger` network.
+{{< /highlight >}}
+
+Then edit original Traefik stack file and add `traefik` service into `jaeger` network.
+
+{{< highlight host="manager-01" file="~/traefik-stack.yml" >}}
 
 ```yml
 version: '3.2'
@@ -375,6 +438,8 @@ networks:
   jaeger_private:
     external: true
 ```
+
+{{< /highlight >}}
 
 Then redeploy the stack by `docker stack deploy -c traefik-stack.yml traefik`. You'll probably need to reexport the `HASHED_PASSWORD` variable environment.
 

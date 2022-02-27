@@ -398,6 +398,8 @@ It's finally time to test our new cluster environment by testing some stacks thr
 
 Create a new `diun` stack through Portainer and set following content :
 
+{{< highlight host="stack" file="diun">}}
+
 ```yml
 version: "3.2"
 
@@ -424,6 +426,8 @@ services:
         constraints:
           - node.role == manager
 ```
+
+{{< /highlight >}}
 
 {{< tabs >}}
 {{< tab tabName="volumes" >}}
