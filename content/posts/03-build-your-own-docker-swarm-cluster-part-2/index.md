@@ -105,10 +105,7 @@ Finally, test your new `swarm` user by using `hcloud server ssh --user swarm --p
 
 Then edit `/etc/hosts` file for each server accordingly for internal DNS :
 
-{{< tabs >}}
-{{< tab tabName="manager-01" >}}
-
-{{< highlight filename="/etc/hosts" >}}
+{{< highlight host="manager-01" file="/etc/hosts" >}}
 
 ```txt
 10.0.0.3 worker-01 sw-worker-01
@@ -118,10 +115,7 @@ Then edit `/etc/hosts` file for each server accordingly for internal DNS :
 
 {{< /highlight >}}
 
-{{< /tab >}}
-{{< tab tabName="worker-01" >}}
-
-{{< highlight filename="/etc/hosts" >}}
+{{< highlight host="worker-01" file="/etc/hosts" >}}
 
 ```txt
 10.0.0.2 manager-01
@@ -130,10 +124,7 @@ Then edit `/etc/hosts` file for each server accordingly for internal DNS :
 
 {{< /highlight >}}
 
-{{< /tab >}}
-{{< tab tabName="runner-01" >}}
-
-{{< highlight filename="/etc/hosts" >}}
+{{< highlight host="runner-01" file="/etc/hosts" >}}
 
 ```txt
 10.0.0.2 manager-01
@@ -141,9 +132,6 @@ Then edit `/etc/hosts` file for each server accordingly for internal DNS :
 ```
 
 {{< /highlight >}}
-
-{{< /tab >}}
-{{< /tabs >}}
 
 {{< alert >}}
 IPs are only showed here as samples, use `hcloud server describe xxxxxx-01` in order to get the right private IP under `Private Net`. The additional `sw-***-01` DNS name is for having a better unique name for next ssh config.
@@ -182,7 +170,7 @@ As soon as the above DNS is applied, you should ping `sw.dockerswarm.rocks` or a
 
 It's now time to finalize your local SSH config for optimal access. Go to `~/.ssh/config` and add following hosts (change it accordingly to your own setup) :
 
-{{< highlight filename="~/.ssh/config" >}}
+{{< highlight file="~/.ssh/config" >}}
 
 ```txt
 Host sw
@@ -231,7 +219,7 @@ How can be sure that any other internal client has no access to our private netw
 
 First create the next JSON file somewhere locally in your machine :
 
-{{< highlight filename="firewall-rules.json" >}}
+{{< highlight file="firewall-rules.json" >}}
 
 ```json
 [
