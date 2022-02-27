@@ -162,7 +162,9 @@ As soon as the above DNS is applied, you should ping `sw.dockerswarm.rocks` or a
 
 It's now time to finalize your local SSH config for optimal access. Go to `~/.ssh/config` and add following hosts (change it accordingly to your own setup) :
 
-```ssh
+{{< highlight filename="~/.ssh/config" >}}
+
+```txt
 Host sw
     User swarm
     Port 2222
@@ -183,6 +185,8 @@ Host sw-worker-01
     HostName sw-worker-01
     ProxyCommand ssh sw -W %h:2222
 ```
+
+{{< /highlight >}}
 
 And that's it ! You should now quickly ssh to these servers easily by `ssh sw`, `ssh sw-worker-01`, `ssh sw-runner-01`, `ssh sw-data-01`, which will be far more practical.
 
