@@ -10,7 +10,7 @@ draft: true
 Build your own cheap but powerful self-hosted cluster and be free from any SaaS solutions by following this opinionated guide 🎉
 {{< /lead >}}
 
-This is the **Part II** of more global topic tutorial. [Back to first part]({{< ref "/posts/02-build-your-own-docker-swarm-cluster" >}}) to start from beginning.
+This is the **Part II** of more global topic tutorial. [Back to first part]({{< ref "/posts/02-build-your-own-docker-swarm-cluster" >}}) for intro.
 
 ## Requirements 🛑
 
@@ -22,7 +22,7 @@ Before continue I presume you have :
 
 Initiate the project by following this simple steps :
 
-1. Create the project through the UI (I will use `swarm-rocks` as project's name here)
+1. Create the project through the UI (I will use `swarmrocks` as project's name here)
 2. Navigate to security > API tokens
 3. Generate new API key with Read Write permissions and copy the generated token
 
@@ -31,7 +31,7 @@ Initiate the project by following this simple steps :
 Then go to the terminal and prepare the new context
 
 ```sh
-hcloud context create swarm-rocks # set the copied token at prompt
+hcloud context create swarmrocks # set the copied token at prompt
 hcloud context list # check that your new project is active
 
 # set your ssh key to the project

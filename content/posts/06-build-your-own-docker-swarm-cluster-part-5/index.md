@@ -10,7 +10,7 @@ draft: true
 Build your own cheap but powerful self-hosted cluster and be free from any SaaS solutions by following this opinionated guide 🎉
 {{< /lead >}}
 
-This is the **Part V** of more global topic tutorial. [Back to first part]({{< ref "/posts/02-build-your-own-docker-swarm-cluster" >}}) to start from beginning.
+This is the **Part V** of more global topic tutorial. [Back to first part]({{< ref "/posts/02-build-your-own-docker-swarm-cluster" >}}) for intro.
 
 {{< alert >}}
 This part is totally optional, as it's mainly focused on monitoring. Feel free to skip this part.

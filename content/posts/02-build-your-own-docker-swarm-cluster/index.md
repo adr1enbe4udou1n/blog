@@ -131,7 +131,7 @@ my-app-01 -.-> files
 my-app-02 -.-> files
 {{< /mermaid >}}
 
-Note as the hostnames correspond to a particular type of server, dedicated for one task specifically. Each type of node can be scale as you wish :
+Note as the hostnames correspond to a particular type of server, dedicated for one task specifically. Each type of node can be scaled as you wish :
 
 | replica      | description                                                                                              |
 | ------------ | -------------------------------------------------------------------------------------------------------- |
@@ -141,14 +141,14 @@ Note as the hostnames correspond to a particular type of server, dedicated for o
 | `data-0x`    | The hard part for data **HA**, with GlusterFS replications, DB clustering for PostgreSQL and MySQL, etc. |
 
 {{< alert >}}
-For a simple production cluster, you can start with only `manager-01` and `data-01` as absolutely minimal start.  
+For a simple production cluster, you can start with only `manager-01` and `data-01` as minimal start.  
 For a development perspective, you can skip `worker-01` and use `manager-01` for production running.  
 You have plenty choices here according to your budget !
 {{< /alert >}}
 
 ## Cheap solution with Hetzner VPS 🖥️
 
-Here some of the cheapest VPS options we have :
+Here some of the cheapest VPS options we have at this time of writing (**02/2022**) :
 
 | Server Type      | Spec       | Price     |
 | ---------------- | ---------- | --------- |
@@ -156,23 +156,21 @@ Here some of the cheapest VPS options we have :
 | **CX21 (Intel)** | 3C/4G/80Go | **€5.88** |
 | **CPX21 (AMD)**  | 3C/4G/80Go | **€8.28** |
 
-My personal choice for a good balance between cheap and well-balanced cluster :
+My personal choice for a cheap yet well-balanced cluster :
 
-| Server Name  | Type                  | Why                                          |
-| ------------ | --------------------- | -------------------------------------------- |
-| `manager-01` | **CX21**              | I'll privilege RAM                           |
-| `runner-01`  | **CPX11**             | 2 powerful core is better for building       |
-| `worker-01`  | **CX21** or **CPX21** | Just a power choice matter for your app      |
-| `data-01`    | **CX21** or **CPX21** | Just a power choice matter for your database |
+| Server Name  | Type                  | Why                                                                  |
+| ------------ | --------------------- | -------------------------------------------------------------------- |
+| `manager-01` | **CX21**              | I'll privilege RAM for running many management based container tools |
+| `worker-01`  | **CX21** or **CPX21** | Just a power choice matter for your app                              |
+| `runner-01`  | **CPX11**             | 2 powerful EPYC core is better for fast app building                 |
+| `data-01`    | **CX21** or **CPX21** | Just a power choice matter for your databases                        |
 
-We'll take additional volume of **60 Go** for **€2.88**
+We'll take additional volume for `data-01` of **20 Go** for **€0.96**. So we finally arrive to following respectable budget range : **€23.39** - **$29.39**.
 
-We finally arrive to following respectable budget range : **€25.31** - **$31.31**
-
-The only difference being choice between **Xeon VS EPIC** as CPU power for `worker` and `data` nodes, which will our main production application nodes. A quick [sysbench](https://github.com/akopytov/sysbench) will indicates around **70-80%** more power for AMD (test date from 2022-02).
+The main difference is choice between **Xeon VS EPIC** as CPU for `worker-01` and `data-01` nodes, which will our main critical production application nodes. A quick [sysbench](https://github.com/akopytov/sysbench) will indicates around **70-80%** more power for AMD (test date from 2022-02).
 Choose wisely according to your needs.
 
-If you don't need of `worker` and `runner` nodes, with only one simple standalone docker host without Swarm mode, you can even go down to **€14,64** with only **2 CX21** in addition to volume.
+Note as a Swarm node with *manager* role can act as a *worker* as well. So if you're very budget limited, you can eventually skip `worker-01` and `runner-01` nodes, with only one simple standalone docker host (no Swarm mode). So you can go down to **€14,64** with only **2 CX21** in addition to volume.
 
 {{< alert >}}
 If you intend to have your own self-hosted GitLab for an enterprise grade CI/CD workflow, you should run it on node with **8 GB** of RAM.  
