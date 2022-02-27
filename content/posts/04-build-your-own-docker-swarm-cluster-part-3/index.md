@@ -189,7 +189,7 @@ In order to deploy Traefik on our shiny new Docker Swarm, we must write a Docker
 {{< highlight host="manager-01" file="~/traefik-stack.yml" >}}
 
 ```yml
-version: '3.2'
+version: '3'
 
 services:
   traefik:
@@ -318,7 +318,7 @@ Create `portainer-agent-stack.yml` swarm stack file with follogin content :
 {{< highlight host="manager-01" file="~/portainer-agent-stack.yml" >}}
 
 ```yml
-version: '3.2'
+version: '3'
 
 services:
   agent:
@@ -398,10 +398,10 @@ It's finally time to test our new cluster environment by testing some stacks thr
 
 Create a new `diun` stack through Portainer and set following content :
 
-{{< highlight host="stack" file="diun">}}
+{{< highlight host="stack" file="diun" >}}
 
 ```yml
-version: "3.2"
+version: '3'
 
 services:
   diun:

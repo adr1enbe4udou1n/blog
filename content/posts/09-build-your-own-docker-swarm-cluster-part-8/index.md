@@ -52,8 +52,10 @@ Push the code and ensure all CI/CD workflow passes.
 
 Then edit the `weather` docker stack and configure Jaeger connection.
 
+{{< highlight host="stack" file="weather" >}}
+
 ```yml
-version: "3"
+version: '3'
 
 services:
   app:
@@ -73,6 +75,8 @@ networks:
   jaeger_private:
     external: true
 ```
+
+{{< /highlight >}}
 
 Ensure the weather API is deployed and do some API calls. Finally, go back to Jaeger UI, a second service `Weather API` should appear, select it and click on *Find Traces*. You should get all API call traces detail !
 
@@ -99,8 +103,10 @@ sudo service procps restart
 
 Create a `sonar` PostgresSQL database, and create a `sonar` stack :
 
+{{< highlight host="stack" file="sonar" >}}
+
 ```yml
-version: '3.8'
+version: '3'
 
 services:
   server:
@@ -128,6 +134,8 @@ networks:
   traefik_public:
     external: true
 ```
+
+{{< /highlight >}}
 
 Set proper `ROOT_PATH` with `/mnt/storage-pool/sonar` and `SONAR_JDBC_PASSWORD` with above DB password.
 
@@ -204,8 +212,10 @@ Here I'll cover usage of k6. Note that it can be integrated to a time series dat
 
 Create a new influxdb stack :
 
+{{< highlight host="stack" file="influxdb" >}}
+
 ```yml
-version: '3.8'
+version: '3'
 
 services:
   db:
@@ -226,14 +236,18 @@ volumes:
   data:
 ```
 
+{{< /highlight >}}
+
 {{< alert >}}
 Add proper `influxdb.data=true` docker label in the node you want to store the influx data. Here I chose to put in the `runner-01` node by taping this command : `docker node update --label-add influxdb.data=true runner-01`.
 {{< /alert >}}
 
 Add InfluxDB private network to Grafana stack :
 
+{{< highlight host="stack" file="grafana" >}}
+
 ```yml
-version: '3.7'
+version: '3'
 
 services:
   grafana:
@@ -250,6 +264,8 @@ networks:
     external: true
 ```
 
+{{< /highlight >}}
+
 ### Test loading with k6
 
 First create a simple JS script as docker swarm *Config* named `k6_weather_test_01` through Portainer UI :
@@ -265,8 +281,10 @@ export default function () {
 
 [![Portainer config k6](portainer-configs-k6.png)](portainer-configs-k6.png)
 
+{{< highlight host="stack" file="k6" >}}
+
 ```yml
-version: '3.8'
+version: '3'
 
 services:
   load:
@@ -296,6 +314,8 @@ configs:
   k6_weather_test_01:
     external: true
 ```
+
+{{< /highlight >}}
 
 | variable      | description                                     |
 | ------------- | ----------------------------------------------- |

@@ -74,8 +74,10 @@ We are now ready to go for installing phpMyAdmin as GUI DB manager. Thanks to ou
 
 Create a new `phpmyadmin` stack with following :
 
+{{< highlight host="stack" file="phpmyadmin" >}}
+
 ```yml
-version: '3.8'
+version: '3'
 
 services:
   app:
@@ -101,6 +103,8 @@ networks:
   traefik_public:
     external: true
 ```
+
+{{< /highlight >}}
 
 The important part is `/etc/hosts` in order to allow proper DNS resolving for `data-01` configured in `PMA_HOST` environment variable. This will avoid us from dragging the real IP of data server everywhere...
 
@@ -197,8 +201,10 @@ sudo chown -R 5050:5050 /mnt/storage-pool/pgadmin/
 
 Finally, create a new `pgadmin` stack with following :
 
+{{< highlight host="stack" file="pgadmin" >}}
+
 ```yml
-version: '3.8'
+version: '3'
 
 services:
   app:
@@ -225,6 +231,8 @@ networks:
     external: true
 ```
 
+{{< /highlight >}}
+
 You'll need both `PGADMIN_DEFAULT_EMAIL` and `PGADMIN_DEFAULT_PASSWORD` variable environment for proper initialization.
 
 Deploy it, and you should access after few seconds to <https://pgadmin.sw.dockerswarm.rocks> with the default logins just above.
@@ -242,6 +250,8 @@ Let's now test our cluster with 3 app samples. We'll deploy them to the worker n
 ### Matomo over MySQL
 
 Be free from Google Analytics with Matomo. It's incredibly simple to install with our cluster. Note as Matomo only supports MySQL or MariaDB database. Let's create dedicated storage folder with `sudo mkdir /mnt/storage-pool/matomo` and create following `matomo` stack :
+
+{{< highlight host="stack" file="matomo" >}}
 
 ```yml
 version: '3'
@@ -266,6 +276,8 @@ networks:
   traefik_public:
     external: true
 ```
+
+{{< /highlight >}}
 
 Now we'll creating the `matomo` DB with dedicated user through above *phpMyAdmin*. For that simply create a new `matomo` account and always specify `10.0.0.0/8` inside host field. Don't forget to check *Create database with same name and grant all privileges*.
 
@@ -314,8 +326,10 @@ cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 40 | head -n 1
 
 Next create new following `redmine` stack :
 
+{{< highlight host="stack" file="redmine" >}}
+
 ```yml
-version: '3.8'
+version: '3'
 
 services:
   app:
@@ -347,6 +361,8 @@ networks:
     external: true
 ```
 
+{{< /highlight >}}
+
 Configure `REDMINE_DB_*` with proper above created DB credential and set the random key to `REDMINE_SECRET_KEY_BASE`.
 
 {{< alert >}}
@@ -365,8 +381,10 @@ First connect to pgAdmin and create new n8n user and database. Don't forget *Can
 
 Create storage folder with `sudo mkdir /mnt/storage-pool/n8n` and create new following stack :
 
+{{< highlight host="stack" file="n8n" >}}
+
 ```yml
-version: "3"
+version: '3'
 
 services:
   app:
@@ -395,6 +413,8 @@ networks:
   traefik_public:
     external: true
 ```
+
+{{< /highlight >}}
 
 And voilà, it's done, n8n will automatically migrate the database and <https://n8n.sw.dockerswarm.rocks> should be soon accessible. Note as we use `admin-auth` middleware because n8n doesn't offer authentication. Use the same Traefik credentials.
 

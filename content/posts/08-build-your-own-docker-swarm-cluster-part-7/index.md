@@ -30,8 +30,10 @@ Let's do `sudo mkdir /mnt/storage-pool/gitea`
 
 Then create a new `gitea` stack :
 
+{{< highlight host="stack" file="gitea" >}}
+
 ```yml
-version: '3.8'
+version: '3'
 
 services:
   gitea:
@@ -56,6 +58,8 @@ networks:
   traefik_public:
     external: true
 ```
+
+{{< /highlight >}}
 
 {{< alert >}}
 We added a specific TCP router in order to allow SSH cloning. The SSH Traefik entry point will redirect to the first available service with TCP router.  
@@ -86,8 +90,10 @@ Before attack the CI/CD part, we should take care of where we put our main docke
 
 We'll use the official docker registry with addition of nice simple UI for images navigation. It's always the same, do `sudo mkdir /mnt/storage-pool/registry` and create `registry` stack :
 
+{{< highlight host="stack" file="registry" >}}
+
 ```yml
-version: '3.3'
+version: '3'
 
 services:
   app:
@@ -128,6 +134,8 @@ networks:
   traefik_public:
     external: true
 ```
+
+{{< /highlight >}}
 
 {{< alert >}}
 Note as both service must be exposed to Traefik. In order to keep the same subdomain, we made usage of `PathPrefix` feature provided by Traefik with `/v2`.  
@@ -207,8 +215,10 @@ Let's follow [the official docs](https://docs.drone.io/server/provider/gitea/) f
 
 Save and keep the client and secret tokens. Then create a new `drone` PostgreSQL database and create a new `drone` stack :
 
+{{< highlight host="stack" file="drone" >}}
+
 ```yml
-version: '3.8'
+version: '3'
 
 services:
   drone:
@@ -252,6 +262,8 @@ networks:
   traefik_public:
     external: true
 ```
+
+{{< /highlight >}}
 
 {{< alert >}}
 Don't forget to have proper docker labels on nodes, as explain [here]({{< ref "04-build-your-own-docker-swarm-cluster-part-3#add-environment-labels" >}}), otherwise docker runner will not run because of `node.labels.environment == build`.
@@ -401,8 +413,10 @@ If all's going well, the final image should be pushed in our docker registry. Yo
 
 Our application is now ready for production deployment ! Let's create our new shiny `weather` stack :
 
+{{< highlight host="stack" file="weather" >}}
+
 ```yml
-version: "3"
+version: '3'
 
 services:
   app:
@@ -423,6 +437,8 @@ networks:
   traefik_public:
     external: true
 ```
+
+{{< /highlight >}}
 
 {{< alert >}}
 I use `Development` in order to have the swagger UI.  

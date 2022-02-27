@@ -341,8 +341,10 @@ Restart Promtail with `sudo service promtail restart`.
 
 It's just a new `jaeger` docker stack to deploy :
 
+{{< highlight host="stack" file="jaeger" >}}
+
 ```yml
-version: '3.8'
+version: '3'
 
 services:
   collector:
@@ -391,6 +393,8 @@ networks:
     external: true
 ```
 
+{{< /highlight >}}
+
 | name        | description                                                                                                                                                              |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `collector` | acts as a simple GRPC endpoint for saving all traces in particular span storage, as Elasticsearch.                                                                       |
@@ -423,7 +427,7 @@ Then edit original Traefik stack file and add `traefik` service into `jaeger` ne
 {{< highlight host="manager-01" file="~/traefik-stack.yml" >}}
 
 ```yml
-version: '3.2'
+version: '3'
 
 services:
   traefik:

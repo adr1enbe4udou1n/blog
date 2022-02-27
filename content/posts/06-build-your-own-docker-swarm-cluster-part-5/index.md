@@ -63,8 +63,10 @@ It consists on 2 scrapes job, use `targets` in order to indicate to Prometheus t
 
 Finally create a `prometheus` stack in Portainer :
 
+{{< highlight host="stack" file="prometheus" >}}
+
 ```yml
-version: '3.7'
+version: '3'
 
 services:
 
@@ -98,6 +100,8 @@ networks:
 volumes:
   data:
 ```
+
+{{< /highlight >}}
 
 The `private` network will serve us later for exporters. Next config are useful in order to control the DB usage, as metrics can go up very quickly :
 
@@ -150,6 +154,8 @@ It will take the node hostname and create an exploitable data metric for prometh
 
 Next we'll edit our `prometheus` stack by expanding YML config with next 2 additional services :
 
+{{< highlight host="stack" file="prometheus" >}}
+
 ```yml
 #...
   cadvisor:
@@ -194,6 +200,8 @@ configs:
   node_exporter_entrypoint:
     external: true
 ```
+
+{{< /highlight >}}
 
 Finally, add the 2 next jobs in previous Prometheus config file :
 
@@ -268,8 +276,10 @@ sudo chown -R 472:472 /mnt/storage-pool/grafana
 
 Next create new following `grafana` stack :
 
+{{< highlight host="stack" file="grafana" >}}
+
 ```yml
-version: '3.7'
+version: '3'
 
 services:
   grafana:
@@ -302,6 +312,8 @@ networks:
   traefik_public:
     external: true
 ```
+
+{{< /highlight >}}
 
 Set proper `GF_DATABASE_PASSWORD` and deploy. Database migration should be automatic (don't hesitate to check inside pgAdmin). Go to <https://grafana.sw.dockerswarm.rocks> and login as admin / admin.
 
@@ -382,6 +394,8 @@ GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'exporter'@'10.0.0.0/8';
 
 Then we just have to expand the above `prometheus` stack description with 2 new exporter services, one for MySQL, and other for PostgreSQL :
 
+{{< highlight host="stack" file="prometheus" >}}
+
 ```yml
 #...
   mysql-exporter:
@@ -413,6 +427,8 @@ Then we just have to expand the above `prometheus` stack description with 2 new 
           - node.role == manager
 #...
 ```
+
+{{< /highlight >}}
 
 Set proper `MYSQL_PASSWORD` and `POSTGRES_PASSWORD` environment variables and deploy the stack. Be sure that the 2 new services have started.
 
