@@ -20,7 +20,9 @@
 
         <div class="grid md:grid-cols-2 gap-4">
             {{ range .projects }}
-            <div class="flex flex-col gap-4 rounded border-2 border-purple-500 p-4">
+            {{ $borders := dict "green" "border-green-500" "orange" "border-orange-500" "black" "border-black dark:border-white"
+"red" "border-red-500" "teal" "border-teal-500" "primary" "border-purple-500" }}
+            <div class="flex flex-col gap-4 rounded border-2 p-4 {{ (index $borders (or .color "primary")) }}">
                 <div class="text-center">
                     <a href="https://github.com/{{ .repo }}" target="_blank">
                         <h3 class="pb-1 font-bold border-b-2 border-purple-500 inline-block">
@@ -37,21 +39,13 @@
                     {{ readFile (print "_data/works/" .name ".md") | markdownify }}
                 </div>
                 <div class="flex justify-center gap-4">
-                    <a class="px-4 py-2 !text-neutral !no-underline !rounded-md bg-primary-600 hover:!bg-primary-500 dark:bg-primary-800 dark:hover:!bg-primary-700"
-                        href="https://github.com/{{ .repo }}" target="_blank" role="button">
-                        {{ partial "icon.html" "github" }}
-                    </a>
+                    {{ partial "button.html" (dict "text" (partial "icon.html" "github") "href" (print
+                    "https://github.com/" .repo) "color" .color) }}
                     {{ if .demo }}
-                    <a class="px-4 py-2 !text-neutral !no-underline !rounded-md bg-primary-600 hover:!bg-primary-500 dark:bg-primary-800 dark:hover:!bg-primary-700"
-                        href="{{ .demo }}" target="_blank" role="button">
-                        Demo
-                    </a>
+                    {{ partial "button.html" (dict "text" "Demo" "href" .demo "color" .color) }}
                     {{ end }}
                     {{ if .docs }}
-                    <a class="px-4 py-2 !text-neutral !no-underline !rounded-md bg-primary-600 hover:!bg-primary-500 dark:bg-primary-800 dark:hover:!bg-primary-700"
-                        href="{{ .docs }}" target="_blank" role="button">
-                        Docs
-                    </a>
+                    {{ partial "button.html" (dict "text" "Docs" "href" .docs "color" .color) }}
                     {{ end }}
                 </div>
             </div>
