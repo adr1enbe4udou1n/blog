@@ -26,9 +26,7 @@ Of course, in a ~$30 cluster, forget about running a self-hosted GitLab, you wil
 
 You guess it, it's just an additional stack to run !
 
-Let's do `sudo mkdir /mnt/storage-pool/gitea`
-
-Then create a new `gitea` stack :
+Do `sudo mkdir /mnt/storage-pool/gitea` and create a new `gitea` stack :
 
 {{< highlight host="stack" file="gitea" >}}
 
@@ -146,20 +144,32 @@ Go to <https://registry.sw.dockerswarm.rocks> and use Traefik credentials. We ha
 
 ### Test our private registry
 
-Login into the `manager-01` server, do `docker login registry.sw.dockerswarm.rocks` and enter proper credentials. You should see *Login Succeeded*. Don't worry about the warning. Create the next Dockerfile somewhere :
+Create a Dockerfile sample file somewhere :
+
+{{< highlight host="manager-01" file="~/Dockerfile" >}}
 
 ```Dockerfile
 FROM alpine:latest
 RUN apk add --no-cache git
 ```
 
+{{< /highlight >}}
+
 Then build and push the image :
 
+{{< highlight host="manager-01" >}}
+
 ```sh
+# enter proper credentials
+docker login registry.sw.dockerswarm.rocks
+
+# build the image
 docker build -t alpinegit .
 docker tag alpinegit registry.sw.dockerswarm.rocks/alpinegit
 docker push registry.sw.dockerswarm.rocks/alpinegit
 ```
+
+{{< /highlight >}}
 
 Go back to above <https://registry.sw.dockerswarm.rocks>. You should see 1 new image !
 
@@ -335,12 +345,16 @@ It will create a webhook inside repository settings, triggered on every code pus
 
 Now generate a new SSH key on `manager-01` :
 
+{{< highlight host="manager-01" >}}
+
 ```sh
 ssh-keygen -t ed25519 -C "admin@sw.dockerswarm.rocks"
 cat .ssh/id_ed25519 # the private key to set in swarm_ssh_key
 cat .ssh/id_ed25519.pub # the public key to add just below
 echo "ssh-ed25519 AAAA... admin@sw.dockerswarm.rocks" | tee -a .ssh/authorized_keys
 ```
+
+{{< /highlight >}}
 
 Then configure the repository settings on Drone. Go to *Organization > Secrets* section and add some global secrets.
 
@@ -355,6 +369,8 @@ Then configure the repository settings on Drone. Go to *Organization > Secrets* 
 ### Configure the pipelines (the CI part) 🏗️
 
 For working, Drone needs a `.drone.yml` file in root of repository. This file will describe all steps of our build pipeline. Let's create and explain it :
+
+{{< highlight file=".drone.yml" >}}
 
 ```yml
 kind: pipeline
@@ -384,12 +400,16 @@ trigger:
     - pull_request
 ```
 
+{{< /highlight >}}
+
 It's just simple 2 steps :
 
 1. `build` : Here is the step for project dependencies import, compilation, testing, and code linting / formatting. This is a very basic project here, so we start with a simple building. The image `mcr.microsoft.com/dotnet/sdk:6.0` is the required docker image for proper .NET building. The publish command will generate a `publish` subdirectory.
 2. `image` : We use the [official docker plugin](https://plugins.drone.io/drone-plugins/drone-docker/) for building our final production based docker image, done from the below Dockerfile. Use `repo` as the final docker image name.
 
 Next create the Dockerfile which will be used for `image` step :
+
+{{< highlight file="Dockerfile" >}}
 
 ```Dockerfile
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
@@ -400,6 +420,8 @@ WORKDIR /app
 
 ENTRYPOINT ["dotnet", "my-weather-api.dll"]
 ```
+
+{{< /highlight >}}
 
 We use production suited .NET runtime image `mcr.microsoft.com/dotnet/aspnet:6.0`. Note as **WE MUST** do the simplest commands possible in order to have the lightest image layers, as it's the production image. All we have to do is to copy the final published binaries from above `build` drone step.
 
@@ -457,6 +479,8 @@ Now we must be sure that the `runner-01` host can reach the `manager-01` server 
 
 Now let's add a new `deploy` step inside `.drone.yml` into our pipeline for automatic deployment !
 
+{{< highlight file=".drone.yml" >}}
+
 ```yml
 #...
   - name: deploy
@@ -472,7 +496,11 @@ Now let's add a new `deploy` step inside `.drone.yml` into our pipeline for auto
 #...
 ```
 
+{{< /highlight >}}
+
 The as example edit `Program.cs` file and change next line :
+
+{{< highlight file="Program.cs" >}}
 
 ```cs
 builder.Services.AddSwaggerGen(c =>
@@ -484,6 +512,8 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 ```
+
+{{< /highlight >}}
 
 Push and back to your API, and the title and version should be automatically updated !
 

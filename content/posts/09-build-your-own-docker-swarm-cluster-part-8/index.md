@@ -27,6 +27,8 @@ dotnet add package OpenTelemetry.Exporter.Jaeger --prerelease
 
 Then add automatic ASP.NET instrumentation and configure Jaeger exporter in `Program.cs` by adding following lines before `builder.Build()` :
 
+{{< highlight file="Program.cs" >}}
+
 ```cs
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -47,6 +49,8 @@ builder.Services.AddOpenTelemetryTracing(b => b
 
 //...
 ```
+
+{{< /highlight >}}
 
 Push the code and ensure all CI/CD workflow passes.
 
@@ -91,6 +95,8 @@ Let's get some automatic quality code metrics.
 
 On `manager-01` :
 
+{{< highlight host="manager-01" >}}
+
 ```sh
 sudo mkdir -p /mnt/storage-pool/sonar/data
 sudo mkdir -p /mnt/storage-pool/sonar/logs
@@ -100,6 +106,8 @@ sudo mkdir -p /mnt/storage-pool/sonar/extensions
 echo "vm.max_map_count=262144" | tee /etc/sysctl.d/local.conf
 sudo service procps restart
 ```
+
+{{< /highlight >}}
 
 Create a `sonar` PostgresSQL database, and create a `sonar` stack :
 
@@ -174,6 +182,8 @@ Because running scanner manually is boring, let's integrate it in our favorite C
 
 Change the `build` step on `.drone.yml` file :
 
+{{< highlight file=".drone.yml" >}}
+
 ```yml
 #...
   - name: build
@@ -189,6 +199,8 @@ Change the `build` step on `.drone.yml` file :
       - dotnet publish -c Release -o ./publish
 #...
 ```
+
+{{< /highlight >}}
 
 And voilà ! You should have automatic code analysis on every code push.
 
@@ -270,6 +282,8 @@ networks:
 
 First create a simple JS script as docker swarm *Config* named `k6_weather_test_01` through Portainer UI :
 
+{{< highlight host="config" file="k6_weather_test_01" >}}
+
 ```js
 import http from "k6/http";
 import { check } from "k6";
@@ -278,6 +292,8 @@ export default function () {
   http.get('https://weather.sw.dockerswarm.rocks/WeatherForecast');
 }
 ```
+
+{{< /highlight >}}
 
 [![Portainer config k6](portainer-configs-k6.png)](portainer-configs-k6.png)
 
@@ -371,6 +387,8 @@ data: {
 
 You can go even further with more progressive scenario. Create a new `k6_weather_test_02` docker config script :
 
+{{< highlight host="config" file="k6_weather_test_02" >}}
+
 ```js
 import http from "k6/http";
 import { check } from "k6";
@@ -385,6 +403,8 @@ export default function () {
   http.get('https://weather.sw.dockerswarm.rocks/WeatherForecast');
 }
 ```
+
+{{< /highlight >}}
 
 This is a progressive 5 minutes load testing scenario from 1 user to 200 concurrent users.
 
