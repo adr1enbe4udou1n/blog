@@ -1,0 +1,7 @@
+<div class="relative">
+    <span
+        class="absolute bottom-0 right-0 bg-primary-100 dark:bg-primary-800 rounded-md rounded-tr-none rounded-bl-none px-4 py-1 text-sm z-10 italic">{{
+        .Get
+        "filename" }}</span>
+    {{- .Inner | markdownify -}}
+</div>

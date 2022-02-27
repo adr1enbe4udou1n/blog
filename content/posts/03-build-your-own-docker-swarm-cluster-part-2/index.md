@@ -24,21 +24,21 @@ Initiate the project by following this simple steps :
 
 1. Create the project through the UI (I will use `swarmrocks` as project's name here)
 2. Navigate to security > API tokens
-3. Generate new API key with Read Write permissions and copy the generated token
+3. Generate new API key with *Read Write* permissions and copy the generated token
 
 [![Hetzner API Token](hetzner-api-token.png)](hetzner-api-token.png)
 
-Then go to the terminal and prepare the new context
+Then go to the terminal and prepare the new context.
 
 ```sh
 hcloud context create swarmrocks # set the copied token at prompt
 hcloud context list # check that your new project is active
 
-# set your ssh key to the project
+# set your ssh public key to the project, mine is .ssh/id_ed25519.pub
 hcloud ssh-key create --name swarm --public-key-from-file .ssh/id_ed25519.pub
 ```
 
-Now we are ready to set up the above architecture !
+Note as we don't need to return to the Hetzner UI anymore, all the rest is pure CLI. We're ready to set up the cluster architecture presented in the first part !
 
 ## Create the cloud servers and networks ☁️
 
@@ -62,7 +62,7 @@ hcloud server create --name runner-01 --ssh-key swarm --image ubuntu-20.04 --typ
 hcloud server create --name data-01 --ssh-key swarm --image ubuntu-20.04 --type cx21 --location nbg1 --network network-01
 
 # create the volume that will be used by gluster and automount it to the data server (fstab will be already setted)
-hcloud volume create --name volume-01 --size 60 --server data-01 --automount --format ext4
+hcloud volume create --name volume-01 --size 20 --server data-01 --automount --format ext4
 ```
 
 {{< alert >}}
@@ -71,7 +71,7 @@ Location is important ! Choose wisely between Germany, Finland and US. Here I go
 
 ## Prepare the servers 🛠️
 
-It's time to do the classic minimal boring viable security setup for each server. Use `hcloud server ssh xxxxxx-01` for ssh connect and do the same for each.
+It's time to do the classic minimal boring viable security setup for each server. Use `hcloud server ssh xxxxxx-01` for ssh connect and apply the same following commands for each nodes.
 
 ```sh
 # ensure last upgrades
@@ -81,7 +81,7 @@ apt update && apt upgrade -y && reboot
 dpkg-reconfigure locales
 dpkg-reconfigure tzdata
 
-# create your default non root and sudoer user (swarm in this sample)
+# create your default non root user (swarm in this sample)
 adduser swarm # enter any strong password at prompt
 
 # set the user to sudoer group and sync the same ssh root key
@@ -98,15 +98,17 @@ service ssh reload
 ```
 
 {{< alert >}}
-The change of SSH port is not only for better security, but also for allowing more later git ssh access into your custom git provider as GitLab, Gitea, etc. that go through Traefik 22 port, as it will far more practical.
+The change of SSH port is not only for better security, but also for allowing more later git ssh operations into your custom git provider as GitLab, Gitea, etc. that will pass through Traefik 22 port, which will be far more practical.
 {{< /alert >}}
 
 Finally, test your new `swarm` user by using `hcloud server ssh --user swarm --port 2222 xxxxxx-01` for each server and be sure that the user can do commands as sudo before continue.
 
-Then edit `/etc/hosts` file for each server accordingly in order to add private IPs :
+Then edit `/etc/hosts` file for each server accordingly for internal DNS :
 
 {{< tabs >}}
 {{< tab tabName="manager-01" >}}
+
+{{< highlight filename="/etc/hosts" >}}
 
 ```txt
 10.0.0.3 worker-01 sw-worker-01
@@ -114,21 +116,31 @@ Then edit `/etc/hosts` file for each server accordingly in order to add private 
 10.0.0.5 data-01 sw-data-01
 ```
 
+{{< /highlight >}}
+
 {{< /tab >}}
 {{< tab tabName="worker-01" >}}
+
+{{< highlight filename="/etc/hosts" >}}
 
 ```txt
 10.0.0.2 manager-01
 10.0.0.5 data-01
 ```
+
+{{< /highlight >}}
 
 {{< /tab >}}
 {{< tab tabName="runner-01" >}}
 
+{{< highlight filename="/etc/hosts" >}}
+
 ```txt
 10.0.0.2 manager-01
 10.0.0.5 data-01
 ```
+
+{{< /highlight >}}
 
 {{< /tab >}}
 {{< /tabs >}}
