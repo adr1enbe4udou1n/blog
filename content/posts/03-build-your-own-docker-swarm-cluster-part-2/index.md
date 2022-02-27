@@ -146,19 +146,39 @@ Then edit `/etc/hosts` file for each server accordingly for internal DNS :
 {{< /tabs >}}
 
 {{< alert >}}
-IPs are only showed here as samples, use `hcloud server describe xxxxxx-01` in order to get the right private IP under `Private Net`.
+IPs are only showed here as samples, use `hcloud server describe xxxxxx-01` in order to get the right private IP under `Private Net`. The additional `sw-***-01` DNS name is for having a better unique name for next ssh config.
 {{< /alert >}}
 
 ## Setup DNS and SSH config 🌍
 
-Now use `hcloud server ip manager-01` to get the unique frontal IP address of the cluster that will be used for any entry point, including SSH. Then edit the DNS of your domain and apply this IP to a particular subdomain, as well as a wildcard subdomain. You will see later what this wildcard domain is it for. I will use `sw.dockerswarm.rocks` as sample. It should be looks like next :
+Now use `hcloud server ip manager-01` to get the unique frontal IP address of the cluster that will be used for any entry point, including SSH. Then edit the DNS of your domain and apply this IP to a particular subdomain, as well as a wildcard subdomain. I will use `sw.dockerswarm.rocks` as sample with `123.123.123.123` as public IP. Choose between two solutions :
+
+{{< tabs >}}
+{{< tab tabName="Global wildcard" >}}
+
+Use `xyz.dockerswarm.rocks` format for our cluster apps.
+
+```txt
+sw      3600    IN A        123.123.123.123
+*       43200   IN CNAME    sw
+```
+
+As soon as the above DNS is applied, you should ping `sw.dockerswarm.rocks` or any `xyz.dockerswarm.rocks`.
+
+{{< /tab >}}
+{{< tab tabName="Namespaced wildcard" >}}
+
+Use namespaced `xyz.sw.dockerswarm.rocks` format for our cluster apps.
 
 ```txt
 sw      3600    IN A        123.123.123.123
 *.sw    43200   IN CNAME    sw
 ```
 
-As soon as the above DNS is applied, you should ping `sw.dockerswarm.rocks` or any `xyz.sw.dockerswarm.rocks` domains.
+As soon as the above DNS is applied, you should ping `sw.dockerswarm.rocks` or any `xyz.sw.dockerswarm.rocks`.
+
+{{< /tab >}}
+{{< /tabs >}}
 
 It's now time to finalize your local SSH config for optimal access. Go to `~/.ssh/config` and add following hosts (change it accordingly to your own setup) :
 
@@ -188,10 +208,10 @@ Host sw-worker-01
 
 {{< /highlight >}}
 
-And that's it ! You should now quickly ssh to these servers easily by `ssh sw`, `ssh sw-worker-01`, `ssh sw-runner-01`, `ssh sw-data-01`, which will be far more practical.
+And that's it ! You should now quickly ssh to these servers easily with a single endpoint by `ssh sw`, `ssh sw-worker-01`, `ssh sw-runner-01`, `ssh sw-data-01`, which will be far more practical.
 
 {{< alert >}}
-Note as I only use the `sw.dockerswarm.rocks` as unique endpoint for ssh access to all internal server, without need of external SSH access to servers different from `manager-01`. It's known as SSH proxy, which allows single access point for better security perspective by simply jumping from main SSH access.
+Note as I only use the `sw.dockerswarm.rocks` as unique endpoint for ssh access to all internal server, without using external IP of servers behind from `manager-01`. It's known as SSH proxy, which allows single access point by simply jumping from frontal server to any internal server.
 {{< /alert >}}
 
 ## The firewall 🧱
@@ -201,34 +221,17 @@ You should never let any cluster without properly configured firewall. It's gene
 
 You need at least 2 firewalls :
 
-1. One for external incoming for SSH and Traefik web standard ports. You'll need a full set of rules, and it will be only enabled for `manager-01`. The main SSH port will be IP whitelisted to your public IP only.
-2. The second firewall is for block all **any** incoming requests applied to any servers different from the `manager-01`, even for SSH as we don't need it anymore thanks to above SSH proxy.
+1. One external for allowing only SSH and web standard ports. You'll need a full set of rules, and it will be only enabled for `manager-01`. The main SSH port will be IP whitelisted to your public IP only.
+2. The second firewall is to block all **ANY** external incoming requests, even for SSH as we don't need it anymore thanks to above SSH proxy.
 
 {{< alert >}}
 Note as the Hetzner Cloud Firewall will not apply to the private network at all, as it's [already considered to be "secured"](https://docs.hetzner.com/cloud/firewalls/faq/#can-firewalls-secure-traffic-to-my-private-hetzner-cloud-networks) ! I hope so, but I'm pretty sure that it will be possible to set a firewall in private networks in the future as we can just believe Hetzner word for word.  
 How can be sure that any other internal client has no access to our private network ? Use `ufw` if you're paranoid about that...
 {{< /alert >}}
 
-Create the 2 firewalls as next :
+First create the next JSON file somewhere locally in your machine :
 
-{{< tabs >}}
-{{< tab tabName="bash" >}}
-
-```sh
-# internal firewall to protect internal server from all external access
-hcloud firewall create --name firewall-internal
-hcloud firewall apply-to-resource firewall-internal --type server --server worker-01
-hcloud firewall apply-to-resource firewall-internal --type server --server runner-01
-hcloud firewall apply-to-resource firewall-internal --type server --server data-01
-
-# external firewall to protect manager-01 with only required ports
-# use the json file from the 2nd tab just above
-hcloud firewall create --name firewall-external --rules-file firewall-rules.json
-hcloud firewall apply-to-resource firewall-external --type server --server manager-01
-```
-
-{{< /tab >}}
-{{< tab tabName="firewall-rules.json" >}}
+{{< highlight filename="firewall-rules.json" >}}
 
 ```json
 [
@@ -270,27 +273,42 @@ hcloud firewall apply-to-resource firewall-external --type server --server manag
 ]
 ```
 
-{{< /tab >}}
-{{< /tabs >}}
+{{< /highlight >}}
+
+It corresponds to the incoming allowed port for `manager-01` host.
 
 {{< alert >}}
-Adapt the 4st rule of `firewall-rules.json` accordingly to your own chosen SSH port and set your own public IP inside `source_ips` in place of `xx.xx.xx.xx` value for better security. In case you have dynamic IP, just remove this last rule.
+Adapt the 4st rule accordingly to your own chosen SSH port and set your own public IP inside `source_ips` in place of `xx.xx.xx.xx` value. In case you have dynamic IP, just use `0.0.0.0/0` or any better sub range.
 {{< /alert >}}
+
+Create the 2 firewalls as next :
+
+```sh
+# internal firewall to protect internal server from all external access
+hcloud firewall create --name firewall-internal
+hcloud firewall apply-to-resource firewall-internal --type server --server worker-01
+hcloud firewall apply-to-resource firewall-internal --type server --server runner-01
+hcloud firewall apply-to-resource firewall-internal --type server --server data-01
+
+# external firewall to protect manager-01 with only required ports
+hcloud firewall create --name firewall-external --rules-file firewall-rules.json
+hcloud firewall apply-to-resource firewall-external --type server --server manager-01
+```
 
 You should have now good protection against any unintended external access with only few required ports to your `manager-01` server, aka :
 
-| port     | description                                                                                                            |
-| -------- | ---------------------------------------------------------------------------------------------------------------------- |
-| **2222** | the main SSH port, with IP whitelist                                                                                   |
-| **443**  | the HTTPS port for Traefik, our main access for all of your web apps                                                   |
-| **80**   | the HTTP port for Traefik, only required for proper HTTPS redirection                                                  |
-| **22**   | the SSH standard port for Traefik, required for proper usage through you main Git provider container as GitLab / Gitea |
+| port     | description                                                                                                                  |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **2222** | the main SSH port, with IP whitelist                                                                                         |
+| **443**  | the HTTPS port for Traefik, our main access for all of your web apps                                                         |
+| **80**   | the HTTP port for Traefik, only required for proper HTTPS redirection                                                        |
+| **22**   | the SSH standard port for Traefik, required for proper usage through your main Git provider container such as GitLab / Gitea |
 
 ## Network file system 📄
 
 Before go further away, we'll quickly need of proper unique shared storage location for all managers and workers. It's mandatory in order to keep same state when your app containers are automatically rearranged by Swarm manager across multiple workers for convergence purpose.
 
-We'll use `GlusterFS` for that. You can of course use a simple NFS bind mount. But GlusterFS make more sense in the sense that it allows easy replication for HA. You will not regret it when you'll need a `data-02`. We'll not cover GlusterFS replication here, just a unique master replica.
+We'll use **GlusterFS** for that. You can of course use a simple NFS bind mount. But GlusterFS make more sense as it allows easy replication for HA. You will not regret it when you'll need a `data-02`. We'll not cover GlusterFS replication here, just a unique master replica.
 
 {{< mermaid >}}
 flowchart TD
@@ -329,10 +347,10 @@ Note that manager node can be used as worker as well. However, I think it's not 
 It's 2 steps :
 
 * Installing the file system server on dedicated volume mounted on `data-01`
-* Mount the above volume on all clients where docker is installed
+* Mounting the above volume on all clients where docker will be installed
 
 {{< tabs >}}
-{{< tab tabName="1. master (data-01)" >}}
+{{< tab tabName="Server (data-01)" >}}
 
 ```sh
 sudo add-apt-repository -y ppa:gluster/glusterfs-10
@@ -341,7 +359,7 @@ sudo apt install -y glusterfs-server
 sudo systemctl enable glusterd.service
 sudo systemctl start glusterd.service
 
-# get the path of you mounted disk from part 1 of this tuto
+# get the path of external mounted disk volume
 df -h # it should be like /mnt/HC_Volume_xxxxxxxx
 
 # create the volume
@@ -356,10 +374,11 @@ sudo touch /mnt/HC_Volume_xxxxxxxx/gluster-storage/test.txt
 ```
 
 {{< /tab >}}
-{{< tab tabName="2. clients (docker hosts)" >}}
+{{< tab tabName="Clients (docker hosts)" >}}
+
+Do following commands on every docker client host, aka `master-01`, `worker-01`, `runner-01` :
 
 ```sh
-# do following commands on every docker client host
 sudo add-apt-repository -y ppa:gluster/glusterfs-10
 
 sudo apt install -y glusterfs-client
@@ -381,8 +400,8 @@ ls /mnt/storage-pool/
 {{< /tabs >}}
 
 {{< alert >}}
-You can ask why we use bind mounts directly on the host instead of using more featured docker volumes directly (Kubernetes does similar way). Moreover, it's not really the first recommendation on [official docs](https://docs.docker.com/storage/bind-mounts/), as it states to prefer volumes directly.  
-It's just as I didn't find reliable GlusterFS driver working for Docker. Kubernetes is far more mature in this domain sadly. Please let me know if you know production grade solution for that !
+You can ask why using bind mounts directly on the host instead of more featured docker volumes directly (Kubernetes does similar way). Besides, it's not really the first recommendation on [official docs](https://docs.docker.com/storage/bind-mounts/), as it states to prefer volumes directly.  
+It's just as I didn't find reliable and really maintained GlusterFS driver for Docker. Kubernetes is far more mature in this domain sadly. Please let me know if you know production grade solution for that !
 {{< /alert >}}
 
 ## 1st check ✅
