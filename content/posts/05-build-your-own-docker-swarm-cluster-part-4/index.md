@@ -20,13 +20,17 @@ We'll install this DB obviously on `data-01` as shown in [previous part II schem
 
 ### MySQL 8 🐬
 
+{{< highlight host="data-01" >}}
+
 ```sh
 # on ubuntu 20.04, it's just as simple as next
 sudo apt install -y mysql-server
 
-# do some secure setup
-sudo mysql_secure_installation # let remote root access enabled
+# do some secure setup and let remote root access enabled
+sudo mysql_secure_installation
 ```
+
+{{< /highlight >}}
 
 Now we need to allow remote root access to the DB from docker nodes in the private network. In MySQL it consists on create a new root user for external host.
 
@@ -46,6 +50,8 @@ FLUSH PRIVILEGES;
 
 It's now time to confirm remote root access working. Connect to the `manager-01` host :
 
+{{< highlight host="manager-01" >}}
+
 ```sh
 # install the client
 sudo apt install -y mysql-client
@@ -56,6 +62,8 @@ mysql -hdata-01 -uroot -p
 # save mysql credentials in local swarm account
 mysql_config_editor set -hdata-01 -uroot -p
 ```
+
+{{< /highlight >}}
 
 With last command, you now access the db directly from the manager by
 `mysql` !
@@ -102,6 +110,8 @@ Deploy it, and you should access to <https://phpmyadmin.sw.dockerswarm.rocks> af
 
 ### PostgreSQL 14 🐘
 
+{{< highlight host="data-01" >}}
+
 ```sh
 sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
@@ -109,17 +119,26 @@ sudo apt-get update
 sudo apt-get -y install postgresql-14
 ```
 
+{{< /highlight  >}}
+
 Let's allow remote access by editing `/etc/postgresql/14/main/postgresql.conf` and setting `listen_addresses = '*'`
 
 Next edit `/etc/postgresql/14/main/pg_hba.conf` and add following line :
 
-```conf
+{{< highlight host="data-01" file="/etc/postgresql/14/main/pg_hba.conf" >}}
+
+```txt
 host    all    all    10.0.0.0/8    scram-sha-256
+
 ```
+
+{{< /highlight >}}
 
 Finally, apply these by `sudo service postgresql restart`.
 
 Now create our dedicated super admin `swarm` user :
+
+{{< highlight host="data-01" >}}
 
 ```sh
 # create superadmin swarm user
@@ -128,6 +147,8 @@ sudo -u postgres createuser swarm -s
 # create the user db
 sudo -u postgres createdb swarm
 ```
+
+{{< /highlight >}}
 
 Then set the password with `sudo -u postgres psql` and execute following SQL query :
 
@@ -138,6 +159,8 @@ alter user swarm with encrypted password 'myawesomepassword';
 #### Testing remotely via psql
 
 It's now time to confirm remote root access working. Connect to the `manager-01` host :
+
+{{< highlight host="manager-01" >}}
 
 ```sh
 # install the client
@@ -150,6 +173,8 @@ sudo apt-get -y install postgresql-client-14
 psql -hdata-01 -Uswarm
 ```
 
+{{< /highlight >}}
+
 For credential storing, create a `.pgpass` file with chmod 600 with following content format : `data-01:5432:swarm:swarm:myawesomepassword`
 
 With last command, you can now access the db directly from the manager by
@@ -161,10 +186,14 @@ We are now ready to go for installing pgAdmin as GUI DB manager.
 
 First create a pgadmin storage folder with proper permissions :
 
+{{< highlight host="manager-01" >}}
+
 ```sh
 sudo mkdir /mnt/storage-pool/pgadmin
 sudo chown -R 5050:5050 /mnt/storage-pool/pgadmin/
 ```
+
+{{< /highlight >}}
 
 Finally, create a new `pgadmin` stack with following :
 
@@ -256,6 +285,8 @@ Use `Native MySQL authentication` as authentication plugin, as Redmine doesn't s
 
 Create dedicated storage folder :
 
+{{< highlight host="manager-01" >}}
+
 ```sh
 sudo mkdir /mnt/storage-pool/redmine
 
@@ -278,6 +309,8 @@ sudo wget https://raw.githubusercontent.com/redmine/redmine/master/config/config
 # generate a random key for REDMINE_SECRET_KEY_BASE
 cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 40 | head -n 1
 ```
+
+{{< /highlight >}}
 
 Next create new following `redmine` stack :
 
@@ -378,7 +411,9 @@ Provided scripts will dump a dedicated file for each database. Fill free to adap
 {{< tabs >}}
 {{< tab tabName="MySQL" >}}
 
-Create executable script at /usr/local/bin/backup-mysql
+Create following executable script :
+
+{{< highlight host="data-01" file="/usr/local/bin/backup-mysql" >}}
 
 ```sh
 #!/bin/bash
@@ -394,12 +429,16 @@ for db in $databases; do
 done;
 ```
 
+{{< /highlight >}}
+
 Then add `0 * * * * /usr/local/bin/backup-mysql` to system cron `/etc/crontab` for dumping every hour.
 
 {{< /tab >}}
 {{< tab tabName="PostgreSQL" >}}
 
-Create executable script at /usr/local/bin/backup-postgresql
+Create following executable script :
+
+{{< highlight host="data-01" file="/usr/local/bin/backup-postgresql" >}}
 
 ```sh
 #!/bin/bash
@@ -417,6 +456,8 @@ done;
 pg_dumpall --roles-only | gzip > $target/roles.gz
 ```
 
+{{< /highlight >}}
+
 > Use it via `crontab -e` as postgres user.
 > `0 * * * * /usr/local/bin/backup-postgresql`
 
@@ -431,6 +472,8 @@ This scripts doesn't provide rotation of dumps, as the next incremental backup w
 
 ### Incremental backup with Restic
 
+{{< highlight host="data-01" >}}
+
 ```sh
 wget https://github.com/restic/restic/releases/download/v0.12.1/restic_0.12.1_linux_amd64.bz2
 bzip2 -d restic_0.12.1_linux_amd64.bz2
@@ -440,12 +483,22 @@ restic self-update
 sudo restic generate --bash-completion /etc/bash_completion.d/restic
 ```
 
-Some config files :
+{{< /highlight >}}
 
-{{< tabs >}}
-{{< tab tabName="~/.restic-env" >}}
+Here are some typical folders to exclude from backup.
+
+{{< highlight host="data-01" file="/etc/restic/excludes.txt" >}}
+
+```txt
+.glusterfs
+node_modules
+```
+
+{{< /highlight >}}
 
 Replace next environment variables with your own S3 configuration.
+
+{{< highlight host="data-01" file="~/.restic-env" >}}
 
 ```sh
 export AWS_ACCESS_KEY_ID="your-access-key"
@@ -454,27 +507,36 @@ export RESTIC_REPOSITORY="s3:server-url/bucket-name/backup"
 export RESTIC_PASSWORD="a-strong-password"
 ```
 
-{{< /tab >}}
-{{< tab tabName="/etc/restic/excludes.txt" >}}
+{{< /highlight >}}
 
-Here some typical folders to exclude from backup.
+{{< highlight host="data-01" >}}
 
-```txt
-.glusterfs
-node_modules
+```sh
+echo ". ~/.restic-env" >> .profile
+
+# reload profile
+source ~/.profile`
+
+# create repository
+restic init
+
+# test backup
+restic backup /mnt/HC_Volume_xxxxxxxx/gluster-storage /var/backups/mysql /var/lib/postgresql/backups --exclude-file=/etc/restic/excludes.txt
+
 ```
 
-{{< /tab >}}
-{{< /tabs >}}
+{{< /highlight >}}
 
-1. Add `. ~/.restic-env` to `.profile`
-2. Reload profile with `source ~/.profile`
-3. Create a repository with `restic init` (if using rclone instead above keys)
-4. Add following cron for backup every hour at 42min :
+Add following cron for backup every hour at 42min :
+
+{{< highlight host="data-01" file="/etc/crontab" >}}
 
 ```txt
 42 * * * * . ~/.restic-env; /usr/local/bin/restic backup -q /mnt/HC_Volume_xxxxxxxx/gluster-storage /var/backups/mysql /var/lib/postgresql/backups --exclude-file=/etc/restic/excludes.txt; /usr/local/bin/restic forget -q --prune --keep-hourly 24 --keep-daily 7 --keep-weekly 4 --keep-monthly 3
+
 ```
+
+{{< /highlight >}}
 
 You now have full and incremental backup of GlusterFS volume and dump databases !
 
