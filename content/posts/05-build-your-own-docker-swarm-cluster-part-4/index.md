@@ -7,7 +7,7 @@ draft: true
 ---
 
 {{< lead >}}
-Build your own cheap while powerful self-hosted complete CI/CD solution by following this opinionated guide 🎉
+Build your own cheap but powerful self-hosted cluster and be free from any SaaS solutions by following this opinionated guide 🎉
 {{< /lead >}}
 
 This is the **Part IV** of more global topic tutorial. [Back to first part]({{< ref "/posts/02-build-your-own-docker-swarm-cluster" >}}) to start from beginning.
@@ -96,7 +96,7 @@ networks:
 
 The important part is `/etc/hosts` in order to allow proper DNS resolving for `data-01` configured in `PMA_HOST` environment variable. This will avoid us from dragging the real IP of data server everywhere...
 
-Deploy it, and you should access to <https://phpmyadmin.sw.mydomain.rocks> after few seconds, with full admin access to your MySQL DB !
+Deploy it, and you should access to <https://phpmyadmin.sw.dockerswarm.rocks> after few seconds, with full admin access to your MySQL DB !
 
 [![phpMyAdmin](phpmyadmin.png)](phpmyadmin.png)
 
@@ -198,7 +198,7 @@ networks:
 
 You'll need both `PGADMIN_DEFAULT_EMAIL` and `PGADMIN_DEFAULT_PASSWORD` variable environment for proper initialization.
 
-Deploy it, and you should access after few seconds to <https://pgadmin.sw.mydomain.rocks> with the default logins just above.
+Deploy it, and you should access after few seconds to <https://pgadmin.sw.dockerswarm.rocks> with the default logins just above.
 
 Once logged, you need to add the previously configured PostgreSQL server address via *Add new server*. Just add relevant host informations in *Connection* tab. Host must stay `data-01` with swarm as superuser access.
 
@@ -240,7 +240,7 @@ networks:
 
 Now we'll creating the `matomo` DB with dedicated user through above *phpMyAdmin*. For that simply create a new `matomo` account and always specify `10.0.0.0/8` inside host field. Don't forget to check *Create database with same name and grant all privileges*.
 
-Then go to <https://matomo.sw.mydomain.rocks> and go through all installation. At the DB install step, use the above credentials and use the hostname of your data server, which is `data-01` in our case.
+Then go to <https://matomo.sw.dockerswarm.rocks> and go through all installation. At the DB install step, use the above credentials and use the hostname of your data server, which is `data-01` in our case.
 
 [![Redmine](matomo.png)](matomo.png)
 
@@ -320,7 +320,7 @@ Configure `REDMINE_DB_*` with proper above created DB credential and set the ran
 I use a dynamic `ROOT_PATH` here. So you must add this variable with `/mnt/storage-pool/redmine` value in the below *Environment variables* section of portainer.
 {{< /alert >}}
 
-After few seconds, <https://redmine.sw.mydomain.rocks> should be accessible and ready to use, use admin / admin for admin connection !
+After few seconds, <https://redmine.sw.dockerswarm.rocks> should be accessible and ready to use, use admin / admin for admin connection !
 
 [![Redmine](redmine.png)](redmine.png)
 
@@ -363,7 +363,7 @@ networks:
     external: true
 ```
 
-And voilà, it's done, n8n will automatically migrate the database and <https://n8n.sw.mydomain.rocks> should be soon accessible. Note as we use `admin-auth` middleware because n8n doesn't offer authentication. Use the same Traefik credentials.
+And voilà, it's done, n8n will automatically migrate the database and <https://n8n.sw.dockerswarm.rocks> should be soon accessible. Note as we use `admin-auth` middleware because n8n doesn't offer authentication. Use the same Traefik credentials.
 
 [![n8n](n8n.png)](n8n.png)
 

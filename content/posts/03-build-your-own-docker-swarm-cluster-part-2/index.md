@@ -7,7 +7,7 @@ draft: true
 ---
 
 {{< lead >}}
-Build your own cheap while powerful self-hosted complete CI/CD solution by following this opinionated guide 🎉
+Build your own cheap but powerful self-hosted cluster and be free from any SaaS solutions by following this opinionated guide 🎉
 {{< /lead >}}
 
 This is the **Part II** of more global topic tutorial. [Back to first part]({{< ref "/posts/02-build-your-own-docker-swarm-cluster" >}}) to start from beginning.
@@ -139,14 +139,14 @@ IPs are only showed here as samples, use `hcloud server describe xxxxxx-01` in o
 
 ## Setup DNS and SSH config 🌍
 
-Now use `hcloud server ip manager-01` to get the unique frontal IP address of the cluster that will be used for any entry point, including SSH. Then edit the DNS of your domain and apply this IP to a particular subdomain, as well as a wildcard subdomain. You will see later what this wildcard domain is it for. I will use `sw.mydomain.rocks` as sample. It should be looks like next :
+Now use `hcloud server ip manager-01` to get the unique frontal IP address of the cluster that will be used for any entry point, including SSH. Then edit the DNS of your domain and apply this IP to a particular subdomain, as well as a wildcard subdomain. You will see later what this wildcard domain is it for. I will use `sw.dockerswarm.rocks` as sample. It should be looks like next :
 
 ```txt
 sw      3600    IN A        123.123.123.123
 *.sw    43200   IN CNAME    sw
 ```
 
-As soon as the above DNS is applied, you should ping `sw.mydomain.rocks` or any `xyz.sw.mydomain.rocks` domains.
+As soon as the above DNS is applied, you should ping `sw.dockerswarm.rocks` or any `xyz.sw.dockerswarm.rocks` domains.
 
 It's now time to finalize your local SSH config for optimal access. Go to `~/.ssh/config` and add following hosts (change it accordingly to your own setup) :
 
@@ -154,7 +154,7 @@ It's now time to finalize your local SSH config for optimal access. Go to `~/.ss
 Host sw
     User swarm
     Port 2222
-    HostName sw.mydomain.rocks
+    HostName sw.dockerswarm.rocks
 
 Host sw-data-01
     User swarm
@@ -175,7 +175,7 @@ Host sw-worker-01
 And that's it ! You should now quickly ssh to these servers easily by `ssh sw`, `ssh sw-worker-01`, `ssh sw-runner-01`, `ssh sw-data-01`, which will be far more practical.
 
 {{< alert >}}
-Note as I only use the `sw.mydomain.rocks` as unique endpoint for ssh access to all internal server, without need of external SSH access to servers different from `manager-01`. It's known as SSH proxy, which allows single access point for better security perspective by simply jumping from main SSH access.
+Note as I only use the `sw.dockerswarm.rocks` as unique endpoint for ssh access to all internal server, without need of external SSH access to servers different from `manager-01`. It's known as SSH proxy, which allows single access point for better security perspective by simply jumping from main SSH access.
 {{< /alert >}}
 
 ## The firewall 🧱

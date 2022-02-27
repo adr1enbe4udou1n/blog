@@ -7,7 +7,7 @@ draft: true
 ---
 
 {{< lead >}}
-Build your own cheap while powerful self-hosted complete CI/CD solution by following this opinionated guide 🎉
+Build your own cheap but powerful self-hosted cluster and be free from any SaaS solutions by following this opinionated guide 🎉
 {{< /lead >}}
 
 This is the **Part VI** of more global topic tutorial. [Back to first part]({{< ref "/posts/02-build-your-own-docker-swarm-cluster" >}}) to start from beginning.
@@ -340,7 +340,7 @@ networks:
 | `agent`     | a simple REST endpoint for receiving traces, the latter being forwarded to the collector. An agent should be proper to a machine host, similarly as the portainer agent. |
 | `query`     | a simple UI that connects to the span storage and allows simple visualization.                                                                                           |
 
-After few seconds, go to <https://jaeger.sw.mydomain.rocks> and enter Traefik credentials. You will land to Jaeger Query UI with empty data.
+After few seconds, go to <https://jaeger.sw.dockerswarm.rocks> and enter Traefik credentials. You will land to Jaeger Query UI with empty data.
 
 It's time to inject some trace data. Be sure all above Jaeger services are started through Portainer before continue.
 

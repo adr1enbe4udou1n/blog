@@ -7,92 +7,90 @@ draft: true
 ---
 
 {{< lead >}}
-Build your own cheap while powerful self-hosted complete CI/CD solution by following this opinionated guide 🎉
+Build your own cheap but powerful self-hosted cluster and be free from any SaaS solutions by following this opinionated guide 🎉
 {{< /lead >}}
 
 ## Why Docker Swarm 🧐 ?
 
 Because [Docker Swarm Rocks](https://dockerswarm.rocks/) !
 
-Even if Docker Swarm has lost the enterprise graduate orchestration containers war, you don't have to throw yourself into all Kubernetes fuzzy complicated things for a simple homelab, unless for custom training of course.
+Yeah, for some people it seems a little outdated now in 2022, a period where Kubernetes is everywhere, but I'm personally convicted that [it's really so underrated](https://www.reddit.com/r/docker/comments/oufvd8/why_docker_swarm_is_not_popular_as_kubernetes/). Except for training, you really don't have to throw yourself into all Kubernetes fuzzy complicated things, at least in a personal Homelab perspective.
 
-If you know how to use docker-compose, you're already ready for Docker Swarm which use almost the same API with addition of specific *deploy* config.
+Of course with Docker Swarm you'll be completely limited to what Docker API has to offer, without any abstraction, contrary to K8S, which built its community around new abstracted orchestration concepts, like *StatefulSets*, *operators*, *Helm*, etc. But it's the intended purpose of Swarm ! Not many new things to learn once you master docker.
 
-I'll try to show you step by step how to install your own cheap containerized cluster for less than $30 by using [Hetzner](https://www.hetzner.com/), one of the best Cloud provider on European market, with cheap but powerful VPS.
+### The 2022 Docker Swarm guide 🚀
 
-So the prerequisites before continue :
+I'll try to show you step by step how to install your own serious containerized cluster for less than $30 by using [Hetzner](https://www.hetzner.com/), one of the best Cloud provider on European market, with cheap yet really powerful VPS. Besides, they just recently opened new centers in America !
 
-* Have some knowledge on docker-compose setups
+This tutorial is a sort of massive 2022 update from the well-known *dockerswarm.rocks*, with a further comprehension under the hood. It's **NOT** a quick and done tutorial, as we'll go very deeply, but at least you will understand all it's going on. It's divided into 8 parts, so be prepared ! The prerequisites before continue :
+
+* Have some fundamentals on Docker
 * Be comfortable with SSH terminal
-* Registered for a [Hetzner Cloud account](https://accounts.hetzner.com/signUp)
-* A custom domain, I'll use `mydomain.rocks` here as example
-* A account to a transactional mail provider as Mailgun, SendGrid, Sendinblue, etc.
-
-{{< alert >}}
-You can of course apply this guide on any other cloud provider, but I doubt that you can achieve lower price.
-{{< /alert >}}
+* Registered for a [Hetzner Cloud account](https://accounts.hetzner.com/signUp), at least for the part 2, or feel free to adapt to any other VPS provider
+* A custom domain, I'll use `dockerswarm.rocks` here as an example
+* An account to a transactional mail provider as Mailgun, SendGrid, Sendinblue, etc. as a bonus.
 
 ## Final goal 🎯
 
-In the end of this multi-steps guide, you will have complete working production grade secured cluster, backup included, with optional monitoring and complete development CI/CD workflow.
+In the very end of this multi-steps guide, you will have complete working production grade secured cluster, backup included, with optional monitoring and complete development CI/CD workflow.
 
 ### 1. Cluster initialization 🌍
 
-* Initial VPS setup for docker under Ubuntu 20.04 with proper Hetzner firewall configuration
-* `Docker Swarm` installation, **1 manager and 2 workers**
-* `Traefik`, a cloud native reverse proxy with automatic service discovery and SSL configuration
-* `Portainer` as simple GUI for containers management
+* **Hetzner** VPS setups under *Ubuntu 20.04* with proper firewall configuration
+* **Docker Swarm** installation, with **1 manager and 2 workers**
+* **Traefik**, a cloud native reverse proxy with automatic service discovery and SSL configuration
+* **Portainer** as simple GUI for containers management
 
 ### 2. The stateful part 💾
 
-For all data critical part, I choose to use **1 dedicated VPS**. We will install :
+Because Docker Swarm is not really suited for managing stateful containers (an area where K8S can shine thanks to operators), I choose to use **1 dedicated VPS** for all data critical part. We will install :
 
-* `GlusterFS` as network filesystem, configured for cluster nodes
-* `PostgreSQL` as main production database
-* `MySQL` as additional secondary database (optional)
-* `Redis` as fast database cache (optional)
-* S3 Backup with `Restic`
+* **GlusterFS** as network filesystem, configured for cluster nodes
+* **PostgreSQL** as main production database
+* **MySQL** as additional secondary database (optional)
+* **Redis** as fast database cache (optional)
+* **Elasticsearch** as database for indexes
+* **Restic** as S3 backup solution
 
-Note as I will not set up this for **HA** (High Availability) here, as it's a complete another topic. So this data node will be our **SPF** (Single Point of Failure) with only one file system and DB.
+Note as I will not set up this data server for **HA** (High Availability) here, as it's a complete another topic. But note as every chosen tool's here can be clustered.
 
 {{< alert >}}
 There are many debates about using databases as docker container, but I personally prefer use managed server for better control, local on-disk performance, central backup management and easier possibility of database clustering.  
-Note as on the Kubernetes world, run containerized databases becomes reality thanks to [powerful operators](https://github.com/zalando/postgres-operator) that provide easy clustering. The is obviously no such things on Docker Swarm 🙈
+Note as on the Kubernetes world, running containerized **AND** clustered databases becomes reality thanks to [powerful operators](https://github.com/zalando/postgres-operator) that provide clustering. There is obviously no such things on Docker Swarm 🙈.
 {{< /alert >}}
 
 ### 3. Testing the cluster ✅
 
 We will use the main Portainer GUI in order to install following tools :
 
-* [`Diun`](https://crazymax.dev/diun/) (optional), very useful in order to be notified for all used images update inside your Swarm cluster
-* `pgAdmin` and `phpMyAdmin` as web database managers (optional)
-* Some demo containerized samples that will show you how simple is it to install self-hosted web apps thanks to your shiny new cluster as `matomo`, `redmine`, `n8n`
+* [**Diun**](https://crazymax.dev/diun/) (optional), very useful in order to be notified for all used images update inside your Swarm cluster
+* **pgAdmin** and **phpMyAdmin** as web database managers (optional)
+* Some containerized app samples as **matomo**, **redmine**, **n8n**, that will show you how simple is it to install self-hosted web apps thanks to your shiny new cluster !
 
 ### 4. Monitoring 📈
 
 This is an optional part, feel free to skip. We'll set up production grade monitoring and tracing with complete dashboards.
 
-* `Prometheus` as time series DB for monitoring
-  * We will configure many metrics exporter for each critical part (Data node, PostgreSQL, MySQL, containers detail thanks to `cAdvisor`)
+* **Prometheus** as time series DB for monitoring
+  * We will configure many metrics exporter for each critical part (Data node, PostgreSQL, MySQL, containers detail thanks to **cAdvisor**)
   * Basic usage of *PromQL*
-* `Loki` with `Promtail` for centralized logs, fetched from data node and docker containers
-* `Jaeger` as *tracing* tools
-  * We will use `Elasticsearch` as main data storage
-* `Traefik` configuration for metrics and trace as perfect sample
-* `Grafana` as GUI dashboard builder with many battery included dashboards
+* **Loki** with **Promtail** for centralized logs, fetched from data node and docker containers
+* **Jaeger** as main *tracing* tool, with Elasticsearch as main data storage
+* Configure Traefik for metrics, logs and tracing as perfect sample
+* **Grafana** as GUI dashboard builder with many battery included dashboards
   * Monitoring all the cluster
   * Node, PostgreSQL and MySQL metrics
-  * Navigate through log history of all containers and data server node thanks to `Loki` like *ELK*, with *LogQL*
+  * Navigate through log history of all containers and data server node thanks to Loki like *ELK*, with *LogQL*
 
 ### 5. CI/CD setup 💻
 
-* `Gitea` as lightweight centralized control version, in case you want get out of Github / GitLab Cloud
-* `Private docker registry` with minimal UI for all your custom app images that will be built on your development process and be used as based image for your production docker on cluster
-* `Drone CI` as self-hosted CI/CD solution
-* `SonarQube` as self-hosted quality code control
-* Get perfect load testing environment with `k6` + `InfluxDB` + `Grafana` combo
+* **Gitea** as lightweight centralized control version, in case you want get out of Github / GitLab Cloud
+* Private **docker registry** with minimal UI for all your custom app images that will be built on your development process and be used as based image for your production docker on cluster
+* **Drone CI** as self-hosted CI/CD solution
+* **SonarQube** as self-hosted quality code control
+* Get perfect load testing environment with **k6** + **InfluxDB** + **Grafana** combo
 
-Finally, we'll finish this guide by a simple mini-app development with above CI/CD integration !
+We'll entirely test the above configuration with the basic .NET weather API.
 
 ## Cluster Architecture 🏘️
 

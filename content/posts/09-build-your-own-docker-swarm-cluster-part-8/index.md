@@ -7,7 +7,7 @@ draft: true
 ---
 
 {{< lead >}}
-Build your own cheap while powerful self-hosted complete CI/CD solution by following this opinionated guide 🎉
+Build your own cheap but powerful self-hosted cluster and be free from any SaaS solutions by following this opinionated guide 🎉
 {{< /lead >}}
 
 This is the **Part VIII** of more global topic tutorial. [Back to first part]({{< ref "/posts/02-build-your-own-docker-swarm-cluster" >}}) to start from beginning.
@@ -57,7 +57,7 @@ version: "3"
 
 services:
   app:
-    image: registry.sw.mydomain.rocks/adr1enbe4udou1n/my-weather-api
+    image: registry.sw.dockerswarm.rocks/adr1enbe4udou1n/my-weather-api
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       Jaeger__Host: tasks.jaeger_agent
@@ -131,7 +131,7 @@ networks:
 
 Set proper `ROOT_PATH` with `/mnt/storage-pool/sonar` and `SONAR_JDBC_PASSWORD` with above DB password.
 
-Go to <https://sonar.sw.mydomain.rocks>, use admin / admin credentials and update password.
+Go to <https://sonar.sw.dockerswarm.rocks>, use admin / admin credentials and update password.
 
 ### Project analysis
 
@@ -144,7 +144,7 @@ You must have at least Java 11 installed locally.
 ```sh
 dotnet tool install --global dotnet-sonarscanner
 
-dotnet sonarscanner begin /k:"My-Weather-API" /d:sonar.host.url="https://sonar.sw.mydomain.rocks"  /d:sonar.login="above-generated-token"
+dotnet sonarscanner begin /k:"My-Weather-API" /d:sonar.host.url="https://sonar.sw.dockerswarm.rocks"  /d:sonar.login="above-generated-token"
 
 dotnet build
 
@@ -159,10 +159,10 @@ Wait few minutes and the final rapport analysis should automatically appear. Add
 
 Because running scanner manually is boring, let's integrate it in our favorite CI. Create following secrets through Drone UI :
 
-| name             | level        | description                                              |
-| ---------------- | ------------ | -------------------------------------------------------- |
-| `sonar_host_url` | organization | Set the sonar host URL `https://sonar.sw.mydomain.rocks` |
-| `sonar_token`    | repository   | Set the above token                                      |
+| name             | level        | description                                                 |
+| ---------------- | ------------ | ----------------------------------------------------------- |
+| `sonar_host_url` | organization | Set the sonar host URL `https://sonar.sw.dockerswarm.rocks` |
+| `sonar_token`    | repository   | Set the above token                                         |
 
 Change the `build` step on `.drone.yml` file :
 
@@ -259,7 +259,7 @@ import http from "k6/http";
 import { check } from "k6";
 
 export default function () {
-  http.get('https://weather.sw.mydomain.rocks/WeatherForecast');
+  http.get('https://weather.sw.dockerswarm.rocks/WeatherForecast');
 }
 ```
 
@@ -362,7 +362,7 @@ export const options = {
 };
 
 export default function () {
-  http.get('https://weather.sw.mydomain.rocks/WeatherForecast');
+  http.get('https://weather.sw.dockerswarm.rocks/WeatherForecast');
 }
 ```
 

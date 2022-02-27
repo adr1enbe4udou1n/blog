@@ -7,7 +7,7 @@ draft: true
 ---
 
 {{< lead >}}
-Build your own cheap while powerful self-hosted complete CI/CD solution by following this opinionated guide 🎉
+Build your own cheap but powerful self-hosted cluster and be free from any SaaS solutions by following this opinionated guide 🎉
 {{< /lead >}}
 
 This is the **Part III** of more global topic tutorial. [Back to first part]({{< ref "/posts/02-build-your-own-docker-swarm-cluster" >}}) to start from beginning.
@@ -102,12 +102,12 @@ entryPoints:
 certificatesResolvers:
   le:
     acme:
-      email: admin@sw.mydomain.rocks
+      email: admin@sw.dockerswarm.rocks
       storage: /certificates/acme.json
       tlsChallenge: {}
 providers:
   docker:
-    defaultRule: Host(`{{ index .Labels "com.docker.stack.namespace" }}.sw.mydomain.rocks`)
+    defaultRule: Host(`{{ index .Labels "com.docker.stack.namespace" }}.sw.dockerswarm.rocks`)
     exposedByDefault: false
     swarmMode: true
     network: traefik_public
@@ -149,7 +149,7 @@ It indicates Traefik to read through Docker API in order to discover any new ser
 | `network`          | Default network connection for all exposed containers                                                                                                                                                                   |
 | `defaultRule`      | Default rule that will be applied to HTTP routes, in order to redirect particular URL to the right service. Each service container can override this default value with `traefik.http.routers.my-container.rule` label. |
 
-As a default route rule, I set here a value adapted for an automatic subdomain discovery. `{{ index .Labels "com.docker.stack.namespace" }}.sw.mydomain.rocks` is a dynamic Go template string that means to use the `com.docker.stack.namespace` label that is applied by default on Docker Swarm on each deployed service. So if I deploy a swarm stack called `myapp`, Traefik will automatically set `myapp.sw.mydomain.rocks` as default domain URL to my service, with automatic TLS challenge !
+As a default route rule, I set here a value adapted for an automatic subdomain discovery. `{{ index .Labels "com.docker.stack.namespace" }}.sw.dockerswarm.rocks` is a dynamic Go template string that means to use the `com.docker.stack.namespace` label that is applied by default on Docker Swarm on each deployed service. So if I deploy a swarm stack called `myapp`, Traefik will automatically set `myapp.sw.dockerswarm.rocks` as default domain URL to my service, with automatic TLS challenge !
 
 All I have to do is to add a specific label `traefik.enable=true` inside the Docker service configuration and be sure that it's on the `traefik_public` network.
 
@@ -245,7 +245,7 @@ This is the Traefik dynamic configuration part. I declare here many service that
 | `gzip`               | middleware | provides [basic gzip compression](https://doc.traefik.io/traefik/middlewares/http/compress/). Note as Traefik doesn't support brotli yep, which is pretty disappointed where absolutly all other reverse proxies support it... |
 | `admin-auth`         | middleware | provides basic HTTP authorization. `basicauth.users` will use standard `htpasswd` format. I use `HASHED_PASSWORD` as dynamic environment variable.                                                                             |
 | `admin-ip`           | middleware | provides IP whitelist protection, given a source range.                                                                                                                                                                        |
-| `traefik-public-api` | router     | Configured for proper redirection to internal dashboard Traefik API from `traefik.sw.mydomain.rocks`, which is defined by default rule. It's configured with above `admin-auth` and `admin-ip` for proper protection.          |
+| `traefik-public-api` | router     | Configured for proper redirection to internal dashboard Traefik API from `traefik.sw.dockerswarm.rocks`, which is defined by default rule. It's configured with above `admin-auth` and `admin-ip` for proper protection.       |
 | `traefik-public`     | service    | allow proper redirection to the default exposed 8080 port of Traefik container. This is sadly mandatory when using [Docker Swarm](https://doc.traefik.io/traefik/providers/docker/#port-detection_1)                           |
 
 {{< alert >}}
@@ -276,7 +276,7 @@ docker service ls
 docker service logs traefik_traefik
 ```
 
-After few seconds, Traefik should launch and generate proper SSL certificate for his own domain. You can finally go to <https://traefik.sw.mydomain.rocks>. `http://` should work as well thanks to permanent redirection.
+After few seconds, Traefik should launch and generate proper SSL certificate for its own domain. You can finally go to <https://traefik.sw.dockerswarm.rocks>. `http://` should work as well thanks to permanent redirection.
 
 If properly configured, you will be prompted for access. After entering admin as user and your own chosen password, you should finally access to the traefik dashboard similar to below !
 
@@ -329,7 +329,7 @@ networks:
 
 This is an adapted file from the official [Portainer Agent Stack](https://downloads.portainer.io/portainer-agent-stack.yml).
 
-We use `agent_network` as overlay network for communication between agents and manager. No need of `admin-auth` middleware here as Portainer has his own authentication.
+We use `agent_network` as overlay network for communication between agents and manager. No need of `admin-auth` middleware here as Portainer has its own authentication.
 
 {{< alert >}}
 Note that `traefik_public` must be set to **external** in order to reuse the original Traefik network.
@@ -352,7 +352,7 @@ As soon as the main portainer service has successfully started, Traefik will det
 
 [![Traefik routers](traefik-routers.png)](traefik-routers.png)
 
-It's time to create your admin account through <https://portainer.sw.mydomain.rocks>. If all goes well, aka Portainer agent are accessible from Portainer portal, you should have access to your cluster home environment with 2 stacks active.
+It's time to create your admin account through <https://portainer.sw.dockerswarm.rocks>. If all goes well, aka Portainer agent are accessible from Portainer portal, you should have access to your cluster home environment with 2 stacks active.
 
 [![Portainer home](portainer-home.png)](portainer-home.png)
 
@@ -373,7 +373,7 @@ sudo apt install -y docker-ctop
 
 ## Keep the containers image up-to-date ⬆️
 
-It's finally time to test our new cluster environment by testing some images through the Portainer GUI. We'll start by installing [`Diun`](https://crazymax.dev/diun/), a very useful tool which notify us when used docker images has available update in his Docker registry.
+It's finally time to test our new cluster environment by testing some images through the Portainer GUI. We'll start by installing [`Diun`](https://crazymax.dev/diun/), a very useful tool which notify us when used docker images has available update in its Docker registry.
 
 Create a new `diun` stack through Portainer and set following content :
 
@@ -432,7 +432,7 @@ Use below section of Portainer for setting all personal environment variable. In
 
 [![Diun Stack](diun-stack.png)](diun-stack.png)
 
-Finally click on **Deploy the stack**, it's equivalent of precedent `docker stack deploy`, nothing magic here. At the difference that Portainer will store the YML inside his volume, allowing full control, contrary to limited Traefik and Portainer cases.
+Finally click on **Deploy the stack**, it's equivalent of precedent `docker stack deploy`, nothing magic here. At the difference that Portainer will store the YML inside its volume, allowing full control, contrary to limited Traefik and Portainer cases.
 
 Diun should now be deployed and manager host and ready to scan images for any updates !
 
