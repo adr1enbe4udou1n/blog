@@ -469,4 +469,4 @@ You can check the service logs which consist of all tasks logs aggregate.
 
 We've done the minimal viable Swarm setup with a nice cloud native reverse proxy and a containers GUI manager.
 
-It's time to go further with self-hosted managed databases in [next part]({{< ref "/posts/04-build-your-own-docker-swarm-cluster-part-3" >}}).
+It's time to go further with self-hosted managed databases in [next part]({{< ref "/posts/05-build-your-own-docker-swarm-cluster-part-4" >}}).
