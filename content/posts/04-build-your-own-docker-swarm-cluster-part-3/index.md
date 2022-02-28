@@ -469,6 +469,60 @@ You can check the service logs which consist of all tasks logs aggregate.
 
 [![Diun Logs](diun-logs.png)](diun-logs.png)
 
+## Minio
+
+Let's try something more fun with a tool with a web UI. Here is how get your own S3 bucket and be free from any external S3 provider. We'll use our GlusterFS volume as a real storage.
+
+Do `sudo /mnt/storage-pool/minio` on `manager-01` and create following stack :
+
+{{< highlight host="stack" file="minio" >}}
+
+```yml
+version: '3'
+
+services:
+  app:
+    image: minio/minio
+    volumes:
+      - /mnt/storage-pool/minio:/data
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: swarm
+      MINIO_ROOT_PASSWORD:
+      MINIO_BROWSER_REDIRECT_URL: https://minio.sw.dockerswarm.rocks
+    networks:
+      - traefik_public
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.minio.rule=Host(`s3.sw.dockerswarm.rocks`)
+        - traefik.http.routers.minio.service=minio
+        - traefik.http.services.minio.loadbalancer.server.port=9000
+        - traefik.http.routers.minio-console.service=minio-console
+        - traefik.http.services.minio-console.loadbalancer.server.port=9001
+      placement:
+        constraints:
+          - node.labels.environment == production
+
+networks:
+  traefik_public:
+    external: true
+```
+
+{{< /highlight >}}
+
+{{< alert >}}
+Note as we use `node.labels.environment == production` in order to force the container service to be launch in the `worker-01` server.
+{{< /alert >}}
+
+The particularity of Minio is to have 2 web endpoints, one for web UI admin manager, and other as S3 API endpoint. So we need 2 Traefik routes in this case.Create a environment variable for `MINIO_ROOT_PASSWORD` and set your own admin password.
+
+When deployed, wait few seconds for SSL auto generation (you can check it in the Traefik Dashboard) and go to <https://minio.sw.dockerswarm.rocks> in order to access the web administration.
+
+And yup, it's done, create your 1st bucket through admin UI and you are ready to test the S3 API locally with <https://s3.dockerswarm.rocks/mybucket>.
+
+TODO MINIO IMAGE
+
 ## 2nd check ✅
 
 We've done the minimal viable Swarm setup with a nice cloud native reverse proxy and a containers GUI manager.
