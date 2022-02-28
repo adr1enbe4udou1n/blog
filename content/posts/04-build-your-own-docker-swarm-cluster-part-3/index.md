@@ -219,6 +219,7 @@ services:
         - traefik.http.middlewares.gzip.compress=true
         - traefik.http.middlewares.admin-auth.basicauth.users=admin:${HASHED_PASSWORD?Variable not set}
         - traefik.http.middlewares.admin-ip.ipwhitelist.sourcerange=82.82.82.82
+        - traefik.http.routers.traefik-public-api.entrypoints=https
         - traefik.http.routers.traefik-public-api.service=api@internal
         - traefik.http.routers.traefik-public-api.middlewares=admin-ip,admin-auth
         - traefik.http.services.traefik-public.loadbalancer.server.port=8080
@@ -344,6 +345,7 @@ services:
         constraints: [node.role == manager]
       labels:
         - traefik.enable=true
+        - traefik.http.routers.portainer.entrypoints=https
         - traefik.http.routers.portainer.middlewares=admin-ip
         - traefik.http.services.portainer.loadbalancer.server.port=9000
 

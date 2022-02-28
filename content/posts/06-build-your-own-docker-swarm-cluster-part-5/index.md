@@ -89,6 +89,7 @@ services:
           - node.labels.prometheus.data == true
       labels:
         - traefik.enable=true
+        - traefik.http.routers.prometheus.entrypoints=https
         - traefik.http.routers.prometheus.middlewares=admin-ip,admin-auth
         - traefik.http.services.prometheus.loadbalancer.server.port=9090
 
@@ -302,6 +303,7 @@ services:
     deploy:
       labels:
         - traefik.enable=true
+        - traefik.http.routers.grafana.entrypoints=https
         - traefik.http.routers.grafana.middlewares=admin-ip
         - traefik.http.services.grafana.loadbalancer.server.port=3000
       placement:

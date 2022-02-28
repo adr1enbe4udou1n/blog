@@ -44,6 +44,7 @@ services:
     deploy:
       labels:
         - traefik.enable=true
+        - traefik.http.routers.gitea.entrypoints=https
         - traefik.http.services.gitea.loadbalancer.server.port=3000
         - traefik.tcp.routers.gitea-ssh.rule=HostSNI(`*`)
         - traefik.tcp.routers.gitea-ssh.entrypoints=ssh
@@ -105,8 +106,9 @@ services:
     deploy:
       labels:
         - traefik.enable=true
-        - traefik.http.routers.registry.rule=Host(`registry.sw.dockerswarm.rocks`) && PathPrefix(`/v2`)
+        - traefik.http.routers.registry.entrypoints=https
         - traefik.http.routers.registry.middlewares=admin-auth
+        - traefik.http.routers.registry.rule=Host(`registry.sw.dockerswarm.rocks`) && PathPrefix(`/v2`)
         - traefik.http.services.registry.loadbalancer.server.port=5000
       placement:
         constraints:
@@ -122,6 +124,7 @@ services:
     deploy:
       labels:
         - traefik.enable=true
+        - traefik.http.routers.registryui.entrypoints=https
         - traefik.http.routers.registryui.middlewares=admin-auth
         - traefik.http.services.registryui.loadbalancer.server.port=80
       placement:
@@ -250,6 +253,7 @@ services:
     deploy:
       labels:
         - traefik.enable=true
+        - traefik.http.routers.drone.entrypoints=https
         - traefik.http.services.drone.loadbalancer.server.port=80
       placement:
         constraints:
@@ -450,6 +454,7 @@ services:
     deploy:
       labels:
         - traefik.enable=true
+        - traefik.http.routers.my-weather-api.entrypoints=https
         - traefik.http.services.my-weather-api.loadbalancer.server.port=80
       placement:
         constraints:

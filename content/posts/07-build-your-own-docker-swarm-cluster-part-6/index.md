@@ -381,6 +381,7 @@ services:
     deploy:
       labels:
         - traefik.enable=true
+        - traefik.http.routers.jaeger.entrypoints=https
         - traefik.http.routers.jaeger.middlewares=admin-auth
         - traefik.http.services.jaeger.loadbalancer.server.port=16686
       placement:

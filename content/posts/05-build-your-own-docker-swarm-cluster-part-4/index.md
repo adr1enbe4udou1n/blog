@@ -93,8 +93,9 @@ services:
     deploy:
       labels:
         - traefik.enable=true
-        - traefik.http.services.phpmyadmin.loadbalancer.server.port=80
+        - traefik.http.routers.phpmyadmin.entrypoints=https
         - traefik.http.routers.phpmyadmin.middlewares=admin-ip
+        - traefik.http.services.phpmyadmin.loadbalancer.server.port=80
       placement:
         constraints:
           - node.role == manager
@@ -220,8 +221,9 @@ services:
     deploy:
       labels:
         - traefik.enable=true
-        - traefik.http.services.pgadmin.loadbalancer.server.port=80
+        - traefik.http.routers.pgadmin.entrypoints=https
         - traefik.http.routers.pgadmin.middlewares=admin-ip
+        - traefik.http.services.pgadmin.loadbalancer.server.port=80
       placement:
         constraints:
           - node.role == manager
@@ -267,6 +269,7 @@ services:
     deploy:
       labels:
         - traefik.enable=true
+        - traefik.http.routers.matomo.entrypoints=https
         - traefik.http.services.matomo.loadbalancer.server.port=80
       placement:
         constraints:
@@ -351,6 +354,7 @@ services:
     deploy:
       labels:
         - traefik.enable=true
+        - traefik.http.routers.redmine.entrypoints=https
         - traefik.http.services.redmine.loadbalancer.server.port=3000
       placement:
         constraints:
@@ -403,8 +407,9 @@ services:
     deploy:
       labels:
         - traefik.enable=true
-        - traefik.http.services.n8n.loadbalancer.server.port=5678
+        - traefik.http.routers.n8n.entrypoints=https
         - traefik.http.routers.n8n.middlewares=admin-auth
+        - traefik.http.services.n8n.loadbalancer.server.port=5678
       placement:
         constraints:
           - node.labels.environment == production

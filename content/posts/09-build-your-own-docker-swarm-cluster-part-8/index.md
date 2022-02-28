@@ -133,7 +133,8 @@ services:
     deploy:
       labels:
         - traefik.enable=true
-        - traefik.http.services.sonarqube.loadbalancer.server.port=9000
+        - traefik.http.routers.sonar.entrypoints=https
+        - traefik.http.services.sonar.loadbalancer.server.port=9000
       placement:
         constraints:
           - node.role == manager
