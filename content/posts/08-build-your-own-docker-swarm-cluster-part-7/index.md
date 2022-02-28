@@ -20,13 +20,13 @@ This specific VCS part is optional and is only for developers that would be comp
 A backup is highly critical ! Don't underestimate that part and be sure to have a proper solution. **Restic** described in [this previous section]({{< ref "05-build-your-own-docker-swarm-cluster-part-4#data-backup-" >}}) is a perfect choice.
 {{< /alert >}}
 
-Of course, in a ~$30 cluster, forget about running a self-hosted GitLab, you will be forced to have an additionnal worker node with at least 4Gb fully dedicated just for running it. I will privilege here a super lightweight solution, Gitea. Besides, the last version 1.16 finally support dark mode !
+Of course, in this low-budget cluster, forget about running properly a self-hosted GitLab, you will be forced to have an additionnal worker node with at least 4Gb fully dedicated just for running it. I will privilege here a super lightweight solution, Gitea. Besides, the last version 1.16 finally support dark mode !
 
 ### Install Gitea 💽
 
 You guess it, it's just an additional stack to run !
 
-Do `sudo mkdir /mnt/storage-pool/gitea` and create a new `gitea` stack :
+Do `sudo mkdir /mnt/storage-pool/gitea` and create next stack :
 
 {{< highlight host="stack" file="gitea" >}}
 
@@ -48,7 +48,7 @@ services:
         - traefik.http.services.gitea.loadbalancer.server.port=3000
         - traefik.tcp.routers.gitea-ssh.rule=HostSNI(`*`)
         - traefik.tcp.routers.gitea-ssh.entrypoints=ssh
-        - traefik.tcp.services.gitlab-ssh.loadbalancer.server.port=22
+        - traefik.tcp.services.gitea-ssh.loadbalancer.server.port=22
       placement:
         constraints:
           - node.role == manager
@@ -61,19 +61,18 @@ networks:
 {{< /highlight >}}
 
 {{< alert >}}
-We added a specific TCP router in order to allow SSH cloning. The SSH Traefik entry point will redirect to the first available service with TCP router.  
-Note as we need to indicate entry points in order to avoid bad redirection from other HTTPS based service.
+We added a specific TCP router in order to allow SSH cloning. The SSH Traefik entry point will redirect to the first available service with TCP router.
 {{< /alert >}}
 
 Now go to <https://gitea.sw.dockerswarm.rocks> and go through the installation procedure. Change default SQLite provider by a more production purpose database.
 
 Create a new `gitea` PostgreSQL database as usual from pgAdmin or `psql` for pro-CLI user, and set the according DB info access to Gitea installer. Host should be `data-01`.
 
-Don't forgive to change all domain related field by the proper current domain URL, which is `gitea.sw.dockerswarm.rocks` in my case. You should set proper SMTP settings for notifications.
+Don't forgive to change all domain related field by the proper current domain URL. You should set proper SMTP settings for notifications.
 
 [![Gitea admin dashboard](gitea-install.png)](gitea-install.png)
 
-For information all these settings are saved in `/mnt/storage-pool/gitea/gitea/conf/app.ini` file. You can change them at any time. You may want to disable registration by changing `DISABLE_REGISTRATION`.
+For information all these settings will be saved in `/mnt/storage-pool/gitea/gitea/conf/app.ini` file. You can change them at any time. You may want to disable registration by changing `DISABLE_REGISTRATION`.
 
 Next just create your first account. The 1st account will be automatically granted to administrator.
 
@@ -87,7 +86,7 @@ Before attack the CI/CD part, we should take care of where we put our main docke
 
 ### Install official docker registry 💽
 
-We'll use the official docker registry with addition of nice simple UI for images navigation. It's always the same, do `sudo mkdir /mnt/storage-pool/registry` and create `registry` stack :
+We'll use the official docker registry with addition of nice simple UI for images navigation. It's always the same, do `sudo mkdir /mnt/storage-pool/registry` and create next stack :
 
 {{< highlight host="stack" file="registry" >}}
 
@@ -182,7 +181,7 @@ Delete the image test through UI and from local docker with `docker image rm reg
 
 {{< alert >}}
 Note as the blobs of image is always physically in the disk, even when "deleted". You must launch manually the docker GC in order to cleanup unused images.  
-For that execute `registry garbage-collect /etc/docker/registry/config.yml` inside docker registry.
+For that execute `registry garbage-collect /etc/docker/registry/config.yml` inside docker registry container console. You can ssh into it directly through Portainer.
 {{< /alert >}}
 
 ### Register registry in Portainer
@@ -191,7 +190,7 @@ For our future app deployments from our built docker image, we need to register 
 
 [![Portainer registries](portainer-registries.png)](portainer-registries.png)
 
-Save it, and you have registered repository, which will allow proper pulling from it when next stack developments.
+Save it, and you have registered repository, which will allow proper pulling from it for next custom app stack deployments.
 
 ## CI/CD with Drone 🪁
 
@@ -226,7 +225,7 @@ Let's follow [the official docs](https://docs.drone.io/server/provider/gitea/) f
 
 [![Gitea drone application](gitea-drone-application.png)](gitea-drone-application.png)
 
-Save and keep the client and secret tokens. Then create a new `drone` PostgreSQL database and create a new `drone` stack :
+Save and keep the client and secret tokens. Then create a new `drone` PostgreSQL database and create next stack :
 
 {{< highlight host="stack" file="drone" >}}
 
@@ -280,7 +279,7 @@ networks:
 {{< /highlight >}}
 
 {{< alert >}}
-Don't forget to have proper docker labels on nodes, as explain [here]({{< ref "04-build-your-own-docker-swarm-cluster-part-3#add-environment-labels" >}}), otherwise docker runner will not run because of `node.labels.environment == build`.
+Don't forget to have proper docker labels on nodes, as explain [here]({{< ref "04-build-your-own-docker-swarm-cluster-part-3#cli-tools--environment-labels" >}}), otherwise docker runner will not run because of `node.labels.environment == build`.
 {{< /alert >}}
 
 | variable                    | description                                                                                                                     |
@@ -437,7 +436,7 @@ If all's going well, the final image should be pushed in our docker registry. Yo
 
 ### Deployment (the CD part) 🚀
 
-Our application is now ready for production deployment ! Let's create our new shiny `weather` stack :
+Our application is now ready for production deployment ! Let's create our new shiny stack :
 
 {{< highlight host="stack" file="weather" >}}
 
@@ -503,7 +502,7 @@ Now let's add a new `deploy` step inside `.drone.yml` into our pipeline for auto
 
 {{< /highlight >}}
 
-The as example edit `Program.cs` file and change next line :
+Let's test by editing `Program.cs` file :
 
 {{< highlight file="Program.cs" >}}
 

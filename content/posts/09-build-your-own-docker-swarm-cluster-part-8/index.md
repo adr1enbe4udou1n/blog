@@ -109,7 +109,7 @@ sudo service procps restart
 
 {{< /highlight >}}
 
-Create a `sonar` PostgresSQL database, and create a `sonar` stack :
+Create a `sonar` PostgresSQL database, and create next stack :
 
 {{< highlight host="stack" file="sonar" >}}
 
@@ -216,8 +216,8 @@ This above 2 methods will speed up CI drastically.
 
 We have now a perfect environment for a well-balanced load testing ! There are 2 popular options :
 
-* **Locust** which offers a nice integrated chart web UI and master-workers architecture which allows distributed loading. Load scripts are written on Python.
-* **k6** which is more efficient and less resource demanding for the same load. Load scripts are written on Javascript.
+* **Locust**, from Python world, which offers a nice integrated chart web UI and master-workers architecture which allows distributed loading. Load scripts are written on Python.
+* **k6**, written in Go, which is more efficient and less resource demanding for the same load. Load scripts are written on JavaScript.
 
 Here I'll cover usage of k6. Note that it can be integrated to a time series database for a nice graphical extraction. And guess what, Grafana is the perfect tool for that ! Let's profit of our powerful tools we have !
 
@@ -252,7 +252,7 @@ volumes:
 {{< /highlight >}}
 
 {{< alert >}}
-Add proper `influxdb.data=true` docker label in the node you want to store the influx data. Here I chose to put in the `runner-01` node by taping this command : `docker node update --label-add influxdb.data=true runner-01`.
+Add proper `influxdb.data=true` docker label in the node you want to store the influx data. Here I chose to put in the `runner-01` node by taping this command in `manager-01` : `docker node update --label-add influxdb.data=true runner-01`.
 {{< /alert >}}
 
 Add InfluxDB private network to Grafana stack :
@@ -298,6 +298,8 @@ export default function () {
 
 [![Portainer config k6](portainer-configs-k6.png)](portainer-configs-k6.png)
 
+Then create the following stack :
+
 {{< highlight host="stack" file="k6" >}}
 
 ```yml
@@ -341,7 +343,7 @@ configs:
 | `K6_OUT`      | The data source where to store current results. |
 
 {{< alert >}}
-The `restart_policy` in above deploy section is important here, as we don't want the service restarting every time. This is a specific stack intended to be launch once.
+The `restart_policy` in above deploy section is important here, as we don't want the service restarting every time. This is a specific stack intended to be launch once manually.
 {{< /alert >}}
 
 Deploy the stack, and it should launch a load testing for 1 minute. In the end, the task status of docker service should indicate `complete` status.
@@ -352,7 +354,7 @@ With Loki as the default log driver, we get only current logs of running tasks i
 
 ### Visualization through Grafana
 
-It's now time to go back to Grafana and try to get some charts. First Add a new InfluxDB *Data source*. Set `http://influxdb_db:8086` inside *URL* field and `k6weather` in *Database* field, then *Save & test*.
+It's now time to go back to Grafana and try to get some charts from influxdb ! First Add a new InfluxDB *Data source*. Set `http://influxdb_db:8086` inside *URL* field and `k6weather` in *Database* field, then *Save & test*.
 
 Now create a new dashboard, a new panel, and keep *Time series* as main graph system. Select above InfluxDB data source and switch to raw query expression. Finally, put following query `SELECT sum("value") FROM "http_reqs" WHERE $timeFilter GROUP BY time(1s)` in fields. Some graph should appear, select the right time interval where you have done previous load testing and voilà !
 
@@ -409,11 +411,11 @@ export default function () {
 
 This is a progressive 5 minutes load testing scenario from 1 user to 200 concurrent users.
 
-Then use this script on above `k6` stack and be sure to comment `K6_VUS` and `K6_DURATION` environment variables. Check the logs to ensure that you have correct scenario :
+Use this script on above `k6` stack and be sure to comment `K6_VUS` and `K6_DURATION` environment variables. Check the logs to ensure that you have correct scenario :
 
 [![Portainer k6 logs](portainer-k6-logs.png)](portainer-k6-logs.png)
 
-Check the raw and graph result in Grafana as previous scenario. Here the corresponding *Chart.js* result in my case for the 1st minute :
+Then check the raw and graph result in Grafana. Here the corresponding *Chart.js* result in my case for the 1st minute :
 
 {{< chart >}}
 type: 'line',

@@ -17,7 +17,6 @@ This is the **Part VI** of more global topic tutorial. [Back to first part]({{< 
 A real production cluster should have centralized logs. Of course, we have some basic service logs viewer on Portainer, which shows the containers STDOUT, but :
 
 * With more and more containers, it can be unmanageable
-* Logs of containers will not persist after each container restart
 * Not very powerful to navigate, can be tedious with huge logs
 
 Moreover, it'll be nice if logs of `data-01` services (MySQL, PostgreSQL, etc.) can be centralized too.
@@ -32,8 +31,8 @@ The common way to deal with this is to use *ELK*, but I'll show you a better opt
 
 The mains exporters are :
 
-* Promtail which fetch logs local file based on some patterns perfect for our `data-01` managed server
-* Docker driver plugin which redirect all STDOUT to Loki.
+* Promtail which fetch local logs file based on some patterns, which is perfect for our `data-01` managed server
+* Docker driver plugin which redirect all containers STDOUT to Loki.
 
 ## Logs with Loki 📄
 
@@ -46,15 +45,7 @@ curl -O -L "https://github.com/grafana/loki/releases/download/v2.4.2/loki-linux-
 unzip "loki-linux-amd64.zip"
 chmod a+x "loki-linux-amd64"
 sudo mv loki-linux-amd64 /usr/local/bin/loki
-```
 
-{{< /highlight >}}
-
-Prepare the config file :
-
-{{< highlight host="data-01" >}}
-
-```sh
 wget https://raw.githubusercontent.com/grafana/loki/master/cmd/loki/loki-local-config.yaml
 sudo mkdir /etc/loki
 sudo mv loki-local-config.yaml /etc/loki/
@@ -70,7 +61,7 @@ Then prepare the service :
 
 {{< highlight host="data-01" file="/etc/systemd/system/loki.service" >}}
 
-```conf
+```txt
 [Unit]
 Description=Loki
 After=network.target
@@ -156,7 +147,7 @@ Then prepare the service :
 
 {{< highlight host="data-01" file="/etc/systemd/system/promtail.service" >}}
 
-```conf
+```txt
 [Unit]
 Description=Promtail
 After=network.target
@@ -200,9 +191,9 @@ docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all
 docker plugin ls
 ```
 
-Now we have 2 options, reedit all active docker stack YAML description to use the Loki driver (boring), or downright consider it as default driver for all containers, which is relevant in our case, I think.
+Now we have 2 options, reedit all active docker stack YAML description for using the Loki driver instead of default docker *json-file* (boring), or downright consider it as default driver for all containers, which is relevant in our case, I think.
 
-Create following file on each docker host with following content :
+Create following file on each docker host :
 
 {{< highlight file="/etc/docker/daemon.json" >}}
 
@@ -246,7 +237,7 @@ After this primary testing, let's use the power of Grafana with variables :
 
 [![Grafana loki datasource](grafana-variables.png)](grafana-variables.png)
 
-1. Return to your panel editor. A new *stack* selector will appear in the top will all you to select the stack logs to show !
+1. Return to your panel editor. A new *stack* selector will appear in the top, allowing selection of the stack logs to show !
 2. Let's apply for saving the panel and test the selector. The Panel should reactive with the *stack* selector.
 3. Save the dashboard.
 
@@ -256,7 +247,7 @@ After this primary testing, let's use the power of Grafana with variables :
 
 For further advanced development or any complex troubleshoot analysis, notably in a performance point of view, a tracing tool can be a real capital gain. It really helps for getting a high detail level of all code execution stacks, with granular time execution for each function call, like an SQL query executed from a backend stack, etc.
 
-We'll not discuss development side here, as it's a subject that will be treated in [next part]({{< ref "08-build-your-own-docker-swarm-cluster-part-7#tracing-with-opentelemetry-" >}}). But we'll use Traefik as a perfect integration example.
+We'll not discuss development side here, as it's a subject that will be treated in next parts. But we'll use Traefik as a perfect integration example.
 
 It's important to use a really efficient asynchronous tool for this task as it will receive potentially a huge amount of calls. A popular tracing tool nowadays is Jaeger, which is CNCF compliant. Jaeger is a flexible tool made of multiple little services that serves specific task.
 
@@ -299,7 +290,7 @@ Before starting, let's calm down Java legendary memory consumption by creating f
 
 {{< highlight host="data-01" file="/etc/elasticsearch/jvm.options.d/hs.options" >}}
 
-```conf
+```txt
 -Xms512m
 -Xmx512m
 ```
@@ -320,7 +311,7 @@ sudo systemctl start elasticsearch.service
 
 Be sure that Elasticsearch is correctly responding from docker nodes by doing `curl http://data-01:9200`.
 
-As a bonus, expand above promtail config file by adding a new job :
+As a bonus, expand above promtail config file for visualizing Elasticsearch logs in Grafana by adding a new job :
 
 {{< highlight host="data-01" file="/etc/loki/promtail-local-config.yaml" >}}
 
@@ -398,9 +389,9 @@ networks:
 
 | name        | description                                                                                                                                                              |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `collector` | acts as a simple GRPC endpoint for saving all traces in particular span storage, as Elasticsearch.                                                                       |
-| `agent`     | a simple REST endpoint for receiving traces, the latter being forwarded to the collector. An agent should be proper to a machine host, similarly as the portainer agent. |
-| `query`     | a simple UI that connects to the span storage and allows simple visualization.                                                                                           |
+| `collector` | Acts as a simple GRPC endpoint for saving all traces in particular span storage, as Elasticsearch.                                                                       |
+| `agent`     | A simple REST endpoint for receiving traces, the latter being forwarded to the collector. An agent should be proper to a machine host, similarly as the portainer agent. |
+| `query`     | A simple UI that connects to the span storage and allows simple visualization.                                                                                           |
 
 After few seconds, go to <https://jaeger.sw.dockerswarm.rocks> and enter Traefik credentials. You will land to Jaeger Query UI with empty data.
 
@@ -446,7 +437,7 @@ networks:
 
 {{< /highlight >}}
 
-Then redeploy the stack by `docker stack deploy -c traefik-stack.yml traefik`. You'll probably need to reexport the `HASHED_PASSWORD` variable environment.
+Then redeploy the stack by `docker stack deploy -c traefik-stack.yml traefik`. You'll probably need to reexport the `HASHED_PASSWORD` variable environment. Note as you can eventually add the `jaeger_private` network directly from Portainer in `traefik` service instead of doing this in CLI.
 
 Go back to Traefik dashboard and ensure Jaeger is enabled in *Features* section. Traefik should now correctly send traces to Jaeger agent.
 

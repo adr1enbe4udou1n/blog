@@ -72,7 +72,7 @@ With last command, you now access the db directly from the manager by
 
 We are now ready to go for installing phpMyAdmin as GUI DB manager. Thanks to our Docker Swarm cluster, it's super simple !
 
-Create a new `phpmyadmin` stack with following :
+Create next stack :
 
 {{< highlight host="stack" file="phpmyadmin" >}}
 
@@ -200,7 +200,7 @@ sudo chown -R 5050:5050 /mnt/storage-pool/pgadmin/
 
 {{< /highlight >}}
 
-Finally, create a new `pgadmin` stack with following :
+Finally, create next stack :
 
 {{< highlight host="stack" file="pgadmin" >}}
 
@@ -251,7 +251,7 @@ Let's now test our cluster with 3 app samples. We'll deploy them to the worker n
 
 ### Matomo over MySQL
 
-Be free from Google Analytics with Matomo. It's incredibly simple to install with our cluster. Note as Matomo only supports MySQL or MariaDB database. Let's create dedicated storage folder with `sudo mkdir /mnt/storage-pool/matomo` and create following `matomo` stack :
+Be free from Google Analytics with Matomo. It's incredibly simple to install with our cluster. Note as Matomo only supports MySQL or MariaDB database. Let's create dedicated storage folder with `sudo mkdir /mnt/storage-pool/matomo` and create following stack :
 
 {{< highlight host="stack" file="matomo" >}}
 
@@ -327,7 +327,7 @@ cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 40 | head -n 1
 
 {{< /highlight >}}
 
-Next create new following `redmine` stack :
+Next create new following stack :
 
 {{< highlight host="stack" file="redmine" >}}
 

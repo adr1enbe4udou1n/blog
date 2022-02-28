@@ -66,8 +66,10 @@ Before continue, let's add some labels on nodes in order to differentiate proper
 ```sh
 # worker-01 is intended for running production app container
 docker node update --label-add environment=production worker-01
+
 # runner-01 is intended to build docker image through CI/CD pipeline
 docker node update --label-add environment=build runner-01
+
 ```
 
 {{< /highlight >}}
@@ -91,7 +93,7 @@ Thankfully, Traefik can be configured to take cares of all SSL certificates gene
 
 I should say that Traefik is not really easy to setup for new comers. The essential part to keep in mind is that this reverse proxy has 2 types of configuration, *static* and *dynamic*. [Go here](https://doc.traefik.io/traefik/getting-started/configuration-overview/) for detail explication of difference between these types of configuration.
 
-Here we'll talk about static configuration. Create a YAML file under `/etc/traefik/traefik.yml` of `manager-01` server with following content (TOML is also supported) :
+Here we'll talk about static configuration. Create next YAML file (TOML is also supported) :
 
 {{< highlight host="manager-01" file="/etc/traefik/traefik.yml" >}}
 
@@ -184,7 +186,7 @@ All I have to do is to add a specific label `traefik.enable=true` inside the Doc
 
 #### Traefik deployment
 
-In order to deploy Traefik on our shiny new Docker Swarm, we must write a Docker Swarm deployment file that looks like to a classic Docker compose file. Create a `traefik-stack.yml` file somewhere in your manager server with following content :
+In order to deploy Traefik on our shiny new Docker Swarm, we must write a Docker Swarm deployment file that looks like to a classic Docker compose file. Create next file :
 
 {{< highlight host="manager-01" file="~/traefik-stack.yml" >}}
 
@@ -410,7 +412,7 @@ If you go to the stacks menu, you will note that both `traefik` and `portainer` 
 
 It's finally time to test our new cluster environment by testing some stacks through the Portainer GUI. We'll start by installing [`Diun`](https://crazymax.dev/diun/), a very useful tool which notify us when used docker images has available update in its Docker registry.
 
-Create a new `diun` stack through Portainer and set following content :
+Create the next stack through Portainer :
 
 {{< highlight host="stack" file="diun" >}}
 

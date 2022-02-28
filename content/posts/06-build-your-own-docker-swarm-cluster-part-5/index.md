@@ -18,15 +18,15 @@ This part is totally optional, as it's mainly focused on monitoring. Feel free t
 
 ## Metrics with Prometheus 🔦
 
-Prometheus is become the standard de facto for self-hosted monitoring in part thanks to its architecture. It's a TSDB (Time Series Database) that will poll (aka scrape) standard metrics REST endpoints, provided by the tools to monitor. It's the case of Traefik, as we have seen in [part III]({{< ref "04-build-your-own-docker-swarm-cluster-part-3#traefik-" >}}). For tools that don't support it natively, like databases, you'll find many exporters that will do the job for you.
+Prometheus became the standard de facto for self-hosted monitoring in part thanks to its architecture. It's a TSDB (Time Series Database) that will poll (aka scrape) standard metrics REST endpoints, provided by the tools to monitor. It's the case of Traefik, as we have seen in [part III]({{< ref "04-build-your-own-docker-swarm-cluster-part-3#traefik-" >}}). For tools that don't support it natively, like databases, you'll find many exporters that will do the job for you.
 
 ### Prometheus install 💽
 
 I'll not use GlusterFS volume for storing Prometheus data, because :
 
-* 1 instance needed on the master
+* 1 prometheus instance needed on the master
 * No critical data, it's just metrics
-* No need of backup, and it can be pretty huge
+* No need of backup, as it can be pretty huge
 
 First go to the `manager-01` node settings in Portainer inside *Swarm Cluster overview*, and apply a new label that indicates that this node is the host of Prometheus data.
 
@@ -61,7 +61,7 @@ scrape_configs:
 
 It consists on 2 scrapes job, use `targets` in order to indicate to Prometheus the `/metrics` endpoint locations. I configure `5s` as interval, that means Prometheus will scrape `/metrics` endpoints every 5 seconds.
 
-Finally create a `prometheus` stack in Portainer :
+Finally create next stack in Portainer :
 
 {{< highlight host="stack" file="prometheus" >}}
 
@@ -123,12 +123,12 @@ In *Status > Targets*, you should have 2 endpoints enabled, which correspond to 
 
 ### Get cluster metrics
 
-We have the monitor brain, new it's time to have some more relevant metrics data from all containers as well as docker nodes. It's doable thanks to exporters :
+We have the monitor brain, now it's time to have some more relevant metrics data from all containers as well as docker nodes. Its doable thanks to exporters.
 
 * **cAdvisor** from Google which scrape metrics of all running containers
-* **Node exporter** for more global cluster evaluation
+* **Node exporter** for more global node (aka host) level metrics
 
-Before edit above stack, we need to make a specific docker entrypoint for node exporter that will help us to fetch the original hostname of the docker host machine name. This is because we run node exporter as docker container, which have no clue of docker hostname.
+Before edit above stack, we need to make a specific docker entry point for node exporter that will help us to fetch the original hostname of the docker host machine name. This is because we run node exporter as docker container, which have no clue of original node hostname.
 
 Besides this node exporter (like cAdvisor) work as an agent which must be deployed in *global* mode. In order to avoid have a file to put on each host, we'll use the *config* docker feature availabe in swarm mode.
 
@@ -153,7 +153,7 @@ exec "$@"
 
 It will take the node hostname and create an exploitable data metric for prometheus.
 
-Next we'll edit our `prometheus` stack by expanding YML config with next 2 additional services :
+Next we'll edit our `prometheus` stack by expanding YML config with 2 additional services :
 
 {{< highlight host="stack" file="prometheus" >}}
 
@@ -262,7 +262,7 @@ sudo systemctl enable redis-server.service
 
 As always, it's just a Swarm stack to deploy ! Like [N8N]({{< ref "/posts/05-build-your-own-docker-swarm-cluster-part-4#n8n-over-postgresql" >}}), we'll use a proper real production database and production cache.
 
-First connect to pgAdmin and create new grafana user and database. Don't forget *Can login?* in *Privileges* tab, and set grafana as owner on database creation.
+First connect to pgAdmin and create new grafana user and database. Don't forget to tick *Can login?* in *Privileges* tab, and set grafana as owner on database creation.
 
 Create storage folder with :
 
@@ -275,7 +275,7 @@ sudo chown -R 472:472 /mnt/storage-pool/grafana
 
 {{< /highlight >}}
 
-Next create new following `grafana` stack :
+Next create new following stack :
 
 {{< highlight host="stack" file="grafana" >}}
 
@@ -325,7 +325,7 @@ Set proper `GF_DATABASE_PASSWORD` and deploy. Database migration should be autom
 
 For best show-case scenario of Grafana, let's import an [existing dashboard](https://grafana.com/grafana/dashboards/11939) suited for complete Swarm monitor overview.
 
-First we need to add Prometheus as main metrics data source. Go to *Configuration > Data source* menu and click on *Add data source*. Select Prometheus and set the internal docker prometheus URL, which should be `http://prometheus:9090`.
+First we need to add Prometheus as main metrics data source. Go to *Configuration > Data source* menu and click on *Add data source*. Select Prometheus and set the internal docker prometheus URL, which should be `http://prometheus:9090`. A successful message should appear when saving.
 
 [![Grafana prometheus datasource](grafana-prometheus-datasource.png)](grafana-prometheus-datasource.png)
 
