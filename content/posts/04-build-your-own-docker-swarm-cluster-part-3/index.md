@@ -495,8 +495,10 @@ services:
     deploy:
       labels:
         - traefik.enable=true
+        - traefik.http.routers.minio.entrypoints=https
         - traefik.http.routers.minio.rule=Host(`s3.sw.dockerswarm.rocks`)
         - traefik.http.routers.minio.service=minio
+        - traefik.http.routers.minio-console.entrypoints=https
         - traefik.http.services.minio.loadbalancer.server.port=9000
         - traefik.http.routers.minio-console.service=minio-console
         - traefik.http.services.minio-console.loadbalancer.server.port=9001
@@ -517,11 +519,11 @@ Note as we use `node.labels.environment == production` in order to force the con
 
 The particularity of Minio is to have 2 web endpoints, one for web UI admin manager, and other as S3 API endpoint. So we need 2 Traefik routes in this case.Create a environment variable for `MINIO_ROOT_PASSWORD` and set your own admin password.
 
-When deployed, wait few seconds for SSL auto generation (you can check it in the Traefik Dashboard) and go to <https://minio.sw.dockerswarm.rocks> in order to access the web administration.
+When deployed, wait few seconds for SSL auto generation (you can check it in the Traefik Dashboard) and go to <https://minio.sw.dockerswarm.rocks> in order to access the web administration by entering above credentials.
 
 And yup, it's done, create your 1st bucket through admin UI and you are ready to test the S3 API locally with <https://s3.dockerswarm.rocks/mybucket>.
 
-TODO MINIO IMAGE
+[![Minio buckets](minio-buckets.png)](minio-buckets.png)
 
 ## 2nd check ✅
 
