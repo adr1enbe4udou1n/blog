@@ -361,8 +361,14 @@ This is an adapted file from the official [Portainer Agent Stack](https://downlo
 
 We use `agent_network` as overlay network for communication between agents and portainer. No need of `admin-auth` middleware here as Portainer has its own authentication.
 
+For Traefik dynamic configuration, as you'll see for the most of next stacks to be exposed, it's required to :
+
+* Set `traefik.enable=true` explicitly, when above `exposedByDefault` is set to `false`.
+* Specify router `entrypoints` parameter to `https`, in order to force service discovery only to the above `https` Traefik entry point configured in its static configuration.
+* Specify the web port of internal container where the HTTP request should be redirected with `loadbalancer.server.port`, this is required in Swarm mode because the services doesn't use the `EXPOSE` instruction from containers.
+
 {{< alert >}}
-Note that `traefik_public` must be set to **external** in order to reuse the original Traefik network.
+Note as `traefik_public` must be set to **external** in order to reuse the original Traefik network.
 {{< /alert >}}
 
 Deploy the portainer stack :
@@ -386,9 +392,15 @@ As soon as the main portainer service has successfully started, Traefik will det
 
 [![Traefik routers](traefik-routers.png)](traefik-routers.png)
 
-It's time to create your admin account through <https://portainer.sw.dockerswarm.rocks>. If all goes well, aka Portainer agent are accessible from Portainer portal, you should have access to your cluster home environment with 2 stacks active.
+Go to the router detail for checking currently applied middlewares :
+
+[![Traefik portainer](traefik-portainer.png)](traefik-portainer.png)
+
+It's time to create your admin account through <https://portainer.sw.dockerswarm.rocks>. If all goes well, a primary environment should be appearing, and you should have access to your cluster home environment with 2 stacks active.
 
 [![Portainer home](portainer-home.png)](portainer-home.png)
+
+Note as this primary endpoint was automatically created by the above `tcp://tasks.agent:9001` command, which is the address of all portainer agents globally deployed. But you can add any other endpoints, aka clusters via the *environments'* menu.
 
 {{< alert >}}
 If you go to the stacks menu, you will note that both `traefik` and `portainer` are *Limited* control, because these stacks were done outside Portainer. From now, we'll create and deploy stacks directly from Portainer GUI.
@@ -471,9 +483,9 @@ You can check the service logs which consist of all tasks logs aggregate.
 
 [![Diun Logs](diun-logs.png)](diun-logs.png)
 
-## Minio
+## Get your own S3 💽
 
-Let's try something more fun with a tool with a web UI. Here is how get your own S3 bucket and be free from any external S3 provider. We'll use our GlusterFS volume as a real storage.
+Let's try with a tool with a web UI. Here is how get your own S3 bucket and be free from any external S3 provider. We'll use our GlusterFS volume as a real storage.
 
 Do `sudo /mnt/storage-pool/minio` on `manager-01` and create following stack :
 
@@ -519,7 +531,7 @@ networks:
 Note as we use `node.labels.environment == production` in order to force the container service to be launch in the `worker-01` server.
 {{< /alert >}}
 
-The particularity of Minio is to have 2 web endpoints, one for web UI admin manager, and other as S3 API endpoint. So we need 2 Traefik routes in this case.Create a environment variable for `MINIO_ROOT_PASSWORD` and set your own admin password.
+The particularity of Minio is to have 2 web endpoints, one for web UI admin manager, and other as S3 API endpoint. So we need 2 Traefik routes in this case. Create an environment variable for `MINIO_ROOT_PASSWORD` and set your own admin password.
 
 When deployed, wait few seconds for SSL auto generation (you can check it in the Traefik Dashboard) and go to <https://minio.sw.dockerswarm.rocks> in order to access the web administration by entering above credentials.
 
@@ -529,6 +541,8 @@ And yup, it's done, create your 1st bucket through admin UI and you are ready to
 
 ## 2nd check ✅
 
-We've done the minimal viable Swarm setup with a nice cloud native reverse proxy and a containers GUI manager.
+We've done the minimal viable Swarm setup with a nice cloud native reverse proxy, a containers GUI manager, and some other container sample tools. You can get a quick view of the current status of your cluster via the portainer visualizer !
+
+[![Portainer cluster visualizer](portainer-cluster-visualizer.png)](portainer-cluster-visualizer.png)
 
 It's time to go further with self-hosted managed databases in [next part]({{< ref "/posts/05-build-your-own-docker-swarm-cluster-part-4" >}}).
