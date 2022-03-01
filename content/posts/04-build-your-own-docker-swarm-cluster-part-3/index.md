@@ -3,7 +3,6 @@ title: "Setup a Docker Swarm cluster Part III - Cluster Initialization"
 date: 2022-02-16
 description: "Build an opinionated containerized platform for developer..."
 tags: ["docker", "swarm"]
-draft: true
 ---
 
 {{< lead >}}

@@ -3,7 +3,6 @@ title: "Setup a Docker Swarm cluster Part IV - DB & Backups"
 date: 2022-02-18
 description: "Build an opinionated containerized platform for developer..."
 tags: ["docker", "swarm"]
-draft: true
 ---
 
 {{< lead >}}

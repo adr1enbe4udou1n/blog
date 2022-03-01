@@ -3,7 +3,6 @@ title: "Setup a Docker Swarm cluster Part VI - Logging & Tracing"
 date: 2022-02-20
 description: "Build an opinionated containerized platform for developer..."
 tags: ["docker", "swarm"]
-draft: true
 ---
 
 {{< lead >}}

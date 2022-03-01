@@ -3,7 +3,6 @@ title: "Setup a Docker Swarm cluster Part II - Hetzner Cloud & NFS"
 date: 2022-02-15
 description: "Build an opinionated containerized platform for developer..."
 tags: ["docker", "swarm"]
-draft: true
 ---
 
 {{< lead >}}

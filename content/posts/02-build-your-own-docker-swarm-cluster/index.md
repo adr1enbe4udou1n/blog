@@ -3,7 +3,6 @@ title: "Setup a Docker Swarm cluster for less than $30 / month"
 date: 2022-02-13
 description: "Build an opinionated containerized platform for developer..."
 tags: ["docker", "swarm"]
-draft: true
 ---
 
 {{< lead >}}

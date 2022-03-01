@@ -3,7 +3,6 @@ title: "Setup a Docker Swarm cluster Part VII - CI/CD workflow"
 date: 2022-02-21
 description: "Build an opinionated containerized platform for developer..."
 tags: ["docker", "swarm"]
-draft: true
 ---
 
 {{< lead >}}
