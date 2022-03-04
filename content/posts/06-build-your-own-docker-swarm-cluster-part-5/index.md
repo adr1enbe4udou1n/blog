@@ -283,7 +283,7 @@ version: '3'
 
 services:
   grafana:
-    image: grafana/grafana:8.4.1
+    image: grafana/grafana:latest
     environment:
       GF_SERVER_DOMAIN: grafana.sw.dockerswarm.rocks
       GF_SERVER_ROOT_URL: https://grafana.sw.dockerswarm.rocks
