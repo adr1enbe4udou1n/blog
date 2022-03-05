@@ -373,8 +373,8 @@ sudo apt install -y glusterfs-client
 # I will choose this path as main bind mount
 sudo mkdir /mnt/storage-pool
 
-# edit /etc/fstab with following line for persistent mount
-data-01:/volume-01 /mnt/storage-pool glusterfs defaults,_netdev,x-systemd.automount 0 0
+# append mount to /etc/fstab for persistent mount
+echo "data-01:/volume-01 /mnt/storage-pool glusterfs defaults,_netdev,x-systemd.automount 0 0" | sudo tee -a /etc/fstab
 
 # test fstab with next command
 sudo mount -a
