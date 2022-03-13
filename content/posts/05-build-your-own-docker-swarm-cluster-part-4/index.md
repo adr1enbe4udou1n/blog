@@ -250,7 +250,7 @@ Let's now test our cluster with 3 app samples. We'll deploy them to the worker n
 
 ### Matomo over MySQL
 
-Be free from Google Analytics with Matomo. It's incredibly simple to install with our cluster. Note as Matomo only supports MySQL or MariaDB database. Let's create dedicated storage folder with `sudo mkdir /mnt/storage-pool/matomo` and create following stack :
+Be free from Google Analytics with Matomo. It's incredibly simple to install with our cluster. Note as Matomo only supports MySQL or MariaDB database. Let's create dedicated storage folder for Matomo config files with `sudo mkdir -p /mnt/storage-pool/matomo/config` and create following stack :
 
 {{< highlight host="stack" file="matomo" >}}
 
@@ -262,7 +262,7 @@ services:
     image: matomo
     volumes:
       - /etc/hosts:/etc/hosts
-      - /mnt/storage-pool/matomo:/var/www/html
+      - /mnt/storage-pool/matomo/config:/var/www/html/config
     networks:
       - traefik_public
     deploy:
@@ -283,7 +283,12 @@ networks:
 
 Now we'll creating the `matomo` DB with dedicated user through above *phpMyAdmin*. For that simply create a new `matomo` account and always specify `10.0.0.0/8` inside host field. Don't forget to check *Create database with same name and grant all privileges*.
 
-Then go to <https://matomo.sw.dockerswarm.rocks> and go through all installation. At the DB install step, use the above credentials and use the hostname of your data server, which is `data-01` in our case.
+Then go to <https://matomo.sw.dockerswarm.rocks> and go through all installation. At the DB install step, use the above credentials and use the hostname of your data server, which is `data-01` in our case. At the end of installation, the Matomo config files will be stored in `config` folder for persisted installation.
+
+{{< alert >}}
+Avoid to use `/mnt/storage-pool/matomo:/var/www/html` as global volume, otherwise you'll have serious performance issues, due to slow network files access !  
+Moreover, it'll be more efficient for every Matomo updates by just updating the docker image.
+{{< /alert >}}
 
 [![Redmine](matomo.png)](matomo.png)
 
