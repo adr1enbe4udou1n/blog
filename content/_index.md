@@ -22,7 +22,7 @@ I can develop proper API design following [**DDD / Hexa**](https://en.wikipedia.
 I encourage `TDD` or at least proper **integration tests** on any backend frameworks, following **AAA** aka *Arrange Act Assert* principle :
 
 * `PHPUnit` or [`Pest`](https://pestphp.com/) for *PHP*,
-* [`NUnit.net`](https://nunit.org/) or [xUnit.net](https://xunit.net/) with [`Fluent Assertions`](https://github.com/fluentassertions/fluentassertions) for *.NET Core*,
+* [`NUnit.net`](https://nunit.org/) or [`xUnit.net`](https://xunit.net/) with [`Fluent Assertions`](https://github.com/fluentassertions/fluentassertions) for *.NET Core*,
 * `JUnit` with [`REST Assured`](https://rest-assured.io/) for *Spring Boot*,
 * `Jest` and `pytest` on respective *NodeJS* end *Python* stacks.
 
