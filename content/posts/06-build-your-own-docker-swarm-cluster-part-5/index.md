@@ -257,6 +257,29 @@ sudo systemctl enable redis-server.service
 
 {{< /highlight >}}
 
+Now, let's enable remote connections by disabling `protected-mode` and local bind address.
+
+{{< highlight host="data-01" file="/etc/redis/redis.conf" >}}
+
+```conf
+# bind 127.0.0.1 -::1
+protected-mode no
+```
+
+{{< /highlight >}}
+
+Let's test it quickly from `manager-01` :
+
+{{< highlight host="manager-01" >}}
+
+```sh
+sudo add-apt-repository ppa:redislabs/redis
+sudo apt install -y redis-tools
+redis-cli -h data-01
+```
+
+{{< /highlight >}}
+
 ### Grafana install 💽
 
 As always, it's just a Swarm stack to deploy ! Like [N8N]({{< ref "/posts/05-build-your-own-docker-swarm-cluster-part-4#n8n-over-postgresql" >}}), we'll use a proper real production database and production cache.
