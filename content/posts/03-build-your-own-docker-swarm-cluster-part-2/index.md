@@ -301,7 +301,7 @@ You should have now good protection against any unintended external access with 
 
 ## Manage all nodes 🧑‍🍳
 
-Maintain all nodes up2date one by one can be really time-consuming. Let's try [SaltStack](https://github.com/saltstack/salt) for this. Salt use an agent system (aka minion) connected to a master for remote management. Use following commands on `manager-01`.
+Maintain all nodes up2date one by one can be really time-consuming. Let's try [SaltStack](https://github.com/saltstack/salt) for this. Salt uses an agent system (called minion) connected to a master for remote management. This is notably more scalable than Ansible which use simple SSH connection for each node. Use following commands on `manager-01`.
 
 {{< highlight host="manager-01" >}}
 
@@ -319,7 +319,7 @@ curl -o bootstrap-salt.sh -L https://bootstrap.saltproject.io
 sudo sh bootstrap-salt.sh
 ```
 
-Edit minion config on all hosts as following in order to connect agent to correct master host :
+Edit minion configuration on all hosts as following in order to connect agent to the master host :
 
 {{< highlight file="/etc/salt/minion" >}}
 
