@@ -132,6 +132,14 @@ Then edit `/etc/hosts` file for each server accordingly for internal DNS :
 
 {{< /highlight >}}
 
+{{< highlight host="data-01" file="/etc/hosts" >}}
+
+```txt
+10.0.0.2 manager-01
+```
+
+{{< /highlight >}}
+
 {{< alert >}}
 IPs are only showed here as samples, use `hcloud server describe xxxxxx-01` in order to get the right private IP under `Private Net`. The additional `sw-***-01` DNS name is for having a better unique name for next ssh config.
 {{< /alert >}}
@@ -290,6 +298,65 @@ You should have now good protection against any unintended external access with 
 | **443**  | the HTTPS port for Traefik, our main access for all of your web apps                                                         |
 | **80**   | the HTTP port for Traefik, only required for proper HTTPS redirection                                                        |
 | **22**   | the SSH standard port for Traefik, required for proper usage through your main Git provider container such as GitLab / Gitea |
+
+## Manage all nodes 🧑‍🍳
+
+Maintain all nodes up2date one by one can be really time-consuming. Let's try [SaltStack](https://github.com/saltstack/salt) for this. Salt use an agent system (aka minion) connected to a master for remote management. Use following commands on `manager-01`.
+
+{{< highlight host="manager-01" >}}
+
+```sh
+curl -o bootstrap-salt.sh -L https://bootstrap.saltproject.io
+sudo sh bootstrap-salt.sh -M
+```
+
+{{< /highlight >}}
+
+Then same without `-M` commutator an all other servers :
+
+```sh
+curl -o bootstrap-salt.sh -L https://bootstrap.saltproject.io
+sudo sh bootstrap-salt.sh
+```
+
+Edit minion config on all hosts as following in order to connect agent to correct master host :
+
+{{< highlight file="/etc/salt/minion" >}}
+
+```conf
+#...
+master: manager-01
+#...
+```
+
+{{< /highlight >}}
+
+Then restart all with `sudo systemctl restart salt-minion`.
+
+A cache key will be automatically generated and all you have to do is accept all clients on manager host :
+
+{{< highlight host="manager-01" >}}
+
+```sh
+sudo salt-key -L # list all currently unaccepted client keys
+sudo salt-key -A # accept all clients
+```
+
+{{< /highlight >}}
+
+And that's it ! You can manage efficiently all nodes in one single time via SSH on master node. Here some classic exemples :
+
+{{< highlight host="manager-01" >}}
+
+```sh
+sudo salt '*' test.version # show all minion client version
+sudo salt '*' pkg.upgrade # classic apt upgrade on all nodes
+sudo salt '*' system.reboot # reboot all nodes
+sudo salt '*' kernelpkg.needs_reboot # show reboot need status for all nodes
+sudo salt '*' kernelpkg.upgrade reboot=True # upgrade kernel and reboot for applying it
+```
+
+{{< /highlight >}}
 
 ## Network file system 📄
 

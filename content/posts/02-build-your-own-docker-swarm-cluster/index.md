@@ -36,6 +36,7 @@ In the very end of this multi-steps guide, you will have complete working produc
 ### 1. Cluster initialization 🌍
 
 * **Hetzner** VPS setups under *Ubuntu 20.04* with proper firewall configuration
+* **SaltStack** for efficient node management
 * **Docker Swarm** installation, with **1 manager and 2 workers**
 * **Traefik**, a cloud native reverse proxy with automatic service discovery and SSL configuration
 * **Portainer** as simple GUI for containers management
