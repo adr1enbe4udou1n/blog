@@ -250,7 +250,17 @@ Let's now test our cluster with 3 app samples. We'll deploy them to the worker n
 
 ### Matomo over MySQL
 
-Be free from Google Analytics with Matomo. It's incredibly simple to install with our cluster. Note as Matomo only supports MySQL or MariaDB database. Let's create dedicated storage folder for Matomo config files with `sudo mkdir -p /mnt/storage-pool/matomo/config` and create following stack :
+Be free from Google Analytics with Matomo. It's incredibly simple to install with our cluster. Note as Matomo only supports MySQL or MariaDB database. Let's create some dedicated storage directories for Matomo :
+
+```sh
+cd /mnt/storage-pool
+sudo mkdir matomo && cd matomo
+sudo mkdir config misc tmp lang
+# fix permissions for matomo
+sudo chown -R www-data:www-data .
+```
+
+Then create following stack :
 
 {{< highlight host="stack" file="matomo" >}}
 
@@ -262,7 +272,10 @@ services:
     image: matomo
     volumes:
       - /etc/hosts:/etc/hosts
-      - /mnt/storage-pool/matomo/config:/var/www/html/config
+      - ${ROOT}/config:/var/www/html/config
+      - ${ROOT}/misc:/var/www/html/misc
+      - ${ROOT}/tmp:/var/www/html/tmp
+      - ${ROOT}/lang:/var/www/html/lang
     networks:
       - traefik_public
     deploy:
@@ -281,16 +294,81 @@ networks:
 
 {{< /highlight >}}
 
-Now we'll creating the `matomo` DB with dedicated user through above *phpMyAdmin*. For that simply create a new `matomo` account and always specify `10.0.0.0/8` inside host field. Don't forget to check *Create database with same name and grant all privileges*.
-
-Then go to <https://matomo.sw.dockerswarm.rocks> and go through all installation. At the DB install step, use the above credentials and use the hostname of your data server, which is `data-01` in our case. At the end of installation, the Matomo config files will be stored in `config` folder for persisted installation.
-
 {{< alert >}}
+I use a dynamic `ROOT` variable here. So you must add this variable with `/mnt/storage-pool/matomo` value in the below *Environment variables* section of portainer.  
+
 Avoid to use `/mnt/storage-pool/matomo:/var/www/html` as global volume, otherwise you'll have serious performance issues, due to slow network files access !  
 Moreover, it'll be more efficient for every Matomo updates by just updating the docker image.
 {{< /alert >}}
 
-[![Redmine](matomo.png)](matomo.png)
+#### The matomo database
+
+Now we'll creating the `matomo` DB with dedicated user through above *phpMyAdmin*. For that simply create a new `matomo` account and always specify `10.0.0.0/8` inside host field. Don't forget to check *Create database with same name and grant all privileges*.
+
+For best Matomo performance, enable **local inline file** for MySQL :
+
+{{< highlight host="data-01" file="/etc/mysql/mysql.conf.d/mysqld.cnf" >}}
+
+```conf
+[mysqld]
+#...
+local_infile = 1
+```
+
+{{< /highlight >}}
+
+Don't forget to restart with `sudo service mysql restart`.
+
+Then go to <https://matomo.sw.dockerswarm.rocks> and go through all installation. At the DB install step, use the above credentials and use the hostname of your data server, which is `data-01` in our case. At the end of installation, the Matomo config files will be stored in `config` folder for persisted installation.
+
+[![Matomo](matomo.png)](matomo.png)
+
+#### Final adjustments
+
+If Matomo show some permissions issues, go to Matomo container with `docker exec -u www-data -it matomo_app /bin/bash` (the *matomo_app* container name can vary), and enter following command for applying once and for all :
+
+{{< highlight host="matomo container" >}}
+
+```sh
+./console core:create-security-files
+```
+
+{{< /highlight >}}
+
+Enable reliable GeoIP detection through UI by downloading the free DBIP database. It will be stored locally in `misc` directory.
+
+Now for best performance we have to generate some rapport archives via crontab. Sadly the official container doesn't include any crontab system. But we can use the previously installed [swarm cronjob]({{< ref "/posts/04-build-your-own-docker-swarm-cluster-part-3#distributed-cron-jobs-" >}}) for this task ! Just add a new service into above matomo stack :
+
+{{< highlight host="stack" file="matomo" >}}
+
+```yml
+#...
+  archive:
+    image: matomo
+    command: php console --matomo-domain=matomo.sw.dockerswarm.rocks core:archive
+    volumes:
+      - /etc/hosts:/etc/hosts
+      - ${ROOT}/config:/var/www/html/config
+      - ${ROOT}/misc:/var/www/html/misc
+      - ${ROOT}/tmp:/var/www/html/tmp
+      - ${ROOT}/lang:/var/www/html/lang
+    deploy:
+      labels:
+        - swarm.cronjob.enable=true
+        - swarm.cronjob.schedule=5 * * * *
+        - swarm.cronjob.skip-running=true
+      replicas: 0
+      restart_policy:
+        condition: none
+      placement:
+        constraints:
+          - node.labels.environment == production
+#...
+```
+
+{{< /highlight >}}
+
+Swarm cronjob will now execute this service at 5th minute every hour. The important part is the `command` instruction which will tell the new entrypoint to use, which is in this case the rapport archiver command.
 
 ### Redmine over MySQL
 
@@ -307,19 +385,11 @@ Create dedicated storage folder :
 {{< highlight host="manager-01" >}}
 
 ```sh
-sudo mkdir /mnt/storage-pool/redmine
+cd /mnt/storage-pool/
+sudo mkdir redmine && cd redmine
 
-# for config file
-sudo mkdir /mnt/storage-pool/redmine/config
-
-# for files upload
-sudo mkdir /mnt/storage-pool/redmine/files
-
-# for custom plugins
-sudo mkdir /mnt/storage-pool/redmine/plugins
-
-# for any custom themes
-sudo mkdir /mnt/storage-pool/redmine/themes
+# for config file, file storage, plugins and themes
+sudo mkdir config files plugins themes
 
 # save default config locally
 sudo wget https://raw.githubusercontent.com/redmine/redmine/master/config/configuration.yml.example
@@ -340,13 +410,13 @@ version: '3'
 
 services:
   app:
-    image: redmine:4.2
+    image: redmine:5
     volumes:
       - /etc/hosts:/etc/hosts
-      - ${ROOT_PATH}/config/configuration.yml:/usr/src/redmine/config/configuration.yml
-      - ${ROOT_PATH}/files:/usr/src/redmine/files
-      - ${ROOT_PATH}/plugins:/usr/src/redmine/plugins
-      - ${ROOT_PATH}/themes:/usr/src/redmine/public/themes
+      - ${ROOT}/config/configuration.yml:/usr/src/redmine/config/configuration.yml
+      - ${ROOT}/files:/usr/src/redmine/files
+      - ${ROOT}/plugins:/usr/src/redmine/plugins
+      - ${ROOT}/themes:/usr/src/redmine/public/themes
     environment:
       REDMINE_DB_MYSQL:
       REDMINE_DB_DATABASE:
@@ -374,12 +444,16 @@ networks:
 Configure `REDMINE_DB_*` with proper above created DB credential and set the random key to `REDMINE_SECRET_KEY_BASE`.
 
 {{< alert >}}
-I use a dynamic `ROOT_PATH` here. So you must add this variable with `/mnt/storage-pool/redmine` value in the below *Environment variables* section of portainer.
+As above for `matomo`, use `/mnt/storage-pool/redmine` value for `ROOT` as *Environment variable*.
 {{< /alert >}}
 
 After few seconds, <https://redmine.sw.dockerswarm.rocks> should be accessible and ready to use, use admin / admin for admin connection !
 
 [![Redmine](redmine.png)](redmine.png)
+
+{{< alert >}}
+For better default theming, just download [PurpleMine](https://github.com/mrliptontea/PurpleMine2) and extract it into above redmine/themes folder. You now just have to enable it into redmine administration.
+{{< /alert >}}
 
 ### N8N over PostgreSQL
 

@@ -407,13 +407,17 @@ Note as this primary endpoint was automatically created by the above `tcp://task
 If you go to the stacks menu, you will note that both `traefik` and `portainer` are *Limited* control, because these stacks were done outside Portainer. From now, we'll create and deploy stacks directly from Portainer GUI.
 {{< /alert >}}
 
-## Keep the containers image up-to-date ⬆️
+## Some maintenance cluster tools 🐕‍🦺
 
-It's finally time to test our new cluster environment by testing some stacks through the Portainer GUI. We'll start by installing [`Diun`](https://crazymax.dev/diun/), a very useful tool which notify us when used docker images has available update in its Docker registry.
+It's finally time to test our new cluster environment by testing some stacks through the Portainer GUI !
+
+### Keep the containers image up-to-date ⬆️
+
+We'll start by installing [`Diun`](https://crazymax.dev/diun/), a very useful tool which notify us when used docker images has available update in its Docker registry.
 
 Create the next stack through Portainer :
 
-{{< highlight host="stack" file="diun" >}}
+{{< highlight host="stack" file="maintenance" >}}
 
 ```yml
 version: '3'
@@ -455,13 +459,13 @@ services:
 {{< /tab >}}
 {{< tab tabName="environment" >}}
 
-| name                                  | description                                                                           |
-| ------------------------------------- | ------------------------------------------------------------------------------------- |
-| `TZ`                                  | Required for proper timezone schedule                                                 |
-| `DIUN_WATCH_SCHEDULE`                 | The standard linux cron schedule                                                      |
-| `DIUN_PROVIDERS_SWARM`                | Required for detecting all containers on all nodes                                    |
-| `DIUN_PROVIDERS_SWARM_WATCHBYDEFAULT` | If `true`, no need of explicit docker label everywhere                                |
-| `DIUN_NOTIF_MAIL_*`                   | Set all according to your own mail provider, or use any other supported notification. |
+| name                                  | description                                                                          |
+| ------------------------------------- | ------------------------------------------------------------------------------------ |
+| `TZ`                                  | Required for proper timezone schedule                                                |
+| `DIUN_WATCH_SCHEDULE`                 | The standard linux cron schedule                                                     |
+| `DIUN_PROVIDERS_SWARM`                | Required for detecting all containers on all nodes                                   |
+| `DIUN_PROVIDERS_SWARM_WATCHBYDEFAULT` | If `true`, no need of explicit docker label everywhere                               |
+| `DIUN_NOTIF_MAIL_*`                   | Set all according to your own mail provider, or use any other supported notification |
 
 {{< alert >}}
 Use below section of Portainer for setting all personal environment variable. In all cases, all used environment variables must be declared inside YML.
@@ -483,6 +487,53 @@ You can check the full service page which will allows manual scaling, on-fly vol
 You can check the service logs which consist of all tasks logs aggregate.
 
 [![Diun Logs](diun-logs.png)](diun-logs.png)
+
+### Distributed cron jobs 🕰️
+
+It's frequent to have some crontab jobs for long-running maintenance tasks as database dumping, backups, exports and so on. But can we achieve that on this cluster environment ? Actually **crazy-max** has developed [Cron](https://github.com/crazy-max/swarm-cronjob) precisely for this purpose ! Let's add this service into same above maintenance stack.
+
+{{< highlight host="stack" file="maintenance" >}}
+
+```yml
+#...
+  cronjob:
+    image: crazymax/swarm-cronjob
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      TZ: Europe/Paris
+      LOG_LEVEL: info
+      LOG_JSON: 'false'
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+```
+
+{{< /highlight >}}
+
+This service will now search for any crontab related docker service labels across all Swarm cluster, and launch it accordingly `schedule` settings which uses standard crontab format. All you have to do is to use following structure for any service you want to run periodically :
+
+```yml
+#...
+    deploy:
+      labels:
+        - swarm.cronjob.enable=true
+        - swarm.cronjob.schedule=5 * * * *
+        - swarm.cronjob.skip-running=true
+      replicas: 0
+      restart_policy:
+        condition: none
+#...
+```
+
+| name                         | description                                                         |
+| ---------------------------- | ------------------------------------------------------------------- |
+| `swarm.cronjob.enable`       | Enable cron launch                                                  |
+| `swarm.cronjob.schedule`     | The standard linux cron schedule                                    |
+| `swarm.cronjob.skip-running` | Prevent overlapping                                                 |
+| `replicas`                   | Set to 0 in order to prevent launching service after stack creation |
+| `restart_policy.condition`   | Set none to prevent infinite restart after completion of job        |
 
 ## Get your own S3 💽
 
