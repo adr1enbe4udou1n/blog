@@ -294,9 +294,9 @@ networks:
 
 {{< /highlight >}}
 
-{{< alert >}}
 I use a dynamic `ROOT` variable here. So you must add this variable with `/mnt/storage-pool/matomo` value in the below *Environment variables* section of portainer.  
 
+{{< alert >}}
 Avoid to use `/mnt/storage-pool/matomo:/var/www/html` as global volume, otherwise you'll have serious performance issues, due to slow network files access !  
 Moreover, it'll be more efficient for every Matomo updates by just updating the docker image.
 {{< /alert >}}
