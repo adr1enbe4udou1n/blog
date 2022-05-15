@@ -324,7 +324,7 @@ version: '3'
 
 services:
   agent:
-    image: portainer/agent:2.11.1
+    image: portainer/agent:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /var/lib/docker/volumes:/var/lib/docker/volumes
@@ -334,7 +334,7 @@ services:
       mode: global
 
   portainer:
-    image: portainer/portainer-ce:2.11.1
+    image: portainer/portainer-ce:latest
     command: -H tcp://tasks.agent:9001 --tlsskipverify
     volumes:
       - /mnt/storage-pool/portainer:/data

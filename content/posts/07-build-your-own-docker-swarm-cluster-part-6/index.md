@@ -338,7 +338,7 @@ version: '3'
 
 services:
   collector:
-    image: jaegertracing/jaeger-collector:1.31
+    image: jaegertracing/jaeger-collector:1
     volumes:
       - /etc/hosts:/etc/hosts
     networks:
@@ -352,7 +352,7 @@ services:
           - node.role == manager
 
   agent:
-    image: jaegertracing/jaeger-agent:1.31
+    image: jaegertracing/jaeger-agent:1
     networks:
       - private
     command: --reporter.grpc.host-port=collector:14250
@@ -360,7 +360,7 @@ services:
       mode: global
 
   query:
-    image: jaegertracing/jaeger-query:1.31
+    image: jaegertracing/jaeger-query:1
     volumes:
       - /etc/hosts:/etc/hosts
     networks:
