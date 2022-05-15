@@ -452,7 +452,7 @@ After few seconds, <https://redmine.sw.dockerswarm.rocks> should be accessible a
 [![Redmine](redmine.png)](redmine.png)
 
 {{< alert >}}
-For better default theming, just download [PurpleMine](https://github.com/mrliptontea/PurpleMine2) and extract it into above redmine/themes folder. You now just have to enable it into redmine administration.
+For better default theming, download [PurpleMine](https://github.com/mrliptontea/PurpleMine2) and extract it into above redmine/themes folder. You now just have to enable it into redmine administration.
 {{< /alert >}}
 
 ### N8N over PostgreSQL
