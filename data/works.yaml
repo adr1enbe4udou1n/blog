@@ -13,17 +13,17 @@
       demo: https://springbootrealworld.okami101.io/api
       color: green
 
-    - name: laravel
-      title: Laravel Realworld
-      repo: adr1enbe4udou1n/laravel-realworld-example-app
-      demo: https://laravelrealworld.okami101.io/api
-      color: orange
-
     - name: symfony
       title: Symfony Realworld
       repo: adr1enbe4udou1n/symfony-realworld-example-app
       demo: https://symfonyrealworld.okami101.io/api
       color: black
+
+    - name: laravel
+      title: Laravel Realworld
+      repo: adr1enbe4udou1n/laravel-realworld-example-app
+      demo: https://laravelrealworld.okami101.io/api
+      color: orange
 
     - name: nestjs
       title: NestJS Realworld
