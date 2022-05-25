@@ -5,6 +5,6 @@ module.exports = {
     "./content/**/*.{html,md}",
   ],
   safelist: [
-    'sm:flex-row', 'lg:flex-row', 'lg:hidden'
+    'sm:flex-row', 'lg:flex-row', 'lg:hidden', 'sm:block'
   ],
 };
