@@ -7,6 +7,8 @@ description: "This is adr1enbe4udou1n blog."
 A 🧔🌍💻 aka senior web developer @Bretagne 🇫🇷
 {{< /lead >}}
 
+KUBE SUCCESS
+
 Hi folks, I'm a web lover actually working [@Cesson-Sévigné](https://fr.wikipedia.org/wiki/Cesson-S%C3%A9vign%C3%A9), mastering :
 
 * [`ASP.NET Core`](https://docs.microsoft.com/fr-fr/aspnet/core/?view=aspnetcore-6.0) with `C#` and [`Laravel`](https://laravel.com/) as main backend frameworks
