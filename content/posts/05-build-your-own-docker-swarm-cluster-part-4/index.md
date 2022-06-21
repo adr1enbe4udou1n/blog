@@ -618,7 +618,7 @@ export RESTIC_PASSWORD="a-strong-password"
 echo ". ~/.restic-env" >> .profile
 
 # reload profile
-source ~/.profile`
+source ~/.profile
 
 # create repository
 restic init
@@ -635,7 +635,7 @@ Add following cron for backup every hour at 42min :
 {{< highlight host="data-01" file="/etc/crontab" >}}
 
 ```txt
-42 * * * * . ~/.restic-env; /usr/local/bin/restic backup -q /mnt/HC_Volume_xxxxxxxx/gluster-storage /var/backups/mysql /var/lib/postgresql/backups --exclude-file=/etc/restic/excludes.txt; /usr/local/bin/restic forget -q --prune --keep-hourly 24 --keep-daily 7 --keep-weekly 4 --keep-monthly 3
+42 * * * * root . ~/.restic-env; /usr/local/bin/restic backup -q /mnt/HC_Volume_xxxxxxxx/gluster-storage /var/backups/mysql /var/lib/postgresql/backups --exclude-file=/etc/restic/excludes.txt; /usr/local/bin/restic forget -q --prune --keep-hourly 24 --keep-daily 7 --keep-weekly 4 --keep-monthly 3
 
 ```
 
