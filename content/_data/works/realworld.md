@@ -7,8 +7,8 @@ Main purpose of this projects is to have personal extensive API training on mult
 * Fully tested
 * High QA by following best practices for linting, formatting, with static analyzers for non strongly typed languages
 * Community-driven with usage of the most well-known packages
-* `MySQL` or `PostgreSQL` as main databases
+* `PostgreSQL` as main databases
 * Use ORM whenever possible that follows any `DataMapper` or `Active Record` patterns
 * Proper seeder / faker for quick starting with filled DB
 * Proper suited QA + production Dockerfile
-* Complete CI/DC deployment on Docker Swarm with [Drone CI](https://www.drone.io/)
+* Complete CI/CD deployment on Kubernetes with [Concourse](https://concourse.okami101.io/)
