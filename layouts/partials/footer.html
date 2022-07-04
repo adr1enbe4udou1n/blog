@@ -34,27 +34,32 @@
         </p>
 
         <a href="https://yesterweb.org/no-to-web3/">
-            <img src="https://auzziejay.com/images/noweb32.gif" alt="No to Web3" />
+          <img src="https://auzziejay.com/images/noweb32.gif" alt="No to Web3" />
         </a>
       </div>
-      {{/* Appearance switch */}}
-      {{ if .Site.Params.showAppearanceSwitcher | default false }}
-        <div
-          class="text-sm cursor-pointer text-neutral-700 dark:text-neutral hover:text-primary-600 dark:hover:text-primary-400 {{ if .Site.Params.showScrollToTop | default true -}}
-            ltr:mr-14 rtl:ml-14
-          {{- end }}"
-        >
-          <button
-            id="appearance-switcher"
-            class="w-12 h-12 "
-            type="button"
-            title="{{ i18n "footer.dark_appearance" }}"
+      <div class="flex items-center">
+        <a href="/privacy-policy" class="block text-sm text-neutral-500 dark:text-neutral-400 mr-2 lg:mr-8">
+          Privacy Policy
+        </a>
+        {{/* Appearance switch */}}
+        {{ if .Site.Params.showAppearanceSwitcher | default false }}
+          <div
+            class="text-sm cursor-pointer text-neutral-700 dark:text-neutral hover:text-primary-600 dark:hover:text-primary-400 {{ if .Site.Params.showScrollToTop | default true -}}
+              ltr:mr-14 rtl:ml-14
+            {{- end }}"
           >
-            <span class="inline dark:hidden">{{ partial "icon.html" "moon" }}</span>
-            <span class="hidden dark:inline">{{ partial "icon.html" "sun" }}</span>
-          </button>
-        </div>
-      {{ end }}
+            <button
+              id="appearance-switcher"
+              class="w-12 h-12 "
+              type="button"
+              title="{{ i18n "footer.dark_appearance" }}"
+            >
+              <span class="inline dark:hidden">{{ partial "icon.html" "moon" }}</span>
+              <span class="hidden dark:inline">{{ partial "icon.html" "sun" }}</span>
+            </button>
+          </div>
+        {{ end }}
+      </div>
     </div>
     {{/* Extend footer - eg. for extra scripts, etc. */}}
     {{ if templates.Exists "partials/extend-footer.html" }}

@@ -26,6 +26,10 @@
   margin-bottom: 0.25rem
 }
 
+.mr-8 {
+  margin-right: 2rem
+}
+
 .mb-4 {
   margin-bottom: 1rem
 }
@@ -48,6 +52,10 @@
 
 .mt-1 {
   margin-top: 0.25rem
+}
+
+.mr-2 {
+  margin-right: 0.5rem
 }
 
 .block {
@@ -180,6 +188,10 @@
 
 .border-2 {
   border-width: 2px
+}
+
+.border {
+  border-width: 1px
 }
 
 .border-b-8 {
@@ -517,6 +529,10 @@
     margin-bottom: 0px
   }
 
+  .sm\:mr-2 {
+    margin-right: 0.5rem
+  }
+
   .sm\:block {
     display: block
   }
@@ -549,6 +565,10 @@
 }
 
 @media (min-width: 1024px) {
+  .lg\:mr-8 {
+    margin-right: 2rem
+  }
+
   .lg\:hidden {
     display: none
   }
