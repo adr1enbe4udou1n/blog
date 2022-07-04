@@ -1,68 +1,61 @@
 <footer class="py-10 print:hidden">
-    {{/* Footer menu */}}
-    {{ if .Site.Menus.footer }}
-      <nav class="pb-4 text-base font-medium text-neutral-500 dark:text-neutral-400">
-        <ul class="flex flex-col list-none sm:flex-row">
-          {{ range .Site.Menus.footer }}
-            <li
-              class="mb-1 ltr:text-right rtl:text-left sm:mb-0 ltr:sm:mr-7 ltr:sm:last:mr-0 rtl:sm:ml-7 rtl:sm:last:ml-0"
-            >
-              <a
-                class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2"
-                href="{{ .URL }}"
-                title="{{ .Title }}"
-                >{{ .Name | markdownify | emojify }}</a
-              >
-            </li>
-          {{ end }}
-        </ul>
-      </nav>
-    {{ end }}
-    <div class="flex justify-between items-center">
-      <div class="flex items-center gap-4">
-        <img src="/kube.png" width="30" height="30" alt="Kubernetes" title="Run on bare metal Kubernetes on Hetzner Cloud" />
+  {{/* Footer menu */}}
+  {{ if .Site.Menus.footer }}
+  <nav class="pb-4 text-base font-medium text-neutral-500 dark:text-neutral-400">
+    <ul class="flex flex-col list-none sm:flex-row">
+      {{ range .Site.Menus.footer }}
+      <li class="mb-1 ltr:text-right rtl:text-left sm:mb-0 ltr:sm:mr-7 ltr:sm:last:mr-0 rtl:sm:ml-7 rtl:sm:last:ml-0">
+        <a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href="{{ .URL }}"
+          title="{{ .Title }}">{{ .Name | markdownify | emojify }}</a>
+      </li>
+      {{ end }}
+    </ul>
+  </nav>
+  {{ end }}
+  <div class="flex justify-between items-center">
+    <div class="flex items-center gap-4">
+      <img src="/kube.png" width="30" height="30" alt="Kubernetes"
+        title="Run on bare metal Kubernetes on Hetzner Cloud" />
 
-        {{/* Copyright */}}
-        <p class="hidden sm:block text-sm text-neutral-500 dark:text-neutral-400">
-          {{- with .Site.Params.copyright }}
-            {{ . | emojify | markdownify }}
-          {{- else }}
-            &copy;
-            {{ now.Format "2006" }}
-            {{ .Site.Author.name | markdownify | emojify }}
-          {{- end }}
-        </p>
+      <a href="https://concourse.okami101.io/teams/main/pipelines/blog" target="_blank">
+        <img src="https://concourse.okami101.io/api/v1/teams/main/pipelines/blog/badge" />
+      </a>
 
-        <a href="https://yesterweb.org/no-to-web3/">
-          <img src="https://auzziejay.com/images/noweb32.gif" alt="No to Web3" />
-        </a>
-      </div>
-      <div class="flex items-center">
-        <a href="/privacy-policy" class="block text-sm text-neutral-500 dark:text-neutral-400 mr-2 lg:mr-8">
-          Privacy Policy
-        </a>
-        {{/* Appearance switch */}}
-        {{ if .Site.Params.showAppearanceSwitcher | default false }}
-          <div
-            class="text-sm cursor-pointer text-neutral-700 dark:text-neutral hover:text-primary-600 dark:hover:text-primary-400 {{ if .Site.Params.showScrollToTop | default true -}}
-              ltr:mr-14 rtl:ml-14
-            {{- end }}"
-          >
-            <button
-              id="appearance-switcher"
-              class="w-12 h-12 "
-              type="button"
-              title="{{ i18n "footer.dark_appearance" }}"
-            >
-              <span class="inline dark:hidden">{{ partial "icon.html" "moon" }}</span>
-              <span class="hidden dark:inline">{{ partial "icon.html" "sun" }}</span>
-            </button>
-          </div>
-        {{ end }}
-      </div>
+      {{/* Copyright */}}
+      <p class="hidden sm:block text-sm text-neutral-500 dark:text-neutral-400">
+        {{- with .Site.Params.copyright }}
+        {{ . | emojify | markdownify }}
+        {{- else }}
+        &copy;
+        {{ now.Format "2006" }}
+        {{ .Site.Author.name | markdownify | emojify }}
+        {{- end }}
+      </p>
+
+      <a href="https://yesterweb.org/no-to-web3/">
+        <img src="https://auzziejay.com/images/noweb32.gif" alt="No to Web3" />
+      </a>
+
     </div>
-    {{/* Extend footer - eg. for extra scripts, etc. */}}
-    {{ if templates.Exists "partials/extend-footer.html" }}
-      {{ partialCached "extend-footer.html" . }}
-    {{ end }}
-  </footer>
+    <div class="flex items-center">
+      <a href="/privacy-policy" class="block text-sm text-neutral-500 dark:text-neutral-400 mr-2 lg:mr-8">
+        Privacy Policy
+      </a>
+      {{/* Appearance switch */}}
+      {{ if .Site.Params.showAppearanceSwitcher | default false }}
+      <div class="text-sm cursor-pointer text-neutral-700 dark:text-neutral hover:text-primary-600 dark:hover:text-primary-400 {{ if .Site.Params.showScrollToTop | default true -}}
+              ltr:mr-14 rtl:ml-14
+            {{- end }}">
+        <button id="appearance-switcher" class="w-12 h-12 " type="button" title="{{ i18n " footer.dark_appearance" }}">
+          <span class="inline dark:hidden">{{ partial "icon.html" "moon" }}</span>
+          <span class="hidden dark:inline">{{ partial "icon.html" "sun" }}</span>
+        </button>
+      </div>
+      {{ end }}
+    </div>
+  </div>
+  {{/* Extend footer - eg. for extra scripts, etc. */}}
+  {{ if templates.Exists "partials/extend-footer.html" }}
+  {{ partialCached "extend-footer.html" . }}
+  {{ end }}
+</footer>
