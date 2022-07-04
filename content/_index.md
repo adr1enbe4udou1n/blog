@@ -49,7 +49,7 @@ Some notes of this blog :
 * Hosted on Hetzner Cloud
 * Powered by [`Hugo`](https://gohugo.io/)
 * Source code on my own [`Gitea`](https://gitea.okami101.io/adr1enbe4udou1n/blog)
-* Automatically deployed through my own [`Concourse`](https://concourse.okami101.io) instance ([see pipeline](https://concourse.okami101.io/teams/main/pipelines/blog))
+* Automatically deployed through my own [`Concourse`](https://concourse.okami101.io) instance
 * Tracked with [`Matomo`](https://matomo.okami101.io/)
 
 All the above tools are **self-hosted** on custom multi-nodes **bare metal** `Kubernetes` installed with [`k0s`](https://k0sproject.io/).
