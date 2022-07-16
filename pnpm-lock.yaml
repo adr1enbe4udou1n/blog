@@ -3,12 +3,12 @@ lockfileVersion: 5.4
 specifiers:
   autoprefixer: ^10.4.7
   postcss: ^8.4.14
-  tailwindcss: ^3.1.4
+  tailwindcss: ^3.1.6
 
 devDependencies:
   autoprefixer: 10.4.7_postcss@8.4.14
   postcss: 8.4.14
-  tailwindcss: 3.1.4
+  tailwindcss: 3.1.6
 
 packages:
 
@@ -71,8 +71,8 @@ packages:
     peerDependencies:
       postcss: ^8.1.0
     dependencies:
-      browserslist: 4.21.1
-      caniuse-lite: 1.0.30001363
+      browserslist: 4.21.2
+      caniuse-lite: 1.0.30001367
       fraction.js: 4.2.0
       normalize-range: 0.1.2
       picocolors: 1.0.0
@@ -92,15 +92,15 @@ packages:
       fill-range: 7.0.1
     dev: true
 
-  /browserslist/4.21.1:
-    resolution: {integrity: sha512-Nq8MFCSrnJXSc88yliwlzQe3qNe3VntIjhsArW9IJOEPSHNx23FalwApUVbzAWABLhYJJ7y8AynWI/XM8OdfjQ==}
+  /browserslist/4.21.2:
+    resolution: {integrity: sha512-MonuOgAtUB46uP5CezYbRaYKBNt2LxP0yX+Pmj4LkcDFGkn9Cbpi83d9sCjwQDErXsIJSzY5oKGDbgOlF/LPAA==}
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
     dependencies:
-      caniuse-lite: 1.0.30001363
-      electron-to-chromium: 1.4.177
-      node-releases: 2.0.5
-      update-browserslist-db: 1.0.4_browserslist@4.21.1
+      caniuse-lite: 1.0.30001367
+      electron-to-chromium: 1.4.192
+      node-releases: 2.0.6
+      update-browserslist-db: 1.0.4_browserslist@4.21.2
     dev: true
 
   /camelcase-css/2.0.1:
@@ -108,8 +108,8 @@ packages:
     engines: {node: '>= 6'}
     dev: true
 
-  /caniuse-lite/1.0.30001363:
-    resolution: {integrity: sha512-HpQhpzTGGPVMnCjIomjt+jvyUu8vNFo3TaDiZ/RcoTrlOq/5+tC8zHdsbgFB6MxmaY+jCpsH09aD80Bb4Ow3Sg==}
+  /caniuse-lite/1.0.30001367:
+    resolution: {integrity: sha512-XDgbeOHfifWV3GEES2B8rtsrADx4Jf+juKX2SICJcaUhjYBO3bR96kvEIHa15VU6ohtOhBZuPGGYGbXMRn0NCw==}
     dev: true
 
   /chokidar/3.5.3:
@@ -159,8 +159,8 @@ packages:
     resolution: {integrity: sha512-+HlytyjlPKnIG8XuRG8WvmBP8xs8P71y+SKKS6ZXWoEgLuePxtDoUEiH7WkdePWrQ5JBpE6aoVqfZfJUQkjXwA==}
     dev: true
 
-  /electron-to-chromium/1.4.177:
-    resolution: {integrity: sha512-FYPir3NSBEGexSZUEeht81oVhHfLFl6mhUKSkjHN/iB/TwEIt/WHQrqVGfTLN5gQxwJCQkIJBe05eOXjI7omgg==}
+  /electron-to-chromium/1.4.192:
+    resolution: {integrity: sha512-8nCXyIQY9An88NXAp+PuPy5h3/w5ZY7Iu2lag65Q0XREprcat5F8gKhoHsBUnQcFuCRnmevpR8yEBYRU3d2HDw==}
     dev: true
 
   /escalade/3.1.1:
@@ -259,8 +259,8 @@ packages:
     engines: {node: '>=0.12.0'}
     dev: true
 
-  /lilconfig/2.0.5:
-    resolution: {integrity: sha512-xaYmXZtTHPAw5m+xLN8ab9C+3a8YmV3asNSPOATITbtwrfbwaLJj8h66H1WMIpALCkqsIzK3h7oQ+PdX+LQ9Eg==}
+  /lilconfig/2.0.6:
+    resolution: {integrity: sha512-9JROoBW7pobfsx+Sq2JsASvCo6Pfo6WWoUW79HuB1BCoBXD4PLWJPqDF6fNj67pqBYTbAHkE57M1kS/+L1neOg==}
     engines: {node: '>=10'}
     dev: true
 
@@ -287,8 +287,8 @@ packages:
     hasBin: true
     dev: true
 
-  /node-releases/2.0.5:
-    resolution: {integrity: sha512-U9h1NLROZTq9uE1SNffn6WuPDg8icmi3ns4rEl/oTfIle4iLjTliCzgTsbaIFMq/Xn078/lfY/BL0GWZ+psK4Q==}
+  /node-releases/2.0.6:
+    resolution: {integrity: sha512-PiVXnNuFm5+iYkLBNeq5211hvO38y63T0i2KKh2KnUs3RpzJ+JtODFjkD8yjLwnDkTYF1eKXheUwdssR+NRZdg==}
     dev: true
 
   /normalize-path/3.0.0:
@@ -358,7 +358,7 @@ packages:
       ts-node:
         optional: true
     dependencies:
-      lilconfig: 2.0.5
+      lilconfig: 2.0.6
       postcss: 8.4.14
       yaml: 1.10.2
     dev: true
@@ -446,8 +446,8 @@ packages:
     engines: {node: '>= 0.4'}
     dev: true
 
-  /tailwindcss/3.1.4:
-    resolution: {integrity: sha512-NrxbFV4tYsga/hpWbRyUfIaBrNMXDxx5BsHgBS4v5tlyjf+sDsgBg5m9OxjrXIqAS/uR9kicxLKP+bEHI7BSeQ==}
+  /tailwindcss/3.1.6:
+    resolution: {integrity: sha512-7skAOY56erZAFQssT1xkpk+kWt2NrO45kORlxFPXUt3CiGsVPhH1smuH5XoDH6sGPXLyBv+zgCKA2HWBsgCytg==}
     engines: {node: '>=12.13.0'}
     hasBin: true
     dependencies:
@@ -460,7 +460,7 @@ packages:
       fast-glob: 3.2.11
       glob-parent: 6.0.2
       is-glob: 4.0.3
-      lilconfig: 2.0.5
+      lilconfig: 2.0.6
       normalize-path: 3.0.0
       object-hash: 3.0.0
       picocolors: 1.0.0
@@ -484,13 +484,13 @@ packages:
       is-number: 7.0.0
     dev: true
 
-  /update-browserslist-db/1.0.4_browserslist@4.21.1:
+  /update-browserslist-db/1.0.4_browserslist@4.21.2:
     resolution: {integrity: sha512-jnmO2BEGUjsMOe/Fg9u0oczOe/ppIDZPebzccl1yDWGLFP16Pa1/RM5wEoKYPG2zstNcDuAStejyxsOuKINdGA==}
     hasBin: true
     peerDependencies:
       browserslist: '>= 4.21.0'
     dependencies:
-      browserslist: 4.21.1
+      browserslist: 4.21.2
       escalade: 3.1.1
       picocolors: 1.0.0
     dev: true

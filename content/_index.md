@@ -42,7 +42,7 @@ I use [`PostgreSQL`](https://www.postgresql.org/), [`MySQL`](https://www.mysql.c
 
 For *load testing*, I can write scenarios for both [`K6`](https://k6.io/) and [`Locust`](https://locust.io/), coupled with proper time series DB as [`InfluxDB`](https://www.influxdata.com/) and `Grafana` as visualization tool. For advanced application performance analysis, I tend to use [`OpenTelemetry`](https://opentelemetry.io/) as collection tools for proper metrics that can be exposed to `Prometheus`, and tracing, ready to export into `Jaeger`.
 
-Have some experiences with many mid-range cloud providers as [Digital Ocean](https://www.digitalocean.com/), [Hetzner](https://www.hetzner.com/), [OVH](https://www.ovhcloud.com/), [Scaleway](https://www.scaleway.com/).
+Have some experiences with many mid-range cloud providers as [Digital Ocean](https://www.digitalocean.com/), [Hetzner](https://www.hetzner.com/), [OVH](https://www.ovhcloud.com/), [Scaleway](https://www.scaleway.com/), and some basic knowledge on [Terraform](https://www.terraform.io/) as main [*IaC*](https://en.wikipedia.org/wiki/Infrastructure_as_code) tool and [Salt](https://docs.saltproject.io/) for global node administration.
 
 Some notes of this blog :
 
