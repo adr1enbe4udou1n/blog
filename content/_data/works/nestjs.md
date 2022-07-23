@@ -1,4 +1,4 @@
-[`NestJS 8`](https://nestjs.com/) implementation under `NodeJS 16` using [`Typescript`](https://www.typescriptlang.org/) and [`pnpm`](https://pnpm.io/) as fast package manager. It relies by default on [`express`](https://github.com/expressjs/express) as NodeJS HTTP server implementation. NestJS offers a nice OpenAPI documentation generator thanks to Typescript which provides strong typing.
+[`NestJS 9`](https://nestjs.com/) implementation under `NodeJS` using [`Typescript`](https://www.typescriptlang.org/) and [`pnpm`](https://pnpm.io/) as fast package manager. It relies by default on [`express`](https://github.com/expressjs/express) as NodeJS HTTP server implementation. NestJS offers a nice OpenAPI documentation generator thanks to Typescript which provides strong typing.
 
 The separated ORM package take the best ideas from both known Doctrine and Eloquent PHP ORM :
 
