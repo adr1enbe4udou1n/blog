@@ -575,15 +575,17 @@ This scripts doesn't provide rotation of dumps, as the next incremental backup w
 
 ### Incremental backup with Restic
 
+Now we'll configure Restic for incremental backup to any S3 compatible external provider. Note as all following commands must be executed as **root** user. Be sure to do `sudo su -` before continue.
+
 {{< highlight host="data-01" >}}
 
 ```sh
 wget https://github.com/restic/restic/releases/download/v0.12.1/restic_0.12.1_linux_amd64.bz2
 bzip2 -d restic_0.12.1_linux_amd64.bz2
 chmod +x restic_0.12.1_linux_amd64
-sudo mv restic_0.12.1_linux_amd64 /usr/local/bin/restic
+mv restic_0.12.1_linux_amd64 /usr/local/bin/restic
 restic self-update
-sudo restic generate --bash-completion /etc/bash_completion.d/restic
+restic generate --bash-completion /etc/bash_completion.d/restic
 ```
 
 {{< /highlight >}}
