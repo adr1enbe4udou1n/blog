@@ -28,9 +28,10 @@ I encourage `TDD` or at least proper **integration tests** on any backend framew
 
 Fully embracing app containerization with `Docker` and `Kubernetes`, from local, staging to production, I push to use properly configured **CI/CD** whenever possible in order to enforce **continuous automatized testing, linting and code styling** at many languages ([`ESLint`](https://eslint.org/), [`Prettier`](https://prettier.io/), [`PHP CS fixer`](https://cs.symfony.com/), [`PHPStan`](https://github.com/phpstan/phpstan), [`Black`](https://black.readthedocs.io/en/stable/), [`mypy`](http://mypy-lang.org/), [`Google Java Format`](https://github.com/google/google-java-format), [`Spotless`](https://github.com/diffplug/spotless), and so on...).
 
-Mastering installations and maintenance of `Docker Swarm` or bare metal `Kubernetes` clusters. Here some cloud native tools solutions I generally use :
+Mastering installations and maintenance of `Docker Swarm` or bare metal `Kubernetes` clusters with **HA** architecture. Here some cloud native tools solutions I generally use :
 
-* [`Traefik`](https://traefik.io/traefik/) as preferred cloud proxy with automatic service discovery and SSL configuration
+* [`HAProxy`] for **high-availability** across multiple frontend workers
+* [`Traefik`](https://traefik.io/traefik/) as main automatic service discovery / ingress controller
 * [`Portainer`](https://www.portainer.io/) as simple GUI for containers management
 * [`Loki`](https://grafana.com/oss/loki/), [`Prometheus`](https://prometheus.io) and [`Jaeger`](https://www.jaegertracing.io/) as respective *logging*, *metrics* and *tracing* tools
 * [`Grafana`](https://grafana.com) as GUI dashboard builder, designed for *Ops*
@@ -38,11 +39,11 @@ Mastering installations and maintenance of `Docker Swarm` or bare metal `Kuberne
 * [`Drone CI`](https://www.drone.io/) or [`Concourse`](https://concourse-ci.org/) as both *CI/CD* solutions
 * [`SonarQube`](https://www.sonarqube.org/) for automatic quality code scan
 
-I use [`PostgreSQL`](https://www.postgresql.org/), [`MySQL`](https://www.mysql.com/fr/), and `MSSQL` as main *SGBD*, as well as `Redis` for high performance cache/sessions management.
+I can install and manage primary-replica databases clusters, mainly [`PostgreSQL`](https://www.postgresql.org/) and [`MySQL`](https://www.mysql.com/fr/), whether bare-metal or cloud managed with Kubernetes (statefulsets), with Prometheus metrics exporters.
 
 For *load testing*, I can write scenarios for both [`K6`](https://k6.io/) and [`Locust`](https://locust.io/), coupled with proper time series DB as [`InfluxDB`](https://www.influxdata.com/) and `Grafana` as visualization tool. For advanced application performance analysis, I tend to use [`OpenTelemetry`](https://opentelemetry.io/) as collection tools for proper metrics that can be exposed to `Prometheus`, and tracing, ready to export into `Jaeger`.
 
-Have some experiences with many mid-range cloud providers as [Digital Ocean](https://www.digitalocean.com/), [Hetzner](https://www.hetzner.com/), [OVH](https://www.ovhcloud.com/), [Scaleway](https://www.scaleway.com/), and some basic knowledge on [Terraform](https://www.terraform.io/) as main [*IaC*](https://en.wikipedia.org/wiki/Infrastructure_as_code) tool and [Salt](https://docs.saltproject.io/) as cluster wide configuration management.
+Have some experiences with many mid-range cloud providers as [Digital Ocean](https://www.digitalocean.com/), [Hetzner](https://www.hetzner.com/), [OVH](https://www.ovhcloud.com/), [Scaleway](https://www.scaleway.com/), and some knowledge on [Terraform](https://www.terraform.io/) as main [*IaC*](https://en.wikipedia.org/wiki/Infrastructure_as_code) tool and [Salt](https://docs.saltproject.io/) as cluster wide configuration management.
 
 Some notes of this blog :
 

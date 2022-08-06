@@ -10,5 +10,6 @@ Main purpose of this projects is to have personal extensive API training on mult
 * `PostgreSQL` as main databases
 * Use ORM whenever possible that follows any `DataMapper` or `Active Record` patterns
 * Proper seeder / faker for quick starting with filled DB
+* Separated RW / RO database connections for maximizing performance between these 2 contexts
 * Proper suited QA + production Dockerfile
 * Complete CI/CD deployment on Kubernetes with [Concourse](https://concourse.okami101.io/)
