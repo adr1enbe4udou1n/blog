@@ -1,4 +1,4 @@
-[`Vue 3 TS`](https://vuejs.org/) implementation written with Composition API. Instead of using outdated [Bootstrap v4 alpha 2 theme](https://github.com/gothinkster/conduit-bootstrap-template), I rewrite it on [UnoCSS](https://github.com/unocss/unocss), an awesome efficient Tailwind-like utility-first CSS framework.
+[`Vue 3 TS`](https://vuejs.org/) implementation written with Composition API. Instead of using outdated [Bootstrap v4 alpha 2 theme](https://github.com/gothinkster/conduit-bootstrap-template), I rewrite it on [UnoCSS](https://github.com/unocss/unocss), an awesome efficient Tailwind-like utility-first CSS framework, with Dark Mode support.
 
 For API communication, as we have full proper OpenAPI spec, it's a real benefit to have a generated Typescript client for full autocompletion feature. I generally hate generated boilerplate code and the well known [OpenAPI Generator](https://github.com/OpenAPITools/openapi-generator) is not very nice to use.
 

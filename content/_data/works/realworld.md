@@ -12,4 +12,7 @@ Main purpose of this projects is to have personal extensive API training on mult
 * Proper seeder / faker for quick starting with filled DB
 * Separated RW / RO database connections for maximizing performance between these 2 contexts
 * Proper suited QA + production Dockerfile
-* Complete CI/CD deployment on Kubernetes with [Concourse](https://concourse.okami101.io/)
+* Complete CI on Kubernetes with [Concourse](https://concourse.okami101.io/)
+* Automatic CD on Kubernetes using [Flux](https://fluxcd.io/)
+
+See complete production deployment manifests [here](https://gitea.okami101.io/adr1enbe4udou1n/flux-source/src/branch/main/conduit), allowing **GitOps** management.

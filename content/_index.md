@@ -32,12 +32,14 @@ Mastering installations and maintenance of `Docker Swarm` or bare metal `Kuberne
 
 * [`HAProxy`] for **high-availability** across multiple frontend workers
 * [`Traefik`](https://traefik.io/traefik/) as main automatic service discovery / ingress controller
+* [`cert-manager`](https://cert-manager.io/) as central certificate solution for Kubernetes cluster
 * [`Portainer`](https://www.portainer.io/) as simple GUI for containers management
 * [`Loki`](https://grafana.com/oss/loki/), [`Prometheus`](https://prometheus.io) and [`Jaeger`](https://www.jaegertracing.io/) as respective *logging*, *metrics* and *tracing* tools
 * [`Grafana`](https://grafana.com) as GUI dashboard builder, designed for *Ops*
 * [`Gitea`](https://gitea.io/) or [`GitLab`](https://about.gitlab.com/) as self-hosted *VCS*
-* [`Drone CI`](https://www.drone.io/) or [`Concourse`](https://concourse-ci.org/) as both *CI/CD* solutions
 * [`SonarQube`](https://www.sonarqube.org/) for automatic quality code scan
+* [`Drone`](https://www.drone.io/) or [`Concourse`](https://concourse-ci.org/) as *CI* solutions
+* [`Flux CD v2`](https://fluxcd.io/) as main *CD* solution for Kubernetes, allowing **GitOps** cluster management
 
 I can install and manage primary-replica databases clusters, mainly [`PostgreSQL`](https://www.postgresql.org/) and [`MySQL`](https://www.mysql.com/fr/), whether bare-metal or cloud managed with Kubernetes (statefulsets), with Prometheus metrics exporters.
 
@@ -47,12 +49,20 @@ Have some experiences with many mid-range cloud providers as [Digital Ocean](htt
 
 Some notes of this blog :
 
-* Hosted on Hetzner Cloud
 * Powered by [`Hugo`](https://gohugo.io/)
+* Using **Hetzner Cloud** as cloud provider
+* Hosted on bare-metal `Kubernetes` multi-nodes cluster, installed with `Terraform` and [`k0s`](https://k0sproject.io/) distribution
+* **HA** setup using **Hetzner LB** and 2 worker nodes
+* `Traefik` as reverse proxy, configured for HA 🛣️
+* `cert-manager` with wildcard certificate 📜
 * Source code on my own [`Gitea`](https://gitea.okami101.io/adr1enbe4udou1n/blog)
-* Automatically deployed through my own [`Concourse`](https://concourse.okami101.io) instance
+* Compiled by my own [`Concourse`](https://concourse.okami101.io) instance as a final docker container image into private registry (**CI** 🏗️)
+* Automatically deployed by `Flux CD v2` to the Kubernetes cluster from [central Git source](https://gitea.okami101.io/adr1enbe4udou1n/flux-source/) (**CD** 🚀)
+* Fully monitored by self-hosted Kube Prometheus Stack 📊
 * Tracked with [`Matomo`](https://matomo.okami101.io/)
 
-All the above tools are **self-hosted** on custom multi-nodes **bare metal** `Kubernetes` installed with [`k0s`](https://k0sproject.io/).
+All above tools are 💯% self-hosted ! Just sadly missing my own Homelab with Proxmox because no fiber 😿
+
+Seems [overkill](https://twitter.com/memenetes/status/1559208569588912132) ? Yeah, but why not ? I'm not able to write a single post without all that 😿
 
 See some of [my open sourced works]({{< ref "works" >}} "Okami101 Works").
