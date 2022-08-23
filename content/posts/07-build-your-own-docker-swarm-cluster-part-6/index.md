@@ -334,7 +334,7 @@ It's just a new `jaeger` docker stack to deploy :
 {{< highlight host="stack" file="jaeger" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
   collector:
@@ -418,7 +418,7 @@ Then edit original Traefik stack file and add `traefik` service into `jaeger` ne
 {{< highlight host="manager-01" file="~/traefik-stack.yml" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
   traefik:

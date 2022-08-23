@@ -65,7 +65,7 @@ Finally create next stack in Portainer :
 {{< highlight host="stack" file="prometheus" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
 
@@ -302,7 +302,7 @@ Next create new following stack :
 {{< highlight host="stack" file="grafana" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
   grafana:

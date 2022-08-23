@@ -30,7 +30,7 @@ Do `sudo mkdir /mnt/storage-pool/gitea` and create next stack :
 {{< highlight host="stack" file="gitea" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
   gitea:
@@ -90,7 +90,7 @@ We'll use the official docker registry with addition of nice simple UI for image
 {{< highlight host="stack" file="registry" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
   app:
@@ -229,7 +229,7 @@ Save and keep the client and secret tokens. Then create a new `drone` PostgreSQL
 {{< highlight host="stack" file="drone" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
   drone:
@@ -440,7 +440,7 @@ Our application is now ready for production deployment ! Let's create our new sh
 {{< highlight host="stack" file="weather" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
   app:

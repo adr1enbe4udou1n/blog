@@ -58,7 +58,7 @@ Then edit the `weather` docker stack and configure Jaeger connection.
 {{< highlight host="stack" file="weather" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
   app:
@@ -113,7 +113,7 @@ Create a `sonar` PostgresSQL database, and create next stack :
 {{< highlight host="stack" file="sonar" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
   server:
@@ -227,7 +227,7 @@ Create a new influxdb stack :
 {{< highlight host="stack" file="influxdb" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
   db:
@@ -259,7 +259,7 @@ Add InfluxDB private network to Grafana stack :
 {{< highlight host="stack" file="grafana" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
   grafana:
@@ -302,7 +302,7 @@ Then create the following stack :
 {{< highlight host="stack" file="k6" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
   load:

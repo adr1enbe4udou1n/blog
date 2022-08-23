@@ -190,7 +190,7 @@ In order to deploy Traefik on our shiny new Docker Swarm, we must write a Docker
 {{< highlight host="manager-01" file="~/traefik-stack.yml" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
   traefik:
@@ -320,7 +320,7 @@ Create `portainer-agent-stack.yml` swarm stack file with follogin content :
 {{< highlight host="manager-01" file="~/portainer-agent-stack.yml" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
   agent:
@@ -420,7 +420,7 @@ Create the next stack through Portainer :
 {{< highlight host="stack" file="maintenance" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
   diun:
@@ -544,7 +544,7 @@ Do `sudo /mnt/storage-pool/minio` on `manager-01` and create following stack :
 {{< highlight host="stack" file="minio" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
   app:

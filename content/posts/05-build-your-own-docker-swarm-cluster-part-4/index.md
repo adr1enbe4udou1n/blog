@@ -76,7 +76,7 @@ Create next stack :
 {{< highlight host="stack" file="phpmyadmin" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
   app:
@@ -204,7 +204,7 @@ Finally, create next stack :
 {{< highlight host="stack" file="pgadmin" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
   app:
@@ -265,7 +265,7 @@ Then create following stack :
 {{< highlight host="stack" file="matomo" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
   app:
@@ -406,7 +406,7 @@ Next create new following stack :
 {{< highlight host="stack" file="redmine" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
   app:
@@ -466,7 +466,7 @@ Create storage folder with `sudo mkdir /mnt/storage-pool/n8n` and create new fol
 {{< highlight host="stack" file="n8n" >}}
 
 ```yml
-version: '3'
+version: '3.8'
 
 services:
   app:
