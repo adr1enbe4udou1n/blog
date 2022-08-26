@@ -50,16 +50,16 @@ Have some experiences with many mid-range cloud providers as [Digital Ocean](htt
 Some notes of this blog :
 
 * Powered by [`Hugo`](https://gohugo.io/)
-* Using **Hetzner Cloud** as cloud provider
-* Hosted on bare-metal `Kubernetes` multi-nodes cluster, installed with `Terraform` and [`k0s`](https://k0sproject.io/) distribution
-* **HA** setup using **Hetzner LB** and 2 worker nodes
+* Hosted on **Hetzner Cloud**, fully **GitOps managed** from my own [`Terraform project`](https://github.com/adr1enbe4udou1n/terraform-hcloud-k0s)
+* Running on bare-metal `Kubernetes` multi-nodes cluster from [`k0s`](https://k0sproject.io/) distribution
+* **HA** setup using **Hetzner LB**, targeting 2 worker nodes, with **Postgres cluster** (managed on same Kubernetes cluster)
 * `Traefik` as reverse proxy, configured for HA 🛣️
 * `cert-manager` with wildcard certificate 📜
 * Source code on my own [`Gitea`](https://gitea.okami101.io/adr1enbe4udou1n/blog)
-* Compiled by my own [`Concourse`](https://concourse.okami101.io) instance as a final docker container image into private registry (**CI** 🏗️)
+* Compiled by my own [`Concourse`](https://concourse.okami101.io) instance as a final docker container image into self-hosted private registry (**CI** 🏗️)
 * Automatically deployed by `Flux CD v2` to the Kubernetes cluster from [central Git source](https://gitea.okami101.io/adr1enbe4udou1n/flux-source/) (**CD** 🚀)
 * Fully monitored by self-hosted Kube Prometheus Stack 📊
-* Tracked with [`Matomo`](https://matomo.okami101.io/)
+* Tracked with [`Matomo`](https://matomo.okami101.io/) 📈
 
 All above tools are 💯% self-hosted ! Just sadly missing my own Homelab with Proxmox because no fiber 😿
 
