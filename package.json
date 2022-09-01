@@ -2,15 +2,10 @@
   "name": "okami101-blog",
   "version": "1.0.0",
   "description": "Okami101 Blog",
-  "scripts": {
-    "dev": "tailwindcss -i ./main.css -o ./assets/css/custom.css --jit -w",
-    "build": "tailwindcss -i ./main.css -o ./assets/css/custom.css --jit"
-  },
   "author": "Adrien Beaudouin",
   "license": "MIT",
-  "devDependencies": {
-    "autoprefixer": "^10.4.8",
-    "postcss": "^8.4.16",
-    "tailwindcss": "^3.1.8"
+  "scripts": {
+    "dev": "node themes/congo/node_modules/tailwindcss/lib/cli.js -c tailwind.config.js -i themes/congo/assets/css/main.css -o assets/css/compiled/main.css --jit -w",
+    "build": "node themes/congo/node_modules/tailwindcss/lib/cli.js -c tailwind.config.js -i themes/congo/assets/css/main.css -o assets/css/compiled/main.css --jit"
   }
 }

@@ -5,6 +5,7 @@
 # baseURL = "https://blog.okami101.io/"
 languageCode = "en"
 defaultContentLanguage = "en"
+theme = "congo"
 
 title = "Okami101 Blog"
 # copyright = "Copy, _right?_ :thinking_face:"
