@@ -9,6 +9,7 @@ config.theme.colors = {
     white: colors.white,
     gray: colors.gray,
     emerald: colors.emerald,
+    blue: colors.blue,
     red: colors.red,
     indigo: colors.indigo,
     yellow: colors.yellow,
