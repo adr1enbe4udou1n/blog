@@ -2469,6 +2469,10 @@ body:has(#menu-controller:checked) {
   background-color: rgba(var(--color-primary-100), var(--tw-bg-opacity));
 }
 
+.bg-blue-900\/20 {
+  background-color: rgb(30 58 138 / 0.2);
+}
+
 .bg-primary-200 {
   --tw-bg-opacity: 1;
   background-color: rgba(var(--color-primary-200), var(--tw-bg-opacity));
