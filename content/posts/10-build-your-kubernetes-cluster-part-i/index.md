@@ -10,9 +10,19 @@ draft: true
 Build your self-hosted Kubernetes cluster and be free from any SaaS solutions by following this opinionated guide 🎉
 {{< /lead >}}
 
-## For who is this guide intended ?
+## For who
 
-[Docker Swarm]({{< ref "/posts/02-build-your-own-docker-swarm-cluster" >}}).
+This guide is mainly intended for any developers that want a HA ready Kubernetes cluster that respect following conditions :
+
+1. Completely bare-metal and self-hosted, with some GitOps way steps
+2. Free from any big cloud providers (AWS, GCP, Azure) which offers managed Kubernetes
+3. Not too much expensive (targeting less than $50). For that Hetzner will be my preferred choice !
+
+I will not risk saying that it's production ready, but it's a good start to build your own Kubernetes platform and quick learning all his ecosystem.
+
+{{< alert >}}
+[Docker Swarm]({{< ref "/posts/02-build-your-own-docker-swarm-cluster" >}})
+{{< /alert >}}
 
 ## Final goal 🎯
 

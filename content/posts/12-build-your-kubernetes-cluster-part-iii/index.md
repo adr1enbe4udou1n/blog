@@ -1,8 +1,8 @@
 ---
-title: "Setup a HA Kubernetes cluster Part III - Traefik & persistence storages (NFS & S3)"
+title: "Setup a HA Kubernetes cluster Part III - Ingress & storages with NFS & S3"
 date: 2022-09-02
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
-tags: ["kubernetes"]
+tags: ["kubernetes", "traefik", "cert-manager", "nfs", "minio"]
 draft: true
 ---
 

@@ -1,8 +1,8 @@
 ---
-title: "Setup a HA Kubernetes cluster Part II - Hetzner with Terraform & K0S"
+title: "Setup a HA Kubernetes cluster Part II - Installation, GitOps way"
 date: 2022-09-02
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
-tags: ["kubernetes"]
+tags: ["kubernetes", "terraform", "hetzner", "k0s", "gitops"]
 draft: true
 ---
 
