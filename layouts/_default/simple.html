@@ -1,0 +1,15 @@
+{{ define "main" }}
+  <article>
+    <header>
+      {{ if .Params.showBreadcrumbs | default (.Site.Params.article.showBreadcrumbs | default false) }}
+        {{ partial "breadcrumbs.html" . }}
+      {{ end }}
+      <h1 class="mt-0 text-4xl font-extrabold text-neutral-900 dark:text-neutral text-center">
+        {{ .Title | emojify }}
+      </h1>
+    </header>
+    <section class="mt-6 prose dark:prose-invert mx-auto">
+      {{ .Content | emojify }}
+    </section>
+  </article>
+{{ end }}
