@@ -1,10 +1,7 @@
 ---
 title: "Privacy Policy"
 description: "Some boring stuf."
-showDate: false
-showAuthor: false
-showReadingTime: false
-showEdit: false
+layout: "simple"
 ---
 
 ## What We Collect and Receive
