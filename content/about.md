@@ -46,8 +46,8 @@ Have some experiences with many mid-range cloud providers as [Digital Ocean](htt
 Some notes of this blog :
 
 * Powered by [`Hugo`](https://gohugo.io/)
-* Hosted on **Hetzner Cloud**, fully **GitOps managed** from custom [`Terraform Hcloud project`](https://github.com/adr1enbe4udou1n/terraform-hcloud-k0s)
-* Running on bare-metal `Kubernetes` multi-nodes cluster from [`k0s`](https://k0sproject.io/) distribution
+* Hosted on **Hetzner Cloud**, fully **GitOps managed** from custom [`Terraform Hcloud project`](https://github.com/adr1enbe4udou1n/terraform-hcloud-k3s)
+* Running on bare-metal lightweight `Kubernetes` multi-nodes cluster from [`K3s`](https://k3s.io/) distribution
 * Kubernetes infrastructure completely managed with [`Terraform`](https://github.com/adr1enbe4udou1n/terraform-kube-okami) 🌴
 * **HA** setup using **Hetzner LB**, targeting 2 worker nodes, with **Postgres cluster** (managed on same Kubernetes cluster)
 * `Traefik` as reverse proxy, configured for HA 🛣️
