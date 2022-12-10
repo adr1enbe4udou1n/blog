@@ -1,4 +1,4 @@
-[`Laravel 9`](https://laravel.com/) implementation on `PHP 8.1` with extensive usage of last attributes support. The particularity of this framework is to give you almost of all you need for quickly develop any complex application. So minimal external packages need.
+[`Laravel 9`](https://laravel.com/) implementation on `PHP 8.2` with extensive usage of last attributes support. The particularity of this framework is to give you almost of all you need for quickly develop any complex application. So minimal external packages need.
 
 I obviously made usage of **Eloquent** as a very expressive **Active Record** ORM, and the Laravel factories system based on [PHP Faker](https://fakerphp.github.io/) is already perfect for dummy data generator.
 
