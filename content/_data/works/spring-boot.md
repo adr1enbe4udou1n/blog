@@ -1,4 +1,4 @@
-[`Spring Boot 2.7`](https://spring.io/projects/spring-boot) implementation using `Gradle 7.5` & `Java 19`. Similar to the [official Spring Boot implementation](https://github.com/gothinkster/spring-boot-realworld-example-app) but with usage of `Spring Data JPA` instead of `MyBatis`. [Here is another nice one](https://github.com/raeperd/realworld-springboot-java) that explicitly follows `DDD`.
+[`Spring Boot 3`](https://spring.io/projects/spring-boot) implementation using `Gradle 7.5` & `Java 19`. Similar to the [official Spring Boot implementation](https://github.com/gothinkster/spring-boot-realworld-example-app) but with usage of `Spring Data JPA` instead of `MyBatis`. [Here is another nice one](https://github.com/raeperd/realworld-springboot-java) that explicitly follows `DDD`.
 
 Main packages involved :
 

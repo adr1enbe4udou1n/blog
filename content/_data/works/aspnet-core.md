@@ -4,7 +4,6 @@ Main packages involved :
 
 * [EF Core](https://docs.microsoft.com/ef/) as strongly typed ORM
 * [MediatR](https://github.com/jbogard/MediatR) for easy mediator implementation. It allows strong decoupling between all ASP.NET controllers and the final application which is cutted into small queries and commands
-* [AutoMapper](https://automapper.org/) for minimal DTOs boilerplate
 * [Fluent Validation](https://fluentvalidation.net/) for strongly typed validation
 * [dotnet-format](https://github.com/dotnet/format) as official formatter
 * [xUnit.net](https://xunit.net/) as framework test
