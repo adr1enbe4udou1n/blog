@@ -1,6 +1,6 @@
 ---
-title: "Setup a HA Kubernetes cluster for less than $50 / month"
-date: 2022-09-02
+title: "Setup a HA Kubernetes cluster for less than $60 / month"
+date: 2022-12-08
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes"]
 draft: true
@@ -66,4 +66,4 @@ Concourse / FluxCD
 
 ## Let’s party 🎉
 
-Enough talk, [let's go Charles !]({{< ref "/posts/11-build-your-kubernetes-cluster-part-ii" >}}).
+Enough talk, [let's go Charles !]({{< ref "/posts/11-build-your-kubernetes-cluster-part-2" >}}).
