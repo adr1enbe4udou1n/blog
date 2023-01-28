@@ -10,12 +10,11 @@ draft: true
 Build your self-hosted Kubernetes cluster and be free from any SaaS solutions by following this opinionated guide 🎉
 {{< /lead >}}
 
-1. MySQL and PostgreSQL
-2. Web management apps with PMA & PGA
-3. Job backups
-4. NFS Backup
+1. Add data-01 node
+2. MySQL and PostgreSQL
+3. Web management apps with PMA & PGA
+4. Job backups
 5. Clustering with additional data-02 and postgreSQL cluster
-6. Additional DB apps (Matomo / Redmine)
 
 ## 3rd check ✅
 

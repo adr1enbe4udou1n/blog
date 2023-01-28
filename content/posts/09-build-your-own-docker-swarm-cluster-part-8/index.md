@@ -357,7 +357,7 @@ It's now time to go back to Grafana and try to get some charts from influxdb ! F
 
 Now create a new dashboard, a new panel, and keep *Time series* as main graph system. Select above InfluxDB data source and switch to raw query expression. Finally, put following query `SELECT sum("value") FROM "http_reqs" WHERE $timeFilter GROUP BY time(1s)` in fields. Some graph should appear, select the right time interval where you have done previous load testing and voilà !
 
-[![Grafana load testing](grafana-load-testing.png)](grafana-load-testing)
+[![Grafana load testing](grafana-load-testing.png)](grafana-load-testing.png)
 
 We now have the current HTTP requests count for every second. Below the *Chart.js* result of my own loading test.
 

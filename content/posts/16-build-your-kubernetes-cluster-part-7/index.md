@@ -1,8 +1,8 @@
 ---
-title: "Setup a HA Kubernetes cluster Part VII - CD, GitOps way"
+title: "Setup a HA Kubernetes cluster Part VI - VCS & CI"
 date: 2022-12-14
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
-tags: ["kubernetes", "fluxcd", "gitops"]
+tags: ["kubernetes", "gitea", "concourse"]
 draft: true
 ---
 
@@ -10,10 +10,12 @@ draft: true
 Build your self-hosted Kubernetes cluster and be free from any SaaS solutions by following this opinionated guide 🎉
 {{< /lead >}}
 
-1. FluxCD
-2. Kubeseal
-3. Testing with previous app
+1. Add runner-01
+2. Gitea
+3. Docker registry
+4. Concourse
+5. Testing with app push
 
 ## 6th check ✅
 
-You now have a GitOps ready cluster for any apps deployment, let's go further with load testing and tracing on [next part]({{< ref "/posts/17-build-your-kubernetes-cluster-part-8" >}}).
+We have everything we need for app building, it's now time to deploy them automatically (Continuous Delivery) with GitOps way on [next part]({{< ref "/posts/17-build-your-kubernetes-cluster-part-8" >}}).

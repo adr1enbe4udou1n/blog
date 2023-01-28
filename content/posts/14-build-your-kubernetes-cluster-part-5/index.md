@@ -12,9 +12,10 @@ Build your self-hosted Kubernetes cluster and be free from any SaaS solutions by
 
 1. Add monitor-01
 2. Prometheus Stack
-3. Grafana
-4. Loki / Promtail
+3. Loki / Promtail
+4. Grafana
+5. Services Monitor & Dashboards
 
 ## 4th check ✅
 
-We now have a full monitoring suite ! Go [next part]({{< ref "/posts/15-build-your-kubernetes-cluster-part-6" >}}) if you want a complete CI suite for apps building.
+We now have a full monitoring suite ! Go [next part]({{< ref "/posts/15-build-your-kubernetes-cluster-part-6" >}}) to finally use our cluster with some real apps, including some well known low-code tools !

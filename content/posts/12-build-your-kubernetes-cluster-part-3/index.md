@@ -11,9 +11,9 @@ Build your self-hosted Kubernetes cluster and be free from any SaaS solutions by
 {{< /lead >}}
 
 1. Traefik & cert-manager
-2. NFS subdirectory provisioner
-3. Portainer
-4. Minio
+2. Resilient Storage with Longhorn
+3. Samples with Portainer & Minio
+4. S3 Backup with longhorn
 
 ## 2nd check ✅
 

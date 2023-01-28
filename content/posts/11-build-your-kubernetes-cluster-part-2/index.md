@@ -12,6 +12,7 @@ Build your self-hosted Kubernetes cluster and be free from any SaaS solutions by
 
 1. Terraform
 2. K3S usage
+3. Hetzner CSI drivers
 
 ## 1st check ✅
 
