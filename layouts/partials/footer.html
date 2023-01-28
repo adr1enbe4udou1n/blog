@@ -1,18 +1,78 @@
 <footer class="py-10 print:hidden">
   {{/* Footer menu */}}
   {{ if .Site.Menus.footer }}
-  <nav class="pb-4 text-base font-medium text-neutral-500 dark:text-neutral-400">
-    <ul class="flex flex-col list-none sm:flex-row">
-      {{ range .Site.Menus.footer }}
-      <li class="mb-1 ltr:text-right rtl:text-left sm:mb-0 ltr:sm:mr-7 ltr:sm:last:mr-0 rtl:sm:ml-7 rtl:sm:last:ml-0">
-        <a class="decoration-primary-500 hover:underline hover:decoration-2 hover:underline-offset-2" href="{{ .URL }}"
-          title="{{ .Title }}">{{ .Name | markdownify | emojify }}</a>
-      </li>
-      {{ end }}
-    </ul>
-  </nav>
+    <nav class="pb-4 text-base font-medium text-neutral-500 dark:text-neutral-400">
+      <ul class="flex flex-col list-none sm:flex-row">
+        {{ range .Site.Menus.footer }}
+          <li
+            class="mb-1 group ltr:text-right rtl:text-left sm:mb-0 ltr:sm:mr-7 ltr:sm:last:mr-0 rtl:sm:ml-7 rtl:sm:last:ml-0"
+          >
+            {{ if eq .Params.action "search" }}
+              {{ $.Scratch.Add "searchCount" 1 }}
+              {{ if $.Site.Params.enableSearch | default false }}
+                <button
+                  id="search-button-{{ $.Scratch.Get "searchCount" }}"
+                  title="{{ .Title | default (i18n "search.open_button_title") }}"
+                >
+                  {{ with .Params.icon }}
+                    <span
+                      class="transition-colors group-dark:hover:text-primary-400 group-hover:text-primary-600"
+                    >
+                      {{ partial "icon.html" . }}
+                    </span>
+                  {{ end }}{{ if .Params.showName | default true }}
+                    <span
+                      class="decoration-primary-500 group-hover:underline group-hover:decoration-2 group-hover:underline-offset-2"
+                      >{{ .Name | markdownify | emojify }}</span
+                    >
+                  {{ end }}
+                </button>
+              {{ end }}
+            {{ else if eq .Params.action "appearance" }}
+              {{ $.Scratch.Add "switchCount" 1 }}
+              <button
+                id="appearance-switcher-{{ $.Scratch.Get "switchCount" }}"
+                type="button"
+                aria-label="appearance switcher"
+              >
+                <span
+                  class="inline transition-colors group-dark:hover:text-primary-400 group-hover:text-primary-600 dark:hidden"
+                  title="{{ i18n "footer.dark_appearance" }}"
+                >
+                  {{ partial "icon.html" "moon" }}
+                </span>
+                <span
+                  class="hidden transition-colors group-dark:hover:text-primary-400 group-hover:text-primary-600 dark:inline"
+                  title="{{ i18n "footer.light_appearance" }}"
+                >
+                  {{ partial "icon.html" "sun" }}
+                </span>
+              </button>
+            {{ else }}
+              <a
+                href="{{ .URL }}"
+                title="{{ .Title }}"
+                {{ with .Params.target }}target="{{ . }}"{{ end }}
+                >{{ with .Params.icon }}
+                  <span
+                    class="transition-colors group-dark:hover:text-primary-400 group-hover:text-primary-600"
+                  >
+                    {{ partial "icon.html" . }}
+                  </span>
+                {{ end }}{{ if .Params.showName | default true }}
+                  <span
+                    class="decoration-primary-500 group-hover:underline group-hover:decoration-2 group-hover:underline-offset-2"
+                    >{{ .Name | markdownify | emojify }}</span
+                  >
+                {{ end }}</a
+              >
+            {{ end }}
+          </li>
+        {{ end }}
+      </ul>
+    </nav>
   {{ end }}
-  <div class="flex justify-between items-center">
+  <div class="flex items-center justify-between">
     <div class="flex items-center gap-4">
       <img src="/kube.png" width="30" height="30" alt="Kubernetes"
         title="Run on K3s over Hetzner Cloud" />
@@ -20,45 +80,57 @@
       <a href="https://concourse.okami101.io/teams/main/pipelines/okami-blog" target="_blank">
         <img src="https://concourse.okami101.io/api/v1/teams/main/pipelines/okami-blog/badge" />
       </a>
-
-      {{/* Copyright */}}
-      <p class="hidden sm:block text-sm text-neutral-500 dark:text-neutral-400">
-        {{- with .Site.Params.copyright }}
-        {{ . | emojify | markdownify }}
-        {{- else }}
-        &copy;
-        {{ now.Format "2006" }}
-        {{ .Site.Author.name | markdownify | emojify }}
-        {{- end }}
-      </p>
-
     </div>
-    <div class="flex items-center">
-      <a href="/privacy-policy" class="hidden md:block text-sm text-neutral-500 dark:text-neutral-400 mr-2 lg:mr-8">
-        Privacy Policy
-      </a>
-      {{/* Appearance switch */}}
-      {{ if .Site.Params.footer.showAppearanceSwitcher | default false }}
-        <div
-          class="text-sm cursor-pointer text-neutral-700 dark:text-neutral hover:text-primary-600 dark:hover:text-primary-400 {{ if .Site.Params.footer.showScrollToTop | default true -}}
-            ltr:mr-14 rtl:ml-14
-          {{- end }}"
-        >
-          <button
-            id="appearance-switcher"
-            class="w-12 h-12 "
-            type="button"
-            title="{{ i18n "footer.dark_appearance" }}"
-          >
-            <span class="inline dark:hidden">{{ partial "icon.html" "moon" }}</span>
-            <span class="hidden dark:inline">{{ partial "icon.html" "sun" }}</span>
-          </button>
-        </div>
+    <div class="hidden lg:block">
+      {{/* Copyright */}}
+      {{ if .Site.Params.footer.showCopyright | default true }}
+        <p class="text-sm text-neutral-500 dark:text-neutral-400">
+          {{- with .Site.Params.copyright }}
+            {{ . | emojify | markdownify }}
+          {{- else }}
+            &copy;
+            {{ now.Format "2006" }}
+            {{ .Site.Author.name | markdownify | emojify }}
+          {{- end }}
+        </p>
+      {{ end }}
+      {{/* Theme attribution */}}
+      {{ if .Site.Params.footer.showThemeAttribution | default true }}
+        <p class="text-xs text-neutral-500 dark:text-neutral-400">
+          {{ $hugo := printf `<a class="hover:underline hover:decoration-primary-400 hover:text-primary-500"
+            href="https://gohugo.io/" target="_blank" rel="noopener noreferrer">Hugo</a>`
+          }}
+          {{ $congo := printf `<a class="hover:underline hover:decoration-primary-400 hover:text-primary-500" href="https://git.io/hugo-congo" target="_blank" rel="noopener noreferrer">Congo</a>` }}
+          {{ i18n "footer.powered_by" (dict "Hugo" $hugo "Congo" $congo) | safeHTML }}
+        </p>
       {{ end }}
     </div>
+    {{/* Appearance switcher */}}
+    {{ if .Site.Params.footer.showAppearanceSwitcher | default false }}
+      <div
+        class="{{ if .Site.Params.footer.showScrollToTop | default true -}}
+          ltr:mr-14 rtl:ml-14
+        {{- end }} cursor-pointer text-sm text-neutral-700 hover:text-primary-600 dark:text-neutral dark:hover:text-primary-400"
+      >
+        <button id="appearance-switcher-0" type="button" aria-label="appearance switcher">
+          <div
+            class="flex items-center justify-center w-12 h-12 dark:hidden"
+            title="{{ i18n "footer.dark_appearance" }}"
+          >
+            {{ partial "icon.html" "moon" }}
+          </div>
+          <div
+            class="items-center justify-center hidden w-12 h-12 dark:flex"
+            title="{{ i18n "footer.light_appearance" }}"
+          >
+            {{ partial "icon.html" "sun" }}
+          </div>
+        </button>
+      </div>
+    {{ end }}
   </div>
   {{/* Extend footer - eg. for extra scripts, etc. */}}
   {{ if templates.Exists "partials/extend-footer.html" }}
-    {{ partialCached "extend-footer.html" . }}
+    {{ partial "extend-footer.html" . }}
   {{ end }}
 </footer>

@@ -3308,6 +3308,14 @@ body:has(#menu-controller:checked) {
     margin-right: 2rem;
   }
 
+  .lg\:block {
+    display: block;
+  }
+
+  .lg\:flex {
+    display: flex;
+  }
+
   .lg\:hidden {
     display: none;
   }
