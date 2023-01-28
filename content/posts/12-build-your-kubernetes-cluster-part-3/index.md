@@ -1,8 +1,8 @@
 ---
-title: "Setup a HA Kubernetes cluster Part III - Ingress & storages with NFS & S3"
+title: "Setup a HA Kubernetes cluster Part III - Ingress & HA storage"
 date: 2022-12-10
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
-tags: ["kubernetes", "traefik", "cert-manager", "nfs", "minio"]
+tags: ["kubernetes", "traefik", "cert-manager", "longhorn", "minio", "s3"]
 draft: true
 ---
 
@@ -17,4 +17,4 @@ Build your self-hosted Kubernetes cluster and be free from any SaaS solutions by
 
 ## 2nd check ✅
 
-Our cluster is now perfectly securely accessible from outside with minimal setup needed for any new apps. Persistence is insured by NFS provisioner and S3 app. The next important part is now to have a [working database for real world apps]({{< ref "/posts/13-build-your-kubernetes-cluster-part-4" >}}).
+Our cluster is now perfectly securely accessible from outside with minimal setup needed for any new apps. Persistence is insured by Longhorn with replicated storage and Minio for S3 needs. The next important part is now to have a [working database for real world apps]({{< ref "/posts/13-build-your-kubernetes-cluster-part-4" >}}).

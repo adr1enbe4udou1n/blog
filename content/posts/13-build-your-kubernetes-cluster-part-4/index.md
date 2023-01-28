@@ -1,5 +1,5 @@
 ---
-title: "Setup a HA Kubernetes cluster Part IV - Databases & backups"
+title: "Setup a HA Kubernetes cluster Part IV - Databases with HA & backups"
 date: 2022-12-11
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "mysql", "postgresql", "minio", "restic"]
@@ -18,4 +18,4 @@ Build your self-hosted Kubernetes cluster and be free from any SaaS solutions by
 
 ## 3rd check ✅
 
-Databases are ready to be consumed by any apps. In real world situation, we should have a full monitoring suite, see [next part]({{< ref "/posts/14-build-your-kubernetes-cluster-part-5" >}}) for complete monitoring and logging stack.
+Databases are ready to be consumed by any apps ! Go [next part]({{< ref "/posts/14-build-your-kubernetes-cluster-part-5" >}}) to finally use our cluster with some real apps, including some well known low-code tools !
