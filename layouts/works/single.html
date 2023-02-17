@@ -27,7 +27,7 @@
             {{ end }}
             <div class="grid md:grid-cols-2 gap-4 mb-4">
                 {{ range .apps }}
-                {{ $borders := dict "green" "border-green-500" "orange" "border-orange-500" "black" "border-black dark:border-white"
+                {{ $borders := dict "green" "border-green-500" "blue" "border-blue-500" "orange" "border-orange-500" "black" "border-black dark:border-white"
     "red" "border-red-500" "teal" "border-teal-500" "primary" "border-purple-500" }}
                 <div class="flex flex-col gap-4 rounded border-2 p-4 {{ (index $borders (or .color "primary")) }}">
                     <div class="text-center">

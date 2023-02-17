@@ -10,6 +10,12 @@
           ci: conduit-vue-ts
           demo: https://vuetsrealworld.okami101.io
           color: green
+        - name: react-ts
+          title: React TS Realworld
+          repo: adr1enbe4udou1n/react-ts-realworld-example-app
+          ci: conduit-react-ts
+          demo: https://reacttsrealworld.okami101.io
+          color: blue
 
     - title: Backend
       apps:
