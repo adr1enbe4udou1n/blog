@@ -14,7 +14,7 @@
 
         {{ if .description }}
         <div class="prose dark:prose-invert mb-8">
-            {{ readFile "_data/works/realworld.md" | markdownify }}
+            {{ readFile "data/works/realworld.md" | markdownify }}
         </div>
         {{ end }}
 
@@ -43,7 +43,7 @@
                     </div>
                     {{ end }}
                     <div class="prose dark:prose-invert flex-grow">
-                        {{ readFile (print "_data/works/" .name ".md") | markdownify }}
+                        {{ readFile (print "data/works/" .name ".md") | markdownify }}
                     </div>
                     <div class="flex justify-center gap-4">
                         {{ partial "button.html" (dict "text" (partial "icon.html" "github") "href" (print
