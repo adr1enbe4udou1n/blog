@@ -9,3 +9,4 @@ Common packages involved :
 * [Vite](https://vitejs.dev/) as main bundler
 * [ESLint](https://eslint.org/) with [Prettier](https://prettier.io/) for linting and code formatting
 * [Iconify](https://github.com/iconify/iconify) as universal icons
+* [TanStack Query](https://tanstack.com/query), compatible with `Vue` and `React` for nice API communication and powerful caching system
