@@ -6,7 +6,7 @@ layout: "simple"
 Hi folks, I'm a web lover actually working [@Cesson-Sévigné](https://fr.wikipedia.org/wiki/Cesson-S%C3%A9vign%C3%A9), mastering :
 
 * [`ASP.NET Core`](https://docs.microsoft.com/fr-fr/aspnet/core/?view=aspnetcore-6.0) with `C#` and [`Laravel`](https://laravel.com/) as favorite backend frameworks
-* [`Vue 3`](https://vuejs.org/) by [*Composition API*](https://vuejs.org/guide/extras/composition-api-faq.html) with [`Typescript`](https://www.typescriptlang.org/)
+* [`Vue 3`](https://vuejs.org/) with [*Composition API*](https://vuejs.org/guide/extras/composition-api-faq.html) or [`React`](https://fr.reactjs.org/) with [`Typescript`](https://www.typescriptlang.org/)
 * *Utility-first CSS frameworks* as [`Tailwind`](https://tailwindcss.com/) / [`Windi CSS`](https://windicss.org/) / [`UnoCSS`](https://github.com/unocss/unocss), but also comfortable with [`Sass`](https://sass-lang.com/) with **BEM** implementation
 
 I can develop proper API design following [**DDD / Hexa**](https://en.wikipedia.org/wiki/Domain-driven_design) principles if applicable. In addition to above `.NET` and `PHP` backend stacks, I'm also confident with :

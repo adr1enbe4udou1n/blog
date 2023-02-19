@@ -1,12 +1,9 @@
-[`React TS`](https://vuejs.org/) implementation. Using same :
+[`React TS`](https://fr.reactjs.org/) implementation. It uses only pure function components thanks to [React Hooks](https://reactjs.org/docs/hooks-intro.html), which can be more or less related to `Vue 3 Composition API`.
 
-* [UnoCSS](https://github.com/unocss/unocss) utility-first CSS framework as `Vue 3` version with Dark Mode support.
-* [openapi-typescript](https://github.com/drwpow/openapi-typescript) as OpenAPI SDK.
+It uses [React Context](https://beta.reactjs.org/reference/react/useContext) as minimalistic store system, without extra complexity from external libraries like [Redux](https://redux.js.org/) or [MobX](https://mobx.js.org).
 
-Main packages involved :
+Additional packages :
 
-* [Vite](https://vitejs.dev/) as main bundler
-* [ESLint](https://eslint.org/) with [Prettier](https://prettier.io/) for linting and code formatting
-* [UnoCSS](https://github.com/unocss/unocss) as utility-first CSS framework
-* [Iconify](https://github.com/iconify/iconify) as universal icons
-* React Context as minimalist store system
+* [React Query](https://tanstack.com/query) for nice API communication and powerful caching system
+
+Compared to Vue implementation, it seems less magical and more explicit, as it likes for `Symfony` VS `Laravel`. Don't require heavy Typescript IDE tooling like Volar, because it's just pure TS function components.

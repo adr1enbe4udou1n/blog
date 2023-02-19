@@ -5,7 +5,7 @@ It's based on [pydantic](https://pydantic-docs.helpmanual.io/), an essential com
 Main packages involved :
 
 * [pydantic](https://pydantic-docs.helpmanual.io/), data validation with Python 3.6+ type hints
-* [SQLAlchemy](https://www.sqlalchemy.org/) with [Alembic](https://alembic.sqlalchemy.org/en/latest/) for schema migration
+* [SQLAlchemy](https://www.sqlalchemy.org/) v2 with [Alembic](https://alembic.sqlalchemy.org/en/latest/) for schema migration
 * [python-jose](https://github.com/mpdavis/python-jose) as JWT implementation
 * [Faker](https://faker.readthedocs.io/en/master/) as dummy data generator
 * [autoflake](https://pypi.org/project/autoflake/) and [isort](https://pycqa.github.io/isort/) for clean imports
