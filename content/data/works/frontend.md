@@ -10,3 +10,5 @@ Common packages involved :
 * [ESLint](https://eslint.org/) with [Prettier](https://prettier.io/) for linting and code formatting
 * [Iconify](https://github.com/iconify/iconify) as universal icons
 * [TanStack Query](https://tanstack.com/query), compatible with `Vue` and `React` for nice API communication and powerful caching system
+
+To sum up, at the time of `Vue 2` (**Options API**) and `React <16.8` (**class components**), it was a complete different DX and each framework have their own unique way to develop components. But now with `Composition API` and `React Hooks`, the gap is much smaller and became just a matter of taste, `JSX` vs `Vue template`, tooling, community, etc.
