@@ -47,6 +47,37 @@ When done use `docker node ls` on manager node in order to confirm the presence 
 
 Yeah, cluster is already properly configured. Far less overwhelming than Kubernetes, I should say.
 
+#### Hetzner & MTU
+
+{{< alert >}}
+Just one last important thing before continue, specific to Hetzner. Their private network is set to **1450 MTU** by default, which is **not compatible with Docker Swarm overlay network**. You must change it to 1450 MTU in order to avoid any further dysfunctions between node swarm communication. Many thanks to [DcapCode](https://github.com/DcapCode) to reported it ❤️. [See here](https://www.reddit.com/r/portainer/comments/qt1mne/swarm_deployment_woes/) for further explanation.
+{{< /alert >}}
+
+Recreate the `ingress` network with the correct MTU :
+
+```sh
+docker network rm ingress
+docker network create -d overlay --ingress --opt com.docker.network.driver.mtu=1450 ingress
+```
+
+The trade-off is that you will have to specify this MTU for every further networks that we'll create inside further docker-compose (stacks). Example for traefik stack :
+
+{{< highlight host="manager-01" file="~/traefik-stack.yml" >}}
+
+```yml
+version: "3.8"
+
+services:
+  # ...
+
+networks:
+  public:
+    driver_opts:
+      com.docker.network.driver.mtu: 1450
+```
+
+{{< /highlight >}}
+
 ### CLI tools & environment labels
 
 [`ctop`](https://github.com/bcicen/ctop) is a very useful CLI tools that works like `htop` but dedicated for docker containers. Install it on every docker hosts :

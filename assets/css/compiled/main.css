@@ -1746,6 +1746,14 @@ body:has(#menu-controller:checked) {
   top: 0px;
 }
 
+.bottom-4 {
+  bottom: 1rem;
+}
+
+.bottom-1 {
+  bottom: 0.25rem;
+}
+
 .z-10 {
   z-index: 10;
 }
@@ -1760,6 +1768,10 @@ body:has(#menu-controller:checked) {
 
 .z-30 {
   z-index: 30;
+}
+
+.-z-10 {
+  z-index: -10;
 }
 
 .order-first {
@@ -2045,6 +2057,16 @@ body:has(#menu-controller:checked) {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
+.translate-x-full {
+  --tw-translate-x: 100%;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+.translate-y-full {
+  --tw-translate-y: 100%;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
 .cursor-pointer {
   cursor: pointer;
 }
@@ -2164,12 +2186,25 @@ body:has(#menu-controller:checked) {
   border-bottom-left-radius: 0.5rem;
 }
 
+.rounded-b-none {
+  border-bottom-right-radius: 0px;
+  border-bottom-left-radius: 0px;
+}
+
 .rounded-tr-none {
   border-top-right-radius: 0px;
 }
 
 .rounded-bl-none {
   border-bottom-left-radius: 0px;
+}
+
+.rounded-br-none {
+  border-bottom-right-radius: 0px;
+}
+
+.rounded-tl-none {
+  border-top-left-radius: 0px;
 }
 
 .border-2 {
@@ -2256,6 +2291,11 @@ body:has(#menu-controller:checked) {
   background-color: rgb(22 163 74 / var(--tw-bg-opacity));
 }
 
+.bg-blue-600 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(37 99 235 / var(--tw-bg-opacity));
+}
+
 .bg-orange-600 {
   --tw-bg-opacity: 1;
   background-color: rgb(234 88 12 / var(--tw-bg-opacity));
@@ -2324,11 +2364,6 @@ body:has(#menu-controller:checked) {
 
 .bg-neutral-100\/50 {
   background-color: rgba(var(--color-neutral-100), 0.5);
-}
-
-.bg-blue-600 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(37 99 235 / var(--tw-bg-opacity));
 }
 
 .object-scale-down {
@@ -2678,6 +2713,11 @@ body:has(#menu-controller:checked) {
   background-color: rgb(34 197 94 / var(--tw-bg-opacity)) !important;
 }
 
+.hover\:\!bg-blue-500:hover {
+  --tw-bg-opacity: 1 !important;
+  background-color: rgb(59 130 246 / var(--tw-bg-opacity)) !important;
+}
+
 .hover\:\!bg-orange-500:hover {
   --tw-bg-opacity: 1 !important;
   background-color: rgb(249 115 22 / var(--tw-bg-opacity)) !important;
@@ -2720,11 +2760,6 @@ body:has(#menu-controller:checked) {
 .hover\:bg-primary-500:hover {
   --tw-bg-opacity: 1;
   background-color: rgba(var(--color-primary-500), var(--tw-bg-opacity));
-}
-
-.hover\:\!bg-blue-500:hover {
-  --tw-bg-opacity: 1 !important;
-  background-color: rgb(59 130 246 / var(--tw-bg-opacity)) !important;
 }
 
 .hover\:text-primary-500:hover {
@@ -2992,6 +3027,11 @@ body:has(#menu-controller:checked) {
   background-color: rgb(22 101 52 / var(--tw-bg-opacity));
 }
 
+.dark .dark\:bg-blue-800 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(30 64 175 / var(--tw-bg-opacity));
+}
+
 .dark .dark\:bg-orange-800 {
   --tw-bg-opacity: 1;
   background-color: rgb(154 52 18 / var(--tw-bg-opacity));
@@ -3048,11 +3088,6 @@ body:has(#menu-controller:checked) {
 
 .dark .dark\:bg-neutral-800\/50 {
   background-color: rgba(var(--color-neutral-800), 0.5);
-}
-
-.dark .dark\:bg-blue-800 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(30 64 175 / var(--tw-bg-opacity));
 }
 
 .dark .dark\:prose-invert {
@@ -3137,6 +3172,11 @@ body:has(#menu-controller:checked) {
   background-color: rgb(21 128 61 / var(--tw-bg-opacity)) !important;
 }
 
+.dark .dark\:hover\:\!bg-blue-700:hover {
+  --tw-bg-opacity: 1 !important;
+  background-color: rgb(29 78 216 / var(--tw-bg-opacity)) !important;
+}
+
 .dark .dark\:hover\:\!bg-orange-700:hover {
   --tw-bg-opacity: 1 !important;
   background-color: rgb(194 65 12 / var(--tw-bg-opacity)) !important;
@@ -3170,11 +3210,6 @@ body:has(#menu-controller:checked) {
 .dark .dark\:hover\:bg-primary-400:hover {
   --tw-bg-opacity: 1;
   background-color: rgba(var(--color-primary-400), var(--tw-bg-opacity));
-}
-
-.dark .dark\:hover\:\!bg-blue-700:hover {
-  --tw-bg-opacity: 1 !important;
-  background-color: rgb(29 78 216 / var(--tw-bg-opacity)) !important;
 }
 
 .dark .dark\:hover\:text-primary-400:hover {

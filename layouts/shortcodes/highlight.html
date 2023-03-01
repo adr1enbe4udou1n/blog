@@ -1,4 +1,4 @@
-<div class="relative">
+<div class="highlight-file relative">
     <span
         class="absolute bottom-0 right-0 bg-primary-100 dark:bg-primary-800 rounded-md rounded-tr-none rounded-bl-none px-4 py-1 text-sm z-10 italic">{{ if .Get "host" }}<strong>{{ .Get "host" }}</strong>{{ end }}{{ if and (.Get "host") (.Get "file") }} - {{ end }}{{ if .Get "file" }}{{ .Get "file" }}{{ end }}</span>
     {{- .Inner | markdownify -}}
