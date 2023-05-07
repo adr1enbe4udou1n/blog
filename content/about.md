@@ -11,7 +11,7 @@ Hi folks, I'm a web lover actually working [@Cesson-Sévigné](https://fr.wikipe
 
 I can develop proper API design following [**DDD / Hexa**](https://en.wikipedia.org/wiki/Domain-driven_design) principles if applicable. In addition to above `.NET` and `PHP` backend stacks, I'm also confident with :
 
-* [`Nest.js`](https://nestjs.com/) associated to [`MikroORM`](https://mikro-orm.io/) (*Typescript*)
+* [`Nest.js`](https://nestjs.com/) associated to [`Prisma`](https://www.prisma.io/) or [`MikroORM`](https://mikro-orm.io/) (*Typescript*)
 * [`FastAPI`](https://fastapi.tiangolo.com/) with [`SQLAlchemy`](https://www.sqlalchemy.org/) (*Python*)
 * [`Spring Boot`](https://spring.io/projects/spring-boot) with `Hibernate` as main JPA implementation (*Java*)
 
