@@ -1,6 +1,6 @@
 ---
 title: "Setup a HA Kubernetes cluster Part VIII - Load testing & tracing"
-date: 2022-12-16
+date: 2023-06-16
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "k6", "jaeger"]
 draft: true

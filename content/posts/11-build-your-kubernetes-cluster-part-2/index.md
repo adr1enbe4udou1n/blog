@@ -1,6 +1,6 @@
 ---
 title: "Setup a HA Kubernetes cluster Part II - Cluster initialization with Terraform"
-date: 2022-12-09
+date: 2023-06-09
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "terraform", "hetzner", "k3s", "gitops"]
 draft: true

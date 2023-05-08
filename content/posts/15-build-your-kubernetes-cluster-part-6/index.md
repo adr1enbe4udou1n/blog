@@ -1,6 +1,6 @@
 ---
 title: "Setup a HA Kubernetes cluster Part V - Monitoring Stack"
-date: 2022-12-12
+date: 2023-06-12
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "prometheus", "loki", "grafana"]
 draft: true

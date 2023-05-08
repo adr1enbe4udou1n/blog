@@ -1,8 +1,8 @@
 ---
 title: "Setup a HA Kubernetes cluster Part III - Ingress & HA storage"
-date: 2022-12-10
+date: 2023-06-10
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
-tags: ["kubernetes", "traefik", "cert-manager", "longhorn", "minio", "s3"]
+tags: ["kubernetes", "traefik", "cert-manager", "longhorn"]
 draft: true
 ---
 
@@ -12,8 +12,7 @@ Build your self-hosted Kubernetes cluster and be free from any SaaS solutions by
 
 1. Traefik & cert-manager
 2. Resilient Storage with Longhorn
-3. Samples with Portainer & Minio
-4. S3 Backup with longhorn
+3. Test with PgAdmin (valid both ingress and storage)
 
 ## 2nd check ✅
 

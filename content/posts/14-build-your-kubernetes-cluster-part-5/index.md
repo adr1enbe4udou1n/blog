@@ -1,8 +1,8 @@
 ---
 title: "Setup a HA Kubernetes cluster Part V - Installing some apps & NoCode tools"
-date: 2022-12-13
+date: 2023-06-13
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
-tags: ["kubernetes", "nocode", "nocodb", "n8n", "redmine", "analytics", "umami"]
+tags: ["kubernetes", "nocode", "nocodb", "n8n", "analytics", "umami"]
 draft: true
 ---
 
@@ -12,9 +12,8 @@ Build your self-hosted Kubernetes cluster and be free from any SaaS solutions by
 
 1. Build and deploy simple blog
 2. Analytics with Umami
-3. Redmine
-4. NocoDB
-5. n8n
+3. NocoDB
+4. n8n
 
 ## 5th check ✅
 
