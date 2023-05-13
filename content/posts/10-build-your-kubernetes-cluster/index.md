@@ -14,12 +14,12 @@ Build your self-hosted Kubernetes cluster and be free from any SaaS solutions by
 
 This guide is mainly intended for any developers or some SRE who want a Kubernetes cluster that respect following conditions :
 
-1. On-Premise management (The Hard Way), no managed Kubernetes provider
-2. Follow the GitOps principles
-3. High availability with cloud Load Balancer and resilient storage and DB
-4. Fully monitored
-5. Complete CI/CD pipeline
-6. Not too much expensive (from $30 to $70 /month depending on your needs)
+1. On-Premise management (The Hard Way), no managed Kubernetes provider, will use `K3s` as lightweight solution
+2. Follow the **GitOps** principles
+3. **High availability** with cloud Load Balancer and resilient storage and DB
+4. Fully **monitored**
+5. Complete **CI/CD pipeline**
+6. Not too much expensive (from €30 to €70 /month depending on your needs)
 
 ### You may don't need Kubernetes
 
@@ -43,59 +43,73 @@ Please let me know in below comments if you have other better suggestions !
 
 ## Cluster Architecture 🏘️
 
-Note as this cluster will be intended for developer user with complete self-hosted CI/CD solution. So for a good cluster architecture starting point, we can imagine the following nodes :
+Here are the nodes that we'll need for a complete self-hosted kubernetes cluster :
 
-| server          | description                                                                                           |
-| --------------- | ----------------------------------------------------------------------------------------------------- |
-| `controller-0x` | The control planes nodes, use at least 3 or any greater odd number (when etcd) for HA kube API server |
-| `worker-0x`     | Workers for your production/staging apps, at least 3 for running Longhorn for resilient storage       |
-| `data-0x`       | Data nodes for any DB / critical statefulset pods                                                     |
-| `monitor-0x`    | Workers dedicated to monitoring                                                                       |
-| `runner-0x`     | Workers dedicated to CI/CD pipelines execution                                                        |
+| server          | description                                                                                            |
+| --------------- | ------------------------------------------------------------------------------------------------------ |
+| `controller-0x` | The control planes nodes, use at least 3 or any greater odd number (when etcd) for HA kube API server  |
+| `worker-0x`     | Workers for your production/staging apps, at least 3 for running Longhorn for resilient storage        |
+| `data-0x`       | Dedicated nodes for any DB / critical statefulset pods, recommended if you won't use managed databases |
+| `monitor-0x`    | Workers dedicated for monitoring, optional                                                             |
+| `runner-0x`     | Workers dedicated for CI/CD pipelines execution, optional                                              |
+
+Basic target complete HA architecture for a basic app that needs replicated storage (with Longhorn) and DB (PostgreSQL) :
 
 ```mermaid
 flowchart TD
 lb((Load Balancer))
 subgraph worker-01
     traefik-01([Traefik])
-    apps-01[Apps]
+    app-01[App]
     longhorn-01[/Longhorn/]
 
-    traefik-01 --> apps-01
-    longhorn-01 --> apps-01
+    traefik-01 --> app-01
+    longhorn-01 --> app-01
 end
 subgraph worker-02
     traefik-02([Traefik])
-    apps-02[Apps]
+    app-02[App]
     longhorn-02[/Longhorn/]
 
-    traefik-02 --> apps-02
-    longhorn-02 --> apps-02
+    traefik-02 --> app-02
+    longhorn-02 --> app-02
 end
 subgraph worker-03
     traefik-03([Traefik])
-    apps-03[Apps]
+    app-03[App]
     longhorn-03[/Longhorn/]
 
-    traefik-03 --> apps-03
-    longhorn-03 --> apps-03
+    traefik-03 --> app-03
+    longhorn-03 --> app-03
 end
 lb --> traefik-01
 lb --> traefik-02
 lb --> traefik-03
-subgraph data-01
+subgraph data [data-0x]
+    direction LR
     postgresql[(PostgreSQL Primary)]
-end
-subgraph data-02
     postgresql-replica[(PostgreSQL Replica)]
 end
-apps-01 --> postgresql
-apps-02 --> postgresql
-apps-03 --> postgresql
+app-01 --> data
+app-02 --> data
+app-03 --> data
 postgresql --> postgresql-replica
 ```
 
 ## Cheap solution with Hetzner VPS 🖥️
+
+| Server Name  | Type     | Quantity                        | Unit Price |
+| ------------ | -------- | ------------------------------- | ---------- |
+|              | **LB1**  |                                 | 5.39       |
+| `manager-0x` | **CX21** | 1 or 3 for HA cluster           | 0.5 + 4.85 |
+| `worker-0x`  | **CX21** | 3 minimum required for Longhorn | 0.5 + 4.85 |
+| `data-0x`    | **CX21** | 2 for HA database               | 0.5 + 4.85 |
+| `monitor-0x` | **CX21** | 1 can be enough                 | 0.5 + 4.85 |
+| `runner-0x`  | **CX21** | 1 for start                     | 0.5 + 4.85 |
+
+(5.39+**10**\*(0.5+4.85))*1.2 = **€70.67** / month
+
+This is of course for a complete HA cluster, for a minimal working cluster, you can easily get down to **4 nodes**, i.e. **€32.15**. You can even get rid of Load Balancer and simply use basic DNS round-robin.
 
 ## Let’s party 🎉
 
