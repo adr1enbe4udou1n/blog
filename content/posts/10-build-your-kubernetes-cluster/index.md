@@ -10,18 +10,32 @@ draft: true
 Build your self-hosted Kubernetes cluster and be free from any SaaS solutions by following this opinionated guide 🎉
 {{< /lead >}}
 
-## For who
+## The goal 🎯
 
 This guide is mainly intended for any developers or some SRE who want a Kubernetes cluster that respect following conditions :
 
-1. On-Premise management (The Hard Way), no managed Kubernetes provider, will use `K3s` as lightweight solution
+1. On-Premise management (The Hard Way), no vendor lock in to any managed Kubernetes provider
 2. Follow the **GitOps** principles
-3. **High availability** with cloud Load Balancer and resilient storage and DB
+3. **High availability** with cloud Load Balancer, resilient storage and DB with replication, allowing at least 1 node rebooting without any downtime for production apps
 4. Fully **monitored**
-5. Complete **CI/CD pipeline**
-6. Not too much expensive (from €30 to €70 /month depending on your needs)
+5. Complete self-hosted **CI/CD pipeline**
+6. Not too much expensive (from **€30 to €70 / month** depending on your needs and targeted resiliency)
 
-### You may don't need Kubernetes
+### What you'll learn 📚
+
+* How to set up an On-Premise resilient Kubernetes cluster with Terraform, from the ground up
+* Using Terraform to manage your infrastructure, both for cloud provider and Kubernetes, following the GitOps principles
+* Using [Hetzner](https://www.hetzner.com/) as cloud provider, with Terraform
+* Using [K3s](https://k3s.io/) as lightweight Kubernetes distribution
+* Installing [Longhorn](https://longhorn.io/) for resilient storage and PostgreSQL with replication
+* Using [Traefik](https://traefik.io/) as ingress controller, combined to [cert-manager](https://cert-manager.io/) for distributed SSL certificates
+* Complete monitoring solution with [Prometheus](https://prometheus.io/), [Grafana](https://grafana.com/), [Loki](https://grafana.com/oss/loki/), and [Jaeger](https://www.jaegertracing.io/) for distributed tracing
+* Deploy some open source no code apps, always through Terraform
+* Mount a complete self-hosted CI pipeline with the lightweight [Gitea](https://gitea.io/) + [Concourse CI](https://concourse-ci.org/) combo
+* Build a sample **.NET app** through this pipeline and publish it to a self-hosted Docker registry
+* Complete CD pipeline process with [Flux](https://fluxcd.io/)
+
+### You may don't need Kubernetes 🧐
 
 If you prefer to stay away of all overwhelming Kubernetes features, but just interested in a very simple self-hosted orchestration platform (as 99% of any personal usage), keep in mind that **Docker Swarm** is probably the best solution for you. Don't listen people that say it's outdated, because [it's not](https://dockerlabs.collabnix.com/intermediate/swarm/difference-between-docker-swarm-vs-swarm-mode-vs-swarmkit.html) and will always be supported as long as Docker CE live, as it's built in into the Docker Engine, and it's far easier and cheaper to maintain it than K8S. The downside is that there is no longer any new features added to Swarm.
 
