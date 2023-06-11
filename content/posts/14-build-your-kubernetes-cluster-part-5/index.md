@@ -1,6 +1,6 @@
 ---
 title: "Setup a HA Kubernetes cluster Part V - Installing some apps & NoCode tools"
-date: 2023-06-13
+date: 2023-06-11
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "nocode", "nocodb", "n8n", "analytics", "umami"]
 draft: true

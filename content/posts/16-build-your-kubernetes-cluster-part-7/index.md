@@ -1,6 +1,6 @@
 ---
 title: "Setup a HA Kubernetes cluster Part VI - VCS & CI"
-date: 2023-06-14
+date: 2023-06-11
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "ci", "gitea", "concourse"]
 draft: true

@@ -1,6 +1,6 @@
 ---
 title: "Setup a HA Kubernetes cluster Part VII - CD, GitOps way"
-date: 2023-06-15
+date: 2023-06-11
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "cd", "fluxcd", "gitops"]
 draft: true
