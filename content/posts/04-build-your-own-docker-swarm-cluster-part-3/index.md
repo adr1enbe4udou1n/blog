@@ -60,23 +60,23 @@ docker network rm ingress
 docker network create -d overlay --ingress --opt com.docker.network.driver.mtu=1450 ingress
 ```
 
-The trade-off is that you will have to specify this MTU for every further networks that we'll create inside further docker-compose (stacks). Example for traefik stack :
+Thankfully since version 24 of Moby, we can set a default MTU for all future networks created through next docker stacks. For this create following JSON file on `manager-01` :
 
-{{< highlight host="manager-01" file="~/traefik-stack.yml" >}}
+{{< highlight host="manager-01" file="/etc/docker/daemon.json" >}}
 
-```yml
-version: "3.8"
-
-services:
-  # ...
-
-networks:
-  public:
-    driver_opts:
-      com.docker.network.driver.mtu: 1450
+```json
+{
+  "default-network-opts": {
+    "overlay": {
+      "com.docker.network.driver.mtu": "1450"
+    }
+  }
+}
 ```
 
 {{< /highlight >}}
+
+Then restart docker daemon with `sudo service docker restart`.
 
 ### CLI tools & environment labels
 
