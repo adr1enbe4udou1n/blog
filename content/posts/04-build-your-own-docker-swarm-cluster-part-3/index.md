@@ -29,36 +29,11 @@ sudo usermod -aG docker $USER
 
 Then logout and use `docker run hello-world` and be sure all is OK. Follow [official installation](https://docs.docker.com/engine/install/ubuntu/) if not.
 
-### Enable Docker Swarm
-
-Finally, enable Swarm mode on `manager-01` :
-
-```sh
-docker swarm init --advertise-addr 10.0.0.2
-```
-
-{{< alert >}}
-Use private network IP of manager, it' should be the same defined on `/et/hosts` on other worker servers.
-{{< /alert >}}
-
-The above command will show the command to launch to other worker nodes. Apply it on `worker-01` and `runner-01`.
-
-When done use `docker node ls` on manager node in order to confirm the presence of the 2 workers with `Ready` status and active.
-
-Yeah, cluster is already properly configured. Far less overwhelming than Kubernetes, I should say.
-
-#### Hetzner & MTU
+### Hetzner & MTU
 
 {{< alert >}}
 Just one last important thing before continue, specific to Hetzner. Their private network is set to **1450 MTU** by default, which is **not compatible with Docker Swarm overlay network**. You must change it to 1450 MTU in order to avoid any further dysfunctions between node swarm communication. Many thanks to [DcapCode](https://github.com/DcapCode) to reported it ❤️. [See here](https://www.reddit.com/r/portainer/comments/qt1mne/swarm_deployment_woes/) for further explanation.
 {{< /alert >}}
-
-Recreate the `ingress` network with the correct MTU :
-
-```sh
-docker network rm ingress
-docker network create -d overlay --ingress --opt com.docker.network.driver.mtu=1450 ingress
-```
 
 Thankfully since version 24 of Moby, we can set a default MTU for all future networks created through next docker stacks. For this create following JSON file on `manager-01` :
 
@@ -76,7 +51,25 @@ Thankfully since version 24 of Moby, we can set a default MTU for all future net
 
 {{< /highlight >}}
 
-Then restart docker daemon with `sudo service docker restart`.
+Then restart docker daemon with `sudo service docker restart`. And that's it, we don't need to carry about anymore.
+
+### Enable Docker Swarm
+
+Finally, enable Swarm mode on `manager-01` :
+
+```sh
+docker swarm init --advertise-addr 10.0.0.2
+```
+
+{{< alert >}}
+Use private network IP of manager, it' should be the same defined on `/et/hosts` on other worker servers.
+{{< /alert >}}
+
+The above command will show the command to launch to other worker nodes. Apply it on `worker-01` and `runner-01`.
+
+When done use `docker node ls` on manager node in order to confirm the presence of the 2 workers with `Ready` status and active.
+
+Yeah, cluster is already properly configured. Far less overwhelming than Kubernetes, I should say.
 
 ### CLI tools & environment labels
 
