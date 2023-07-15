@@ -611,7 +611,7 @@ The particularity of Minio is to have 2 web endpoints, one for web UI admin mana
 
 When deployed, wait few seconds for SSL auto generation (you can check it in the Traefik Dashboard) and go to `https://minio.sw.dockerswarm.rocks` in order to access the web administration by entering above credentials.
 
-And yup, it's done, create your 1st bucket through admin UI and you are ready to test the S3 API locally with <https://s3.dockerswarm.rocks/mybucket>.
+And yup, it's done, create your 1st bucket through admin UI and you are ready to test the S3 API locally with `https://s3.sw.dockerswarm.rocks/mybucket`.
 
 [![Minio buckets](minio-buckets.png)](minio-buckets.png)
 
