@@ -26,8 +26,9 @@ Fully embracing app containerization with `Docker` and `Kubernetes`, from local,
 
 Mastering installations and maintenance of `Docker Swarm` or bare metal `Kubernetes` clusters with **HA** architecture. Here some cloud native tools solutions I generally use :
 
-* [`HAProxy`] for **high-availability** across multiple frontend workers
+* `HAProxy` for **high-availability** across multiple frontend workers
 * [`Traefik`](https://traefik.io/traefik/) as main automatic service discovery / ingress controller
+* [`Longhorn`](https://longhorn.io/) for distributed storage on Kubernetes 💽
 * [`cert-manager`](https://cert-manager.io/) as central certificate solution for Kubernetes cluster
 * [`Portainer`](https://www.portainer.io/) as simple GUI for containers management
 * [`Loki`](https://grafana.com/oss/loki/), [`Prometheus`](https://prometheus.io) and [`Jaeger`](https://www.jaegertracing.io/) as respective *logging*, *metrics* and *tracing* tools
@@ -46,16 +47,14 @@ Have some experiences with many mid-range cloud providers as [Digital Ocean](htt
 Some notes of this blog :
 
 * Powered by [`Hugo`](https://gohugo.io/)
-* Hosted on **Hetzner Cloud**, fully **GitOps managed** from custom [`Terraform Hcloud project`](https://github.com/adr1enbe4udou1n/terraform-hcloud-k3s)
+* Hosted on **Hetzner Cloud**, fully **GitOps managed** from custom [`Terraform Hcloud project`](https://github.com/okami101/terraform-hcloud-k3s)
 * Running on bare-metal lightweight `Kubernetes` multi-nodes cluster from [`K3s`](https://k3s.io/) distribution
 * Kubernetes infrastructure completely managed with [`Terraform`](https://github.com/adr1enbe4udou1n/terraform-kube-okami) 🌴
 * **HA** setup using **Hetzner LB**, targeting 2 worker nodes, with **Postgres cluster** (managed on same Kubernetes cluster)
 * `Traefik` as reverse proxy, configured for HA 🛣️
-* `cert-manager` with wildcard certificate 📜
 * Source code on my own [`Gitea`](https://gitea.okami101.io/adr1enbe4udou1n/blog)
 * Compiled by my own [`Concourse`](https://concourse.okami101.io) instance as a final docker container image into self-hosted private registry (**CI** 🏗️)
-* Automatically deployed by `Flux CD v2` to the Kubernetes cluster from [central Git source](https://gitea.okami101.io/okami101/flux-source/) (**CD** 🚀)
-* Fully monitored by self-hosted Kube Prometheus Stack 📊
+* Automatically deployed by `Flux CD v2` to the Kubernetes cluster from [central Git source](https://gitea.okami101.io/okami101/flux-source/src/branch/main/okami/deploy-blog.yaml) (**CD** 🚀)
 * Tracked with [`Umami`](https://umami.is/) 📈
 
 All above tools are 💯% self-hosted ! Just sadly missing my own Homelab with Proxmox because no fiber 😿
