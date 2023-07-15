@@ -54,7 +54,7 @@ Some notes of this blog :
 * `cert-manager` with wildcard certificate 📜
 * Source code on my own [`Gitea`](https://gitea.okami101.io/adr1enbe4udou1n/blog)
 * Compiled by my own [`Concourse`](https://concourse.okami101.io) instance as a final docker container image into self-hosted private registry (**CI** 🏗️)
-* Automatically deployed by `Flux CD v2` to the Kubernetes cluster from [central Git source](https://gitea.okami101.io/adr1enbe4udou1n/flux-source/) (**CD** 🚀)
+* Automatically deployed by `Flux CD v2` to the Kubernetes cluster from [central Git source](https://gitea.okami101.io/okami101/flux-source/) (**CD** 🚀)
 * Fully monitored by self-hosted Kube Prometheus Stack 📊
 * Tracked with [`Umami`](https://umami.is/) 📈
 
