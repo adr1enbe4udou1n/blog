@@ -326,7 +326,7 @@ docker service logs traefik_traefik
 
 {{< /highlight >}}
 
-After few seconds, Traefik should launch and generate proper SSL certificate for its own domain. You can finally go to <https://traefik.sw.dockerswarm.rocks>. `http://` should work as well thanks to permanent redirection.
+After few seconds, Traefik should launch and generate proper SSL certificate for its own domain. You can finally go to `https://traefik.sw.dockerswarm.rocks`. `http://` should work as well thanks to permanent redirection.
 
 If properly configured, you will be prompted for access. After entering admin as user and your own chosen password, you should finally access to the traefik dashboard !
 
@@ -421,7 +421,7 @@ Go to the router detail for checking currently applied middlewares :
 
 [![Traefik portainer](traefik-portainer.png)](traefik-portainer.png)
 
-It's time to create your admin account through <https://portainer.sw.dockerswarm.rocks>. If all goes well, a primary environment should be appearing, and you should have access to your cluster home environment with 2 stacks active.
+It's time to create your admin account through `https://portainer.sw.dockerswarm.rocks`. If all goes well, a primary environment should be appearing, and you should have access to your cluster home environment with 2 stacks active.
 
 [![Portainer home](portainer-home.png)](portainer-home.png)
 
@@ -609,7 +609,7 @@ Note as we use `node.labels.environment == production` in order to force the con
 
 The particularity of Minio is to have 2 web endpoints, one for web UI admin manager, and other as S3 API endpoint. So we need 2 Traefik routes in this case. Create an environment variable for `MINIO_ROOT_PASSWORD` and set your own admin password.
 
-When deployed, wait few seconds for SSL auto generation (you can check it in the Traefik Dashboard) and go to <https://minio.sw.dockerswarm.rocks> in order to access the web administration by entering above credentials.
+When deployed, wait few seconds for SSL auto generation (you can check it in the Traefik Dashboard) and go to `https://minio.sw.dockerswarm.rocks` in order to access the web administration by entering above credentials.
 
 And yup, it's done, create your 1st bucket through admin UI and you are ready to test the S3 API locally with <https://s3.dockerswarm.rocks/mybucket>.
 

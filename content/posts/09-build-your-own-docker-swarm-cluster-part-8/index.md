@@ -147,7 +147,7 @@ networks:
 
 Set proper `ROOT_PATH` with `/mnt/storage-pool/sonar` and `SONAR_JDBC_PASSWORD` with above DB password.
 
-Go to <https://sonar.sw.dockerswarm.rocks>, use admin / admin credentials and update password.
+Go to `https://sonar.sw.dockerswarm.rocks`, use admin / admin credentials and update password.
 
 ### Project analysis
 

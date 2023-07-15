@@ -110,7 +110,7 @@ The `private` network will serve us later for exporters. Next config are useful 
 | `storage.tsdb.retention.size` | The max DB size             |
 | `storage.tsdb.retention.time` | The max data retention date |
 
-Deploy it and <https://prometheus.sw.dockerswarm.rocks> should be available after few seconds. Use same traefik credentials for login.
+Deploy it and `https://prometheus.sw.dockerswarm.rocks` should be available after few seconds. Use same traefik credentials for login.
 
 You should now have access to some metrics !
 
@@ -339,7 +339,7 @@ networks:
 
 {{< /highlight >}}
 
-Set proper `GF_DATABASE_PASSWORD` and deploy. Database migration should be automatic (don't hesitate to check inside pgAdmin). Go to <https://grafana.sw.dockerswarm.rocks> and login as admin / admin.
+Set proper `GF_DATABASE_PASSWORD` and deploy. Database migration should be automatic (don't hesitate to check inside pgAdmin). Go to `https://grafana.sw.dockerswarm.rocks` and login as admin / admin.
 
 [![Grafana home](grafana-home.png)](grafana-home.png)
 

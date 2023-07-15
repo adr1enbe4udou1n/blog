@@ -392,7 +392,7 @@ networks:
 | `agent`     | A simple REST endpoint for receiving traces, the latter being forwarded to the collector. An agent should be proper to a machine host, similarly as the portainer agent. |
 | `query`     | A simple UI that connects to the span storage and allows simple visualization.                                                                                           |
 
-After few seconds, go to <https://jaeger.sw.dockerswarm.rocks> and enter Traefik credentials. You will land to Jaeger Query UI with empty data.
+After few seconds, go to `https://jaeger.sw.dockerswarm.rocks` and enter Traefik credentials. You will land to Jaeger Query UI with empty data.
 
 It's time to inject some trace data. Be sure all above Jaeger services are started through Portainer before continue.
 

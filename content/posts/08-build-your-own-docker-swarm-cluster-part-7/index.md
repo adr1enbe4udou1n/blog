@@ -63,7 +63,7 @@ networks:
 We added a specific TCP router in order to allow SSH cloning. The SSH Traefik entry point will redirect to the first available service with TCP router.
 {{< /alert >}}
 
-Now go to <https://gitea.sw.dockerswarm.rocks> and go through the installation procedure. Change default SQLite provider by a more production purpose database.
+Now go to  `https://gitea.sw.dockerswarm.rocks` and go through the installation procedure. Change default SQLite provider by a more production purpose database.
 
 Create a new `gitea` PostgreSQL database as usual from pgAdmin or `psql` for pro-CLI user, and set the according DB info access to Gitea installer. Host should be `data-01`.
 
@@ -141,7 +141,7 @@ Note as both service must be exposed to Traefik. In order to keep the same subdo
 It gives us have an additional condition for redirect to the correct service. It's ok in our case because the official docker registry use only `/v2` as endpoint.
 {{< /alert >}}
 
-Go to <https://registry.sw.dockerswarm.rocks> and use Traefik credentials. We have no images yet let's create one.
+Go to `https://registry.sw.dockerswarm.rocks` and use Traefik credentials. We have no images yet let's create one.
 
 ### Test our private registry
 
@@ -172,7 +172,7 @@ docker push registry.sw.dockerswarm.rocks/alpinegit
 
 {{< /highlight >}}
 
-Go back to above <https://registry.sw.dockerswarm.rocks>. You should see 1 new image !
+Go back to above `https://registry.sw.dockerswarm.rocks`. You should see 1 new image !
 
 [![Docker registry](docker-registry.png)](docker-registry.png)
 
@@ -291,7 +291,7 @@ Don't forget to have proper docker labels on nodes, as explain [here]({{< ref "0
 | `DRONE_RPC_SECRET`          | Necessary for proper secured authentication between Drone and runners. Use `openssl rand -hex 16` for generating a valid token. |
 | `DRONE_USER_CREATE`         | The initial user to create at launch. Put your Gitea username here for setting automatically Gitea user as drone administrator. |
 
-It's time to go to <https://drone.sw.dockerswarm.rocks/> and generate your first Drone account through OAuth2 from Gitea. You should be properly redirected to Gitea, where you'll just have to authorize Drone application.
+It's time to go to `https://drone.sw.dockerswarm.rocks` and generate your first Drone account through OAuth2 from Gitea. You should be properly redirected to Gitea, where you'll just have to authorize Drone application.
 
 [![Gitea oauth2](gitea-oauth2.png)](gitea-oauth2.png)
 
@@ -431,7 +431,7 @@ Commit both above files and push to remote repo. Drone should be automatically t
 
 [![Drone build](drone-build.png)](drone-build.png)
 
-If all's going well, the final image should be pushed in our docker registry. You can ensure it by navigating to <https://registry.sw.dockerswarm.rocks>.
+If all's going well, the final image should be pushed in our docker registry. You can ensure it by navigating to `https://registry.sw.dockerswarm.rocks`.
 
 ### Deployment (the CD part) 🚀
 
@@ -470,7 +470,7 @@ I use `Development` in order to have the swagger UI.
 Be sure to have registered the private registry in Portainer before deploying as [explained here](#register-registry-in-portainer).
 {{< /alert >}}
 
-Finally, deploy and see the result in <https://weather.sw.dockerswarm.rocks/swagger>. You should access to the swagger UI, and API endpoints should correctly respond.
+Finally, deploy and see the result in `https://weather.sw.dockerswarm.rocks/swagger`. You should access to the swagger UI, and API endpoints should correctly respond.
 
 #### Continuous deployment
 
