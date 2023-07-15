@@ -12,4 +12,4 @@ Main packages involved :
 * [Laravel IDE Helper](https://github.com/barryvdh/laravel-ide-helper) for proper IDE integration, perfectly suited for **VS Code** with [Intelephense](https://marketplace.visualstudio.com/items?itemName=bmewburn.vscode-intelephense-client) extension
 * [PHP CS Fixer](https://github.com/FriendsOfPHP/PHP-CS-Fixer) as formatter with Laravel style guide
 * [Larastan](https://github.com/nunomaduro/larastan), a Laravel wrapper of [PHPStan](https://phpstan.org/), as advanced code static analyzer
-* [Pest](https://pestphp.com/) as nice Jest-like API superset of existing PHPUnit
+* [Pest 2](https://pestphp.com/) as nice Jest-like API superset of existing PHPUnit

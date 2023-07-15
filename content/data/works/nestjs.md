@@ -2,7 +2,7 @@
 
 Main packages involved :
 
-* [Prisma](https://www.prisma.io/) as ORM entirely built up for Typescript. Include migrations, models generator based on specific schema specification
+* [Prisma 5](https://www.prisma.io/) as ORM entirely built up for Typescript. Include migrations, models generator based on specific schema specification
 * [Faker](https://fakerjs.dev/) for generating seeders
 * [ESLint](https://eslint.org/) with [Prettier](https://prettier.io/) for linting and code formatting
 * [Jest](https://jestjs.io) as main test framework

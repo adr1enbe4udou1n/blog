@@ -15,4 +15,4 @@ Main purpose of this projects is to have personal extensive API training on mult
 * Complete CI on Kubernetes with [Concourse](https://concourse.okami101.io/)
 * Automatic CD on Kubernetes using [Flux](https://fluxcd.io/)
 
-See complete production deployment manifests [here](https://gitea.okami101.io/adr1enbe4udou1n/flux-source/src/branch/main/conduit), allowing **GitOps** management.
+See complete production deployment manifests [here](https://gitea.okami101.io/okami101/flux-source/src/branch/main/conduit), allowing **GitOps** management.
