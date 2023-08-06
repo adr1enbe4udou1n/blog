@@ -10,11 +10,27 @@ draft: true
 Build your self-hosted Kubernetes cluster and be free from any SaaS solutions by following this opinionated guide 🎉
 {{< /lead >}}
 
-## Terraform
+## K3s cluster building with Terraform
 
-## K3s usage
+Begin with 1 master and 3 workers node with LB...
 
-## Hetzner CSI drivers
+## K3s configuration and usage
+
+* Local SSH + Kube apiserver access to the cluster
+* Usage of salt
+* K3s S3 backup
+
+## Automatic upgrades
+
+* OS reboot
+* K3s upgrade
+
+## HTTP access
+
+* Traefik + cert-manager
+* DNS configuration
+* Dashboard traefik access
+* Middlewares IP and auth
 
 ## 1st check ✅
 

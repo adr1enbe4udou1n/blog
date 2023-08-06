@@ -1,8 +1,8 @@
 ---
-title: "Setup a HA Kubernetes cluster Part V - Installing some apps & NoCode tools"
+title: "Setup a HA Kubernetes cluster Part V - Monitoring Stack"
 date: 2023-06-11
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
-tags: ["kubernetes", "nocode", "nocodb", "n8n", "analytics", "umami"]
+tags: ["kubernetes", "prometheus", "loki", "grafana"]
 draft: true
 ---
 
@@ -10,11 +10,12 @@ draft: true
 Build your self-hosted Kubernetes cluster and be free from any SaaS solutions by following this opinionated guide 🎉
 {{< /lead >}}
 
-1. Build and deploy simple blog
-2. Analytics with Umami
-3. NocoDB
-4. n8n
+1. Add monitor-01
+2. Prometheus Stack
+3. Loki / Promtail
+4. Grafana
+5. Services Monitor & Dashboards
 
-## 5th check ✅
+## 4th check ✅
 
-We now have testing proper app deployment in a GitOps way. In real world situation, we should have a full monitoring suite, see [next part]({{< ref "/posts/15-build-your-kubernetes-cluster-part-6" >}}) for complete monitoring and logging stack.
+We now have a full monitoring suite ! Go [next part]({{< ref "/posts/15-build-your-kubernetes-cluster-part-6" >}}) for advanced tracing / load testing.

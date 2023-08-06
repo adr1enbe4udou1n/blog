@@ -1,5 +1,5 @@
 ---
-title: "Setup a HA Kubernetes cluster Part III - Ingress & HA storage"
+title: "Setup a HA Kubernetes cluster Part III - HA storage & DB"
 date: 2023-06-10
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "traefik", "cert-manager", "longhorn"]
@@ -10,9 +10,19 @@ draft: true
 Build your self-hosted Kubernetes cluster and be free from any SaaS solutions by following this opinionated guide 🎉
 {{< /lead >}}
 
-1. Traefik & cert-manager
-2. Resilient Storage with Longhorn
-3. Test with PgAdmin (valid both ingress and storage)
+## Resilient Storage with Longhorn
+
+## PostgreSQL with replication
+
+## Redis cluster
+
+## Test with PgAdmin (valid both ingress and storage)
+
+## Test some nocode tools
+
+n8n + nocodb
+
+## Backups (dumps + longhorn snapshots)
 
 ## 2nd check ✅
 
