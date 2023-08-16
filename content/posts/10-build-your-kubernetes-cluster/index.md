@@ -7,33 +7,34 @@ draft: true
 ---
 
 {{< lead >}}
-Build your self-hosted Kubernetes cluster and be free from any SaaS solutions by following this opinionated guide 🎉
+Be free from AWS/Azure/GCP by building a production grade On-Premise Kubernetes cluster on cheap VPS provider, fully GitOps managed, and with complete CI/CD tools 🎉
 {{< /lead >}}
 
 ## The goal 🎯
 
-This guide is mainly intended for any developers or some SRE who want a Kubernetes cluster that respect following conditions :
+This guide is mainly intended for any developers or some SRE who want to build a Kubernetes cluster that respect following conditions :
 
-1. On-Premise management (The Hard Way), no vendor lock in to any managed Kubernetes provider
-2. Follow the **GitOps** principles
-3. **High availability** with cloud Load Balancer, resilient storage and DB with replication, allowing at least 1 node rebooting without any downtime for production apps
-4. Fully **monitored**
-5. Complete self-hosted **CI/CD pipeline**
-6. Not too much expensive (from **€30 to €70 / month** depending on your needs and targeted resiliency)
+1. **On-Premise management** (The Hard Way), so no vendor lock in to any managed Kubernetes provider (KaaS/CaaS)
+2. Hosted on affordable VPS provider (**Hetzner**), with strong **Terraform support**, allowing **GitOps** principles
+3. **High Availability** with cloud Load Balancer, resilient storage and DB with replication, allowing automatic upgrades or maintenance without any downtime for production apps
+4. Include complete **monitoring**, **logging** and **tracing** stacks
+5. Complete **CI/CD pipeline**
+6. Budget target **~60$/month** for complete cluster with all above tools, can be far less if no need for HA, CI or monitoring features
 
 ### What you'll learn 📚
 
-* How to set up an On-Premise resilient Kubernetes cluster with Terraform, from the ground up
-* Using Terraform to manage your infrastructure, both for cloud provider and Kubernetes, following the GitOps principles
-* Using [Hetzner](https://www.hetzner.com/) as cloud provider, with Terraform
+* How to set up an On-Premise resilient Kubernetes cluster with Terraform, from the ground up, with automatic upgrades and reboot
+* Using Terraform to manage your infrastructure, for both cloud provider and Kubernetes, following the GitOps principles
 * Using [K3s](https://k3s.io/) as lightweight Kubernetes distribution
-* Installing [Longhorn](https://longhorn.io/) for resilient storage and PostgreSQL with replication
 * Using [Traefik](https://traefik.io/) as ingress controller, combined to [cert-manager](https://cert-manager.io/) for distributed SSL certificates
-* Complete monitoring solution with [Prometheus](https://prometheus.io/), [Grafana](https://grafana.com/), [Loki](https://grafana.com/oss/loki/), and [Jaeger](https://www.jaegertracing.io/) for distributed tracing
-* Deploy some open source no code apps, always through Terraform
+* Using [Longhorn](https://longhorn.io/) for resilient storage and PostgreSQL with replication
+* Installing critical statefulsets as **PostgreSQL** and **Redis** clusters via well-known Bitnami Helms
+* Manage Continuous Delivery with [Flux](https://fluxcd.io/), and test it with some No Code apps, as [n8n](https://n8n.io/), [nocodb](https://nocodb.com/)
+* Complete monitoring solution with [Prometheus](https://prometheus.io/), [Grafana](https://grafana.com/), [Loki](https://grafana.com/oss/loki/), and [Tempo](https://grafana.com/oss/tempo/) for distributed tracing
 * Mount a complete self-hosted CI pipeline with the lightweight [Gitea](https://gitea.io/) + [Concourse CI](https://concourse-ci.org/) combo
-* Build a sample **.NET app** through this pipeline and publish it to a self-hosted Docker registry
-* Complete CD pipeline process with [Flux](https://fluxcd.io/)
+* Test above CI tools with a sample **.NET app**, with automatic CD thanks to Flux, and integrate it to monitoring stack with [OpenTelemetry](https://opentelemetry.io/)
+* Go further with [SonarQube](https://www.sonarsource.com/products/sonarqube/) for advanced code quality analysis
+* Test the app / cluster with some load testing with [k6](https://k6.io/)
 
 ### You may don't need Kubernetes 🧐
 
