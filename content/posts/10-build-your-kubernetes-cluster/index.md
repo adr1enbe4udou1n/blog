@@ -24,17 +24,19 @@ This guide is mainly intended for any developers or some SRE who want to build a
 ### What you'll learn 📚
 
 * How to set up an On-Premise resilient Kubernetes cluster with Terraform, from the ground up, with automatic upgrades and reboot
-* Using Terraform to manage your infrastructure, for both cloud provider and Kubernetes, following the GitOps principles
-* Using [K3s](https://k3s.io/) as lightweight Kubernetes distribution
-* Using [Traefik](https://traefik.io/) as ingress controller, combined to [cert-manager](https://cert-manager.io/) for distributed SSL certificates
-* Using [Longhorn](https://longhorn.io/) for resilient storage and PostgreSQL with replication
-* Installing critical statefulsets as **PostgreSQL** and **Redis** clusters via well-known Bitnami Helms
-* Manage Continuous Delivery with [Flux](https://fluxcd.io/), and test it with some No Code apps, as [n8n](https://n8n.io/), [nocodb](https://nocodb.com/)
-* Complete monitoring solution with [Prometheus](https://prometheus.io/), [Grafana](https://grafana.com/), [Loki](https://grafana.com/oss/loki/), and [Tempo](https://grafana.com/oss/tempo/) for distributed tracing
+* Use Terraform to manage your infrastructure, for both cloud provider and Kubernetes, following the GitOps principles
+* Use [K3s](https://k3s.io/) as lightweight Kubernetes distribution
+* Use [Traefik](https://traefik.io/) as ingress controller, combined to [cert-manager](https://cert-manager.io/) for distributed SSL certificates, and first secure access attempt to our cluster through Hetzner Load Balancer
+* Manage Continuous Delivery with [Flux](https://fluxcd.io/) and test it with a sample stateless nginx demo
+* Use [Longhorn](https://longhorn.io/) as resilient storage, installed to dedicated storage nodes pool and volumes, include PVC incremental backups to S3
+* Install and configure some critical statefulsets as **PostgreSQL** and **Redis** clusters to specific nodes pool via well-known [Bitnami Helms](https://bitnami.com/stacks/helm)
+* Test our resilient storage with some No Code apps, as [n8n](https://n8n.io/) and [nocodb](https://nocodb.com/), always managed by Flux
+* Complete monitoring and logging stack with [Prometheus](https://prometheus.io/), [Grafana](https://grafana.com/), [Loki](https://grafana.com/oss/loki/)
 * Mount a complete self-hosted CI pipeline with the lightweight [Gitea](https://gitea.io/) + [Concourse CI](https://concourse-ci.org/) combo
-* Test above CI tools with a sample **.NET app**, with automatic CD thanks to Flux, and integrate it to monitoring stack with [OpenTelemetry](https://opentelemetry.io/)
-* Go further with [SonarQube](https://www.sonarsource.com/products/sonarqube/) for advanced code quality analysis
-* Test the app / cluster with some load testing with [k6](https://k6.io/)
+* Test above CI tools with a sample **.NET app**, with automatic CD thanks to Flux
+* Integrate the app to our monitoring stack with [OpenTelemetry](https://opentelemetry.io/), and use [Tempo](https://grafana.com/oss/tempo/) for distributed tracing
+* Do some load testing scenarios with [k6](https://k6.io/)
+* Go further with [SonarQube](https://www.sonarsource.com/products/sonarqube/) for advanced code quality analysis and automatic code coverage reports
 
 ### You may don't need Kubernetes 🧐
 
