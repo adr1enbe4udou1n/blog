@@ -59,9 +59,13 @@ For more enterprise grade solution check [Teleport](https://goteleport.com/), wh
 * [Flux CLI](https://fluxcd.io/flux/cmd/) for CD
 * [Fly CLI](https://github.com/concourse/concourse/releases/latest) for CI
 
-## K3s cluster building with Terraform
+## K3s cluster initialization with Terraform
 
-It's finally time to Begin with 1 master and 3 workers node with LB...
+Let's begin with basic cluster setup 1 master associate to 3 workers nodes. In order to minimize terraform code boilerplate and K3s initial setup, we'll use [my dedicated terraform module](https://registry.terraform.io/modules/okami101/k3s).
+
+{{< alert >}}
+Note as this module wants to be very lightweight and simplistic, easy customization and maximum flexibility by allowing direct usage of underline [hcloud provider](https://registry.terraform.io/providers/hetznercloud/hcloud).
+{{</ alert >}}
 
 ## K3s configuration and usage
 
