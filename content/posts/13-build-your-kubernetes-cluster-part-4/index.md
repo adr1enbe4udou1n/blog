@@ -7,7 +7,7 @@ draft: true
 ---
 
 {{< lead >}}
-Build your self-hosted Kubernetes cluster and be free from any SaaS solutions by following this opinionated guide 🎉
+Be free from AWS/Azure/GCP by building a production grade On-Premise Kubernetes cluster on cheap VPS provider, fully GitOps managed, and with complete CI/CD tools 🎉
 {{< /lead >}}
 
 Dev Only - skippable
