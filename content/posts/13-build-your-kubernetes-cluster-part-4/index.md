@@ -1,0 +1,33 @@
+---
+title: "Setup a HA Kubernetes cluster Part IV - CI/CD tools"
+date: 2023-06-11
+description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
+tags: ["kubernetes", "postgresql", "longhorn"]
+draft: true
+---
+
+{{< lead >}}
+Be free from AWS/Azure/GCP by building a production grade On-Premise Kubernetes cluster on cheap VPS provider, fully GitOps managed, and with complete CI/CD tools 🎉
+{{< /lead >}}
+
+Dev Only - skippable
+Add runner-01
+
+## Gitea
+
+* Validate DB & redis access
+* Enable SSH access
+* First commit test with basic DotNet sample app
+
+## Concourse CI
+
+* Automatic build on commit
+* Push to Gitea Container Registry
+
+## Flux
+
+* Automatic deployment on commit
+
+## 3rd check ✅
+
+We have everything we need for app building with automatic deployment ! Go [next part]({{< ref "/posts/14-build-your-kubernetes-cluster-part-5" >}}) to add complete monitoring stack !
