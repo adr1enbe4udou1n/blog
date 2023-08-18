@@ -59,32 +59,34 @@ For more enterprise grade solution check [Teleport](https://goteleport.com/), wh
 * [Flux CLI](https://fluxcd.io/flux/cmd/) for CD
 * [Fly CLI](https://github.com/concourse/concourse/releases/latest) for CI
 
-## K3s cluster initialization with Terraform
+## Cluster initialization using Terraform
 
-Let's initialize basic cluster setup with 1 master associate to 3 workers nodes. For that we'll using the official [Hetzner Cloud provider](https://registry.terraform.io/providers/hetznercloud/hcloud) for Terraform.
+For that we'll using the official [Hetzner Cloud provider](https://registry.terraform.io/providers/hetznercloud/hcloud) for Terraform.
 
 However, write all terraform logic from scratch is a bit tedious, even more if including K3s initial setup, so a better approach is to use a dedicated module that will considerably reduce code boilerplate.
 
-For that we have mainly 2 options :
+### Choosing K3s Terraform module
+
+We have mainly 2 options :
 
 * Using the strongest community driven module for Hetzner : [Kube Hetzner](https://registry.terraform.io/modules/kube-hetzner/kube-hetzner/hcloud/latest)
 * Write our own reusable module or using my [existing start-kit module](https://registry.terraform.io/modules/okami101/k3s)
 
 Here are the pros and cons of each module :
 
-|                         | [Kube Hetzner](https://registry.terraform.io/modules/kube-hetzner/kube-hetzner/hcloud/latest)                                                                                      | [Okami101 K3s](https://registry.terraform.io/modules/okami101/k3s)                                                                        |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| **Support**             | Strong community                                                                                                                                                                   | Just intended as a reusable starter-kit                                                                                                   |
-| **Included helms**      | Traefik, Longhorn, Cert Manager, Kured                                                                                                                                             | None, just the K3s initial setup, which is preferable when manage helms dependencies on separated terraform project                       |
-| **Hetzner integration** | Complete, use [Hcloud Controller](https://github.com/hetznercloud/hcloud-cloud-controller-manager) internally, allowing dynamic Load Balancing, autoscaling, cleaner node deletion | Basic, public Load Balancer is statically managed by the nodepool configuration, no autoscaling support                                   |
-| **OS**                  | openSUSE MicroOS, optimized for container worloads                                                                                                                                 | Debian 12 or Ubuntu 22.04                                                                                                                 |
-| **Initial setup**       | Require packer for initial Snapshot creation, and slower on node creation because Hetnzer don't support it natively                                                                | Just about ~2 minutes for all cluster setup                                                                                               |
-| **Client support**      | POSIX-based OS only, require WSL on Windows                                                                                                                                        | All including Powershell                                                                                                                  |
-| **Internal complexity** | Huge, you can't really put your head inside                                                                                                                                        | Very accessible, easy to extend and fork, better for learning                                                                             |
-| **Upgrade**             | You may need to follow new versions regularly                                                                                                                                      | As a simple starter-kit, no need to support all community problems, so very few updates                                                   |
-| **Quality**             | Use many hacks to satisfy all community needs, plenty of remote-exec and file provisioner which is not recommended by HashiCorp themselves                                         | Use standard **cloud-config** for initial provisioning, then **Salt** for cluster OS management                                           |
-| **Security**            | Needs an SSH private key because of local provisioners, and SSH port opened to every node                                                                                          | Require only public SSH key, SSH port only opened for controllers, required SSH jump from a controller to access any internal worker node |
-| **Reusability**         | Vendor locked to Hetzner Cloud                                                                                                                                                     | Easy to adapt for a different cloud provider as long as it supports **cloud-config** (as 99% of them)                                     |
+|                         | [Kube Hetzner](https://registry.terraform.io/modules/kube-hetzner/kube-hetzner/hcloud/latest)                                                                                      | [Okami101 K3s](https://registry.terraform.io/modules/okami101/k3s)                                                                             |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Support**             | Strong community                                                                                                                                                                   | Just intended as a reusable starter-kit                                                                                                        |
+| **Included helms**      | Traefik, Longhorn, Cert Manager, Kured                                                                                                                                             | None, just the K3s initial setup, which can be preferable when managing helms dependencies on separated terraform project                      |
+| **Hetzner integration** | Complete, use [Hcloud Controller](https://github.com/hetznercloud/hcloud-cloud-controller-manager) internally, allowing dynamic Load Balancing, autoscaling, cleaner node deletion | Basic, public Load Balancer is statically managed by the nodepool configuration, no autoscaling support                                        |
+| **OS**                  | openSUSE MicroOS, optimized for container worloads                                                                                                                                 | Debian 12 or Ubuntu 22.04                                                                                                                      |
+| **Initial setup**       | Require packer for initial Snapshot creation, and slower on node creation because Hetnzer don't support it natively                                                                | Just about ~2 minutes for all cluster setup                                                                                                    |
+| **Client support**      | POSIX-based OS only, require WSL on Windows                                                                                                                                        | All including Powershell                                                                                                                       |
+| **Internal complexity** | Huge, you can't really put your head inside                                                                                                                                        | Very accessible, easy to extend and fork, better for learning                                                                                  |
+| **Upgrade**             | You may need to follow new versions regularly                                                                                                                                      | As a simple starter-kit, no need to support all community problems, so very few updates                                                        |
+| **Quality**             | Use many hacks to satisfy all community needs, plenty of remote-exec and file provisioner which is not recommended by HashiCorp themselves                                         | Use standard **cloud-config** for initial provisioning, then **Salt** for cluster OS management                                                |
+| **Security**            | Needs an SSH private key because of local provisioners, and SSH port opened to every node                                                                                          | Require only public SSH key, minimized opened SSH ports to only controllers, use SSH jump from a controller to access any internal worker node |
+| **Reusability**         | Vendor locked to Hetzner Cloud                                                                                                                                                     | Easy to adapt for a different cloud provider as long as it supports **cloud-config** (as 99% of them)                                          |
 
 So for resume, choose Kube Hetzner module if :
 
@@ -96,12 +98,162 @@ Choose the starter-kit module if :
 
 * You want to use a more standard OS, as Debian or Ubuntu, which consume less RAM, managed by preinstalled Salt
 * You prefer to start with a simplistic module, without internal hacks, giving you a better understanding of the cluster setup step-by-step and more moveable to another cloud provider
-* Very quick to set up, as it doesn't require any packer image creation, and use cloud-config for initial setup
+* Very quick to set up, as it doesn't require any packer image creation, and use cloud-config for initial setup, without any client OS dependencies
 * Preferring manage additional helm dependencies on a separated terraform project
 
-So for this guide, I'll use my own module, feel free to use the other one if you prefer.
+For this guide, I'll consider using the simpler starter kit, but I'll give you equivalent setup for Kube Hetzner as well.
 
-## K3s configuration and usage
+### Cluster initialization
+
+Let's initialize basic cluster setup with 1 master associate to 3 workers nodes. Create an empty folder for our terraform project, and create following `kube.tf` file :
+
+{{< highlight file="kube.tf" >}}
+
+```terraform
+terraform {
+  required_providers {
+    hcloud = {
+      source = "hetznercloud/hcloud"
+    }
+  }
+
+  backend "local" {
+    path = "terraform.tfstate"
+  }
+}
+
+variable "hcloud_token" {
+  type      = string
+  sensitive = true
+}
+
+variable "my_public_ssh_keys" {
+  type      = list(string)
+  sensitive = true
+}
+
+variable "my_ip_addresses" {
+  type      = list(string)
+  sensitive = true
+}
+
+variable "s3_access_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "s3_secret_key" {
+  type      = string
+  sensitive = true
+}
+
+provider "hcloud" {
+  token = var.hcloud_token
+}
+
+resource "hcloud_ssh_key" "cluster" {
+  name       = "k3s"
+  public_key = var.my_public_ssh_keys[0]
+}
+
+module "hcloud_k3s" {
+  providers = {
+    hcloud = hcloud
+  }
+
+  source = "okami101/k3s/hcloud"
+
+  server_image    = "ubuntu-22.04"
+  server_location = "nbg1"
+  server_timezone = "Europe/Paris"
+  server_locale   = "fr_FR.UTF-8"
+  server_packages = ["nfs-common"]
+
+  ssh_port = 2222
+
+  cluster_name = "k3s"
+  cluster_user = "k3s"
+
+  my_ssh_key_names   = [hcloud_ssh_key.cluster.name]
+  my_public_ssh_keys = var.my_public_ssh_keys
+  my_ip_addresses    = var.my_ip_addresses
+
+  k3s_channel = "stable"
+
+  tls_sans = ["cp.kube.rocks"]
+
+  disabled_components = ["traefik"]
+  kubelet_args = [
+    "eviction-hard=memory.available<250Mi"
+  ]
+
+  etcd_s3_backup = {
+    etcd-s3-endpoint            = "s3.fr-par.scw.cloud"
+    etcd-s3-access-key          = var.s3_access_key
+    etcd-s3-secret-key          = var.s3_secret_key
+    etcd-s3-region              = "fr-par"
+    etcd-s3-bucket              = "myk3srocks"
+    etcd-snapshot-schedule-cron = "0 0 * * *"
+  }
+
+  control_planes = {
+    server_type       = "cx21"
+    count             = 1
+    private_interface = "ens10"
+    labels            = []
+    taints = [
+      "node-role.kubernetes.io/control-plane:NoSchedule"
+    ]
+  }
+
+  agent_nodepools = [
+    {
+      name              = "worker"
+      server_type       = "cx21"
+      count             = 3
+      private_interface = "ens10"
+      labels            = []
+      taints            = []
+    }
+  ]
+}
+
+output "ssh_config" {
+  value = module.hcloud_k3s.ssh_config
+}
+```
+
+{{</ highlight >}}
+
+As input variables, you have the choice to use environment variables or separated `terraform.tfvars` file.
+
+Environment variables :
+
+```sh
+export TF_VAR_hcloud_token="xxx"
+export TF_VAR_my_public_ssh_keys='["xxx"]'
+export TF_VAR_my_ip_addresses='["ssh-ed25519 xxx me@kube.rocks"]'
+export TF_VAR_s3_access_key="xxx"
+export TF_VAR_s3_secret_key="xxx"
+```
+
+Or `terraform.tfvars` file :
+
+```sh
+hcloud_token = "xxx"
+my_public_ssh_keys = [
+  "82.82.82.82/32"
+]
+my_ip_addresses = [
+  "ssh-ed25519 xxx"
+]
+s3_access_key = "xxx"
+s3_secret_key = "xxx"
+```
+
+### K3s configuration and usage
+
+Let's initialize basic cluster setup with 1 master associate to 3 workers nodes.
 
 * Local SSH + Kube apiserver access to the cluster
 * Usage of salt
