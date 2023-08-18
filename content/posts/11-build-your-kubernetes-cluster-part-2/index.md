@@ -109,7 +109,7 @@ Let's initialize basic cluster setup with 1 master associate to 3 workers nodes.
 
 {{< highlight file="kube.tf" >}}
 
-```terraform
+```tf
 terraform {
   required_providers {
     hcloud = {
@@ -225,6 +225,33 @@ output "ssh_config" {
 
 {{</ highlight >}}
 
+{{< tabs >}}
+{{< tab tabName="State storage" >}}
+
+```tf
+backend "local" {
+  path = "terraform.tfstate"
+}
+```
+
+I'm using a local backend for simplicity, but for teams sharing, but you may use more appropriate backend, like S3, for state storage.
+
+{{</ tab >}}
+{{< tab tabName="State storage 2" >}}
+
+```tf
+backend "local" {
+  path = "terraform.tfstate"
+}
+```
+
+I'm using a local backend for simplicity, but for teams sharing, but you may use more appropriate backend, like S3, for state storage.
+
+{{</ tab >}}
+{{</ tabs >}}
+
+#### Inputs
+
 As input variables, you have the choice to use environment variables or separated `terraform.tfvars` file.
 
 Environment variables :
@@ -239,7 +266,7 @@ export TF_VAR_s3_secret_key="xxx"
 
 Or `terraform.tfvars` file :
 
-```sh
+```tf
 hcloud_token = "xxx"
 my_public_ssh_keys = [
   "82.82.82.82/32"
