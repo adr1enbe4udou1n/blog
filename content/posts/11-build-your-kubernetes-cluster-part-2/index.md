@@ -61,11 +61,45 @@ For more enterprise grade solution check [Teleport](https://goteleport.com/), wh
 
 ## K3s cluster initialization with Terraform
 
-Let's begin with basic cluster setup 1 master associate to 3 workers nodes. In order to minimize terraform code boilerplate and K3s initial setup, we'll use [my dedicated terraform module](https://registry.terraform.io/modules/okami101/k3s).
+Let's initialize basic cluster setup with 1 master associate to 3 workers nodes. For that we'll using the official [Hetzner Cloud provider](https://registry.terraform.io/providers/hetznercloud/hcloud) for Terraform.
 
-{{< alert >}}
-Note as this module wants to be very lightweight and simplistic, easy customization and maximum flexibility by allowing direct usage of underline [hcloud provider](https://registry.terraform.io/providers/hetznercloud/hcloud).
-{{</ alert >}}
+However, write all terraform logic from scratch is a bit tedious, even more if including K3s initial setup, so a better approach is to use a dedicated module that will considerably reduce code boilerplate.
+
+For that we have mainly 2 options :
+
+* Using the strongest community driven module for Hetzner : [Kube Hetzner](https://registry.terraform.io/modules/kube-hetzner/kube-hetzner/hcloud/latest)
+* Write our own reusable module or using my [existing start-kit module](https://registry.terraform.io/modules/okami101/k3s)
+
+Here are the pros and cons of each module :
+
+|                         | [Kube Hetzner](https://registry.terraform.io/modules/kube-hetzner/kube-hetzner/hcloud/latest)                                                                                      | [Okami101 K3s](https://registry.terraform.io/modules/okami101/k3s)                                                                        |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **Support**             | Strong community                                                                                                                                                                   | Just intended as a reusable starter-kit                                                                                                   |
+| **Included helms**      | Traefik, Longhorn, Cert Manager, Kured                                                                                                                                             | None, just the K3s initial setup, which is preferable when manage helms dependencies on separated terraform project                       |
+| **Hetzner integration** | Complete, use [Hcloud Controller](https://github.com/hetznercloud/hcloud-cloud-controller-manager) internally, allowing dynamic Load Balancing, autoscaling, cleaner node deletion | Basic, public Load Balancer is statically managed by the nodepool configuration, no autoscaling support                                   |
+| **OS**                  | openSUSE MicroOS, optimized for container worloads                                                                                                                                 | Debian 12 or Ubuntu 22.04                                                                                                                 |
+| **Initial setup**       | Require packer for initial Snapshot creation, and slower on node creation because Hetnzer don't support it natively                                                                | Just about ~2 minutes for all cluster setup                                                                                               |
+| **Client support**      | POSIX-based OS only, require WSL on Windows                                                                                                                                        | All including Powershell                                                                                                                  |
+| **Internal complexity** | Huge, you can't really put your head inside                                                                                                                                        | Very accessible, easy to extend and fork, better for learning                                                                             |
+| **Upgrade**             | You may need to follow new versions regularly                                                                                                                                      | As a simple starter-kit, no need to support all community problems, so very few updates                                                   |
+| **Quality**             | Use many hacks to satisfy all community needs, plenty of remote-exec and file provisioner which is not recommended by HashiCorp themselves                                         | Use standard **cloud-config** for initial provisioning, then **Salt** for cluster OS management                                           |
+| **Security**            | Needs an SSH private key because of local provisioners, and SSH port opened to every node                                                                                          | Require only public SSH key, SSH port only opened for controllers, required SSH jump from a controller to access any internal worker node |
+| **Reusability**         | Vendor locked to Hetzner Cloud                                                                                                                                                     | Easy to adapt for a different cloud provider as long as it supports **cloud-config** (as 99% of them)                                     |
+
+So for resume, choose Kube Hetzner module if :
+
+* You want to use an OS optimized for containers, but note as it takes more RAM usage than Debian-like distro (230 Mo VS 120Mo).
+* Strong community support is important for you
+* Need of [Hcloud Controller](https://github.com/hetznercloud/hcloud-cloud-controller-manager) functionalities from the ground up, giving support for **autoscaling** and **dynamic load balancing**
+
+Choose the starter-kit module if :
+
+* You want to use a more standard OS, as Debian or Ubuntu, which consume less RAM, managed by preinstalled Salt
+* You prefer to start with a simplistic module, without internal hacks, giving you a better understanding of the cluster setup step-by-step and more moveable to another cloud provider
+* Very quick to set up, as it doesn't require any packer image creation, and use cloud-config for initial setup
+* Preferring manage additional helm dependencies on a separated terraform project
+
+So for this guide, I'll use my own module, feel free to use the other one if you prefer.
 
 ## K3s configuration and usage
 

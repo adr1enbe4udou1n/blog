@@ -36,7 +36,7 @@ This guide is mainly intended for any developers or some SRE who want to build a
 * Test above CI tools with a sample **.NET app**, with automatic CD using Flux
 * Integrate the app to our monitoring stack with [OpenTelemetry](https://opentelemetry.io/), and use [Tempo](https://grafana.com/oss/tempo/) for distributed tracing
 * Do some load testing scenarios with [k6](https://k6.io/)
-* Go further with [SonarQube](https://www.sonarsource.com/products/sonarqube/) for advanced code quality analysis and automatic code coverage reports
+* Go further with [SonarQube](https://www.sonarsource.com/products/sonarqube/) for Continuous Inspection on code quality, including automatic code coverage reports
 
 ### You probably don't need Kubernetes 🪧
 
