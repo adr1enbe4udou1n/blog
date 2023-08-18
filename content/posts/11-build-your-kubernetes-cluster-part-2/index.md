@@ -101,7 +101,7 @@ Choose the starter-kit module if :
 * Very quick to set up, as it doesn't require any packer image creation, and use cloud-config for initial setup, without any client OS dependencies
 * Preferring manage additional helm dependencies on a separated terraform project
 
-For this guide, I'll consider using the simpler starter kit, but I'll give you equivalent setup for Kube Hetzner as well.
+For this guide, I'll consider using the starter kit. You may read [associated readme](https://github.com/okami101/terraform-hcloud-k3s) before continue.
 
 ### Cluster initialization
 
@@ -172,7 +172,7 @@ module "hcloud_k3s" {
   ssh_port = 2222
 
   cluster_name = "k3s"
-  cluster_user = "k3s"
+  cluster_user = "rocks"
 
   my_ssh_key_names   = [hcloud_ssh_key.cluster.name]
   my_public_ssh_keys = var.my_public_ssh_keys
@@ -225,6 +225,10 @@ output "ssh_config" {
 
 {{</ highlight >}}
 
+#### Explanation
+
+Get a complete description of the above file [here](https://github.com/okami101/terraform-hcloud-k3s/blob/main/kube.tf.example).
+
 {{< tabs >}}
 {{< tab tabName="State storage" >}}
 
@@ -234,37 +238,114 @@ backend "local" {
 }
 ```
 
-I'm using a local backend for simplicity, but for teams sharing, but you may use more appropriate backend, like S3, for state storage.
+I'm using a local backend for simplicity, but for teams sharing, you may use more appropriate backend, like S3 or Terraform Cloud (the most secured with encryption at REST, versioning and centralized locking).
 
 {{</ tab >}}
-{{< tab tabName="State storage 2" >}}
+{{< tab tabName="K3s" >}}
 
 ```tf
-backend "local" {
-  path = "terraform.tfstate"
+k3s_channel = "stable"
+
+tls_sans = ["cp.kube.rocks"]
+
+disabled_components = ["traefik"]
+kubelet_args = [
+  "eviction-hard=memory.available<250Mi"
+]
+```
+
+This is the K3s specific configuration, where you can choose the channel (stable or latest), the TLS SANs, and the kubelet arguments.
+
+I'm disabling included Traefik because we'll use a more flexible official Helm later.
+
+I also prefer increase the eviction threshold to 250Mi, in order to avoid OS OOM killer.
+
+{{</ tab >}}
+{{< tab tabName="Cluster backup" >}}
+
+```tf
+etcd_s3_backup = {
+  etcd-s3-endpoint            = "s3.fr-par.scw.cloud"
+  etcd-s3-access-key          = var.s3_access_key
+  etcd-s3-secret-key          = var.s3_secret_key
+  etcd-s3-region              = "fr-par"
+  etcd-s3-bucket              = "myk3srocks"
+  etcd-snapshot-schedule-cron = "0 0 * * *"
 }
 ```
 
-I'm using a local backend for simplicity, but for teams sharing, but you may use more appropriate backend, like S3, for state storage.
+This will enable automatic daily backup of etcd database on S3 bucket, which is useful for faster disaster recovery. See the official guide [here](https://docs.k3s.io/datastore/backup-restore).
+
+{{</ tab >}}
+{{< tab tabName="Cluster config" >}}
+
+```tf
+control_planes = {
+  server_type       = "cx21"
+  count             = 1
+  private_interface = "ens10"
+  labels            = []
+  taints = [
+    "node-role.kubernetes.io/control-plane:NoSchedule"
+  ]
+}
+
+agent_nodepools = [
+  {
+    name              = "worker"
+    server_type       = "cx21"
+    count             = 3
+    private_interface = "ens10"
+    labels            = []
+    taints            = []
+  }
+]
+```
+
+This is the heart configuration of the cluster, where you can define the number of control planes and workers nodes, their type, and their network interface. We'll use 1 master and 3 workers to begin with.
+
+The interface "ens10" is proper for intel CPU, use "enp7s0" for AMD.
+
+Use the taint `node-role.kubernetes.io/control-plane:NoSchedule` in order to prevent any workload to be scheduled on the control plane.
+
+{{</ tab >}}
+{{< tab tabName="SSH config" >}}
+
+```tf
+output "ssh_config" {
+  value = module.hcloud_k3s.ssh_config
+}
+```
+
+Will print the SSH config for accessing the cluster, which will be used later.
 
 {{</ tab >}}
 {{</ tabs >}}
+
+#### Important security note
+
+Treat the Terraform state very carefully in secured place, as it's the only source of truth for your cluster. If leaked, consider the cluster as **compromised and you should active DRP (disaster recovery plan)**. The first vital action is at least to renew the Hetzner Cloud and S3 tokens immediately.
+
+{{< alert >}}
+
+At any case, consider any leak of any writeable Hetzner Cloud token as a **Game Over**. Indeed, even if the attacker has no direct access to existing servers, mainly because cluster SSH private key as well as kube config are not stored into Terraform state, he still has full control of infrastructure, and can do the following actions :
+
+1. Create new server to same cluster network with its own SSH access.
+2. Install a new K3s agent and connect it to the controllers thanks to the generated K3s token stored into Terraform state.
+3. Sniff any data from the cluster that comes to the compromised server, including secrets, thanks to the new agent.
+
+In order to mitigate any risk of critical data leak, you may use data encryption whenever is possible. K3s offer it [natively for etcd](https://docs.k3s.io/security/secrets-encryption). Longhorn (treated later) also offer it [natively for volumes](https://longhorn.io/docs/latest/advanced-resources/security/volume-encryption/) (including backups).
+
+{{</ alert >}}
 
 #### Inputs
 
 As input variables, you have the choice to use environment variables or separated `terraform.tfvars` file.
 
-Environment variables :
+{{< tabs >}}
+{{< tab tabName="terraform.tfvars file" >}}
 
-```sh
-export TF_VAR_hcloud_token="xxx"
-export TF_VAR_my_public_ssh_keys='["xxx"]'
-export TF_VAR_my_ip_addresses='["ssh-ed25519 xxx me@kube.rocks"]'
-export TF_VAR_s3_access_key="xxx"
-export TF_VAR_s3_secret_key="xxx"
-```
-
-Or `terraform.tfvars` file :
+{{< highlight file="terraform.tfvars" >}}
 
 ```tf
 hcloud_token = "xxx"
@@ -276,6 +357,68 @@ my_ip_addresses = [
 ]
 s3_access_key = "xxx"
 s3_secret_key = "xxx"
+```
+
+{{</ highlight >}}
+
+{{</ tab >}}
+{{< tab tabName="Environment variables" >}}
+
+```sh
+export TF_VAR_hcloud_token="xxx"
+export TF_VAR_my_public_ssh_keys='["xxx"]'
+export TF_VAR_my_ip_addresses='["ssh-ed25519 xxx me@kube.rocks"]'
+export TF_VAR_s3_access_key="xxx"
+export TF_VAR_s3_secret_key="xxx"
+```
+
+{{</ tab >}}
+{{</ tabs >}}
+
+#### Terraform apply
+
+It's finally time to initialize the cluster :
+
+```sh
+terraform init
+terraform apply
+```
+
+Check the printed plan and confirm. The cluster creation will take about 2 minutes. When finished following SSH configuration should appear :
+
+```sh
+Host k3s
+    HostName xxx.xxx.xxx.xxx
+    User rocks
+    Port 2222
+
+Host k3s-controller-01
+    HostName 10.0.0.2
+    HostKeyAlias k3s-controller-01
+    User rocks
+    Port 2222
+    ProxyJump k3s
+
+Host k3s-worker-01
+    HostName 10.0.1.1
+    HostKeyAlias k3s-worker-01
+    User rocks
+    Port 2222
+    ProxyJump k3s
+
+Host k3s-worker-02
+    HostName 10.0.1.2
+    HostKeyAlias k3s-worker-02
+    User rocks
+    Port 2222
+    ProxyJump k3s
+
+Host k3s-worker-03
+    HostName 10.0.1.3
+    HostKeyAlias k3s-worker-03
+    User rocks
+    Port 2222
+    ProxyJump k3s
 ```
 
 ### K3s configuration and usage
