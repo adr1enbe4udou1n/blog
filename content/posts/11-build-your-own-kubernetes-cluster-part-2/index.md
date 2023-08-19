@@ -117,9 +117,7 @@ terraform {
     }
   }
 
-  backend "local" {
-    path = "terraform.tfstate"
-  }
+  backend "local" {}
 }
 
 variable "hcloud_token" {
@@ -228,9 +226,7 @@ Get a complete description of the above file [here](https://github.com/okami101/
 {{< tab tabName="State" >}}
 
 ```tf
-backend "local" {
-  path = "terraform.tfstate"
-}
+backend "local" {}
 ```
 
 I'm using a local backend for simplicity, but for teams sharing, you may use more appropriate backend, like S3 or Terraform Cloud (the most secured with encryption at REST, versioning and centralized locking).
