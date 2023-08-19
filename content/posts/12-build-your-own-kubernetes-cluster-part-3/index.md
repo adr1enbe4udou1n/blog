@@ -28,6 +28,8 @@ terraform {
 
 Let's begin with automatic upgrades management.
 
+### Monitoring stack
+
 ### Automatic reboot
 
 When OS kernel is upgraded, the system needs to be rebooted to apply it. This is a critical operation for a Kubernetes cluster as can cause downtime. To avoid this, we'll use [kured](https://github.com/kubereboot/kured) that will take care of cordon & drains before rebooting nodes one by one.
@@ -55,6 +57,11 @@ resource "helm_release" "kubereboot" {
   set {
     name  = "tolerations[0].operator"
     value = "Exists"
+  }
+  
+  set {
+    name  = "metrics.create"
+    value = "true"
   }
 }
 ```
