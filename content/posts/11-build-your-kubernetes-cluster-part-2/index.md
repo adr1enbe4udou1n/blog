@@ -27,23 +27,23 @@ Before attack the next part of this guide, I'll assume you have hard prerequisit
 
 For better fluidity, here is the expected list of variables you'll need to prepare. Store them in a secured place.
 
-| Variable          | Sample value                    | Note                                                                            |
-| ----------------- | ------------------------------- | ------------------------------------------------------------------------------- |
-| `hcloud_token`    | xxx                             | Token of existing **empty** Hetzner Cloud project <sup>1</sup>                  |
-| `domain_name`     | kube.rocks                      | Valid registred domain name                                                     |
-| `acme_email`      | <me@kube.rocks>                 | Valid email for Let's Encrypt registration                                      |
-| `dns_token`       | xxx                             | Token of your DNS provider in order to issue certificates <sup>2</sup>          |
-| `ssh_public_key`  | ssh-ed25519 xxx <me@kube.rocks> | Your public SSH key for cluster OS access                                       |
-| `whitelisted_ips` | [82.82.82.82]                   | List of dedicated public IPs allowed for cluster management access <sup>3</sup> |
-| `s3_endpoint`     | s3.fr-par.scw.cloud             | Custom endpoint if not using AWS                                                |
-| `s3_region`       | fr-par                          |                                                                                 |
-| `s3_bucket`       | kuberocks                       |                                                                                 |
-| `s3_access_key`   | xxx                             |                                                                                 |
-| `s3_secret_key`   | xxx                             |                                                                                 |
-| `smtp_host`       | smtp-relay.brevo.com            |                                                                                 |
-| `smtp_port`       | 587                             |                                                                                 |
-| `smtp_user`       | <me@kube.rocks>                 |                                                                                 |
-| `smtp_password`   | xxx                             |                                                                                 |
+| Variable          | Sample value                    | Note                                                                                                                    |
+| ----------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `hcloud_token`    | xxx                             | Token of existing **empty** Hetzner Cloud project <sup>1</sup>                                                          |
+| `domain_name`     | kube.rocks                      | Valid registred domain name                                                                                             |
+| `acme_email`      | <me@kube.rocks>                 | Valid email for Let's Encrypt registration                                                                              |
+| `dns_token`       | xxx                             | Token of your DNS provider in order to issue certificates <sup>2</sup>                                                  |
+| `ssh_public_key`  | ssh-ed25519 xxx <me@kube.rocks> | Your public SSH key for cluster OS level access, generate a new SSH key with `ssh-keygen -t ed25519 -C "me@kube.rocks"` |
+| `whitelisted_ips` | [82.82.82.82]                   | List of dedicated public IPs allowed for cluster management access <sup>3</sup>                                         |
+| `s3_endpoint`     | s3.fr-par.scw.cloud             | Custom endpoint if not using AWS                                                                                        |
+| `s3_region`       | fr-par                          |                                                                                                                         |
+| `s3_bucket`       | kuberocks                       |                                                                                                                         |
+| `s3_access_key`   | xxx                             |                                                                                                                         |
+| `s3_secret_key`   | xxx                             |                                                                                                                         |
+| `smtp_host`       | smtp-relay.brevo.com            |                                                                                                                         |
+| `smtp_port`       | 587                             |                                                                                                                         |
+| `smtp_user`       | <me@kube.rocks>                 |                                                                                                                         |
+| `smtp_password`   | xxx                             |                                                                                                                         |
 
 <sup>1</sup> Check [this link](https://github.com/hetznercloud/cli#getting-started>) in order to generate a token  
 <sup>2</sup> Check cert-manager documentation to generate the token for supporting DNS provider, [example for Cloudflare](https://cert-manager.io/docs/configuration/acme/dns01/cloudflare/#api-tokens)  
@@ -79,7 +79,7 @@ Here are the pros and cons of each module :
 | **Support**             | Strong community                                                                                                                                                                   | Just intended as a reusable starter-kit                                                                                                        |
 | **Included helms**      | Traefik, Longhorn, Cert Manager, Kured                                                                                                                                             | None, just the K3s initial setup, which can be preferable when managing helms dependencies on separated terraform project                      |
 | **Hetzner integration** | Complete, use [Hcloud Controller](https://github.com/hetznercloud/hcloud-cloud-controller-manager) internally, allowing dynamic Load Balancing, autoscaling, cleaner node deletion | Basic, public Load Balancer is statically managed by the nodepool configuration, no autoscaling support                                        |
-| **OS**                  | openSUSE MicroOS, optimized for container worloads                                                                                                                                 | Debian 12 or Ubuntu 22.04                                                                                                                      |
+| **OS**                  | openSUSE MicroOS, optimized for container worloads                                                                                                                                 | Debian 11 or Ubuntu 22.04                                                                                                                      |
 | **Initial setup**       | Require packer for initial Snapshot creation, and slower on node creation because Hetnzer don't support it natively                                                                | Just about ~2 minutes for all cluster setup                                                                                                    |
 | **Client support**      | POSIX-based OS only, require WSL on Windows                                                                                                                                        | All including Powershell                                                                                                                       |
 | **Internal complexity** | Huge, you can't really put your head inside                                                                                                                                        | Very accessible, easy to extend and fork, better for learning                                                                                  |
@@ -103,7 +103,7 @@ Choose the starter-kit module if :
 
 For this guide, I'll consider using the starter kit. You may read [associated readme](https://github.com/okami101/terraform-hcloud-k3s) before continue.
 
-### Cluster initialization
+### 1st Terraform project
 
 Let's initialize basic cluster setup with 1 master associate to 3 workers nodes. Create an empty folder for our terraform project, and create following `kube.tf` file :
 
@@ -151,12 +151,7 @@ provider "hcloud" {
   token = var.hcloud_token
 }
 
-resource "hcloud_ssh_key" "cluster" {
-  name       = "k3s"
-  public_key = var.my_public_ssh_keys[0]
-}
-
-module "hcloud_k3s" {
+module "hcloud_kube" {
   providers = {
     hcloud = hcloud
   }
@@ -164,17 +159,15 @@ module "hcloud_k3s" {
   source = "okami101/k3s/hcloud"
 
   server_image    = "ubuntu-22.04"
-  server_location = "nbg1"
   server_timezone = "Europe/Paris"
   server_locale   = "fr_FR.UTF-8"
   server_packages = ["nfs-common"]
 
   ssh_port = 2222
 
-  cluster_name = "k3s"
+  cluster_name = "kube"
   cluster_user = "rocks"
 
-  my_ssh_key_names   = [hcloud_ssh_key.cluster.name]
   my_public_ssh_keys = var.my_public_ssh_keys
   my_ip_addresses    = var.my_ip_addresses
 
@@ -192,12 +185,13 @@ module "hcloud_k3s" {
     etcd-s3-access-key          = var.s3_access_key
     etcd-s3-secret-key          = var.s3_secret_key
     etcd-s3-region              = "fr-par"
-    etcd-s3-bucket              = "myk3srocks"
+    etcd-s3-bucket              = "mykuberocks"
     etcd-snapshot-schedule-cron = "0 0 * * *"
   }
 
   control_planes = {
     server_type       = "cx21"
+    location          = "nbg1"
     count             = 1
     private_interface = "ens10"
     labels            = []
@@ -210,6 +204,7 @@ module "hcloud_k3s" {
     {
       name              = "worker"
       server_type       = "cx21"
+      location          = "nbg1"
       count             = 3
       private_interface = "ens10"
       labels            = []
@@ -219,7 +214,7 @@ module "hcloud_k3s" {
 }
 
 output "ssh_config" {
-  value = module.hcloud_k3s.ssh_config
+  value = module.hcloud_kube.ssh_config
 }
 ```
 
@@ -230,7 +225,7 @@ output "ssh_config" {
 Get a complete description of the above file [here](https://github.com/okami101/terraform-hcloud-k3s/blob/main/kube.tf.example).
 
 {{< tabs >}}
-{{< tab tabName="State storage" >}}
+{{< tab tabName="State" >}}
 
 ```tf
 backend "local" {
@@ -239,6 +234,49 @@ backend "local" {
 ```
 
 I'm using a local backend for simplicity, but for teams sharing, you may use more appropriate backend, like S3 or Terraform Cloud (the most secured with encryption at REST, versioning and centralized locking).
+
+Treat the Terraform state very carefully in secured place, as it's the only source of truth for your cluster. If leaked, consider the cluster as **compromised and you should active DRP (disaster recovery plan)**. The first vital action is at least to renew the Hetzner Cloud and S3 tokens immediately.
+
+{{< alert >}}
+
+At any case, consider any leak of writeable Hetzner Cloud token as a **Game Over**. Indeed, even if the attacker has no direct access to existing servers, mainly because cluster SSH private key as well as kube config are not stored into Terraform state, he still has full control of infrastructure, and can do the following actions :
+
+1. Create new server to same cluster network with its own SSH access.
+2. Install a new K3s agent and connect it to the controllers thanks to the generated K3s token stored into Terraform state.
+3. Sniff any data from the cluster that comes to the compromised server, including secrets, thanks to the new agent.
+4. Get access to remote S3 backups.
+
+{{</ alert >}}
+
+In order to mitigate any risk of critical data leak, you may use data encryption whenever is possible. K3s offer it [natively for etcd](https://docs.k3s.io/security/secrets-encryption). Longhorn (treated later) also offer it [natively for volumes](https://longhorn.io/docs/latest/advanced-resources/security/volume-encryption/) (including backups).
+
+{{</ tab >}}
+{{< tab tabName="Global" >}}
+
+```tf
+server_image    = "ubuntu-22.04"
+server_timezone = "Europe/Paris"
+server_locale   = "fr_FR.UTF-8"
+server_packages = ["nfs-common"]
+
+ssh_port = 2222
+
+cluster_name = "kube"
+cluster_user = "rocks"
+
+my_public_ssh_keys = var.my_public_ssh_keys
+my_ip_addresses    = var.my_ip_addresses
+```
+
+Choose between `ubuntu-22.04` or `debian-11`, and set the timezone, locale and the default packages you want to install on all nodes. Once server created you may use Salt for changing them globally in the cluster.
+
+Why not `debian-12` ? Because it's sadly not yet supported by [Salt project](https://github.com/saltstack/salt/issues/64223)...
+
+{{< alert >}}
+`nfs-common` package is required for Longhorn in order to support RWX volumes.
+{{</ alert >}}
+
+`cluster_name` is the node's name prefix and will have the format `{cluster_name}-{pool_name}-{index}`, for example `kube-storage-01`. `cluster_user` is the username UID 1000 for SSH access with sudo rights. `root` user is disabled for remote access security reasons.
 
 {{</ tab >}}
 {{< tab tabName="K3s" >}}
@@ -261,7 +299,7 @@ I'm disabling included Traefik because we'll use a more flexible official Helm l
 I also prefer increase the eviction threshold to 250Mi, in order to avoid OS OOM killer.
 
 {{</ tab >}}
-{{< tab tabName="Cluster backup" >}}
+{{< tab tabName="Backup" >}}
 
 ```tf
 etcd_s3_backup = {
@@ -269,7 +307,7 @@ etcd_s3_backup = {
   etcd-s3-access-key          = var.s3_access_key
   etcd-s3-secret-key          = var.s3_secret_key
   etcd-s3-region              = "fr-par"
-  etcd-s3-bucket              = "myk3srocks"
+  etcd-s3-bucket              = "mykuberocks"
   etcd-snapshot-schedule-cron = "0 0 * * *"
 }
 ```
@@ -277,11 +315,12 @@ etcd_s3_backup = {
 This will enable automatic daily backup of etcd database on S3 bucket, which is useful for faster disaster recovery. See the official guide [here](https://docs.k3s.io/datastore/backup-restore).
 
 {{</ tab >}}
-{{< tab tabName="Cluster config" >}}
+{{< tab tabName="Cluster" >}}
 
 ```tf
 control_planes = {
   server_type       = "cx21"
+  location          = "nbg1"
   count             = 1
   private_interface = "ens10"
   labels            = []
@@ -294,6 +333,7 @@ agent_nodepools = [
   {
     name              = "worker"
     server_type       = "cx21"
+    location          = "nbg1"
     count             = 3
     private_interface = "ens10"
     labels            = []
@@ -309,7 +349,7 @@ The interface "ens10" is proper for intel CPU, use "enp7s0" for AMD.
 Use the taint `node-role.kubernetes.io/control-plane:NoSchedule` in order to prevent any workload to be scheduled on the control plane.
 
 {{</ tab >}}
-{{< tab tabName="SSH config" >}}
+{{< tab tabName="SSH" >}}
 
 ```tf
 output "ssh_config" {
@@ -321,22 +361,6 @@ Will print the SSH config for accessing the cluster, which will be used later.
 
 {{</ tab >}}
 {{</ tabs >}}
-
-#### Important security note
-
-Treat the Terraform state very carefully in secured place, as it's the only source of truth for your cluster. If leaked, consider the cluster as **compromised and you should active DRP (disaster recovery plan)**. The first vital action is at least to renew the Hetzner Cloud and S3 tokens immediately.
-
-{{< alert >}}
-
-At any case, consider any leak of any writeable Hetzner Cloud token as a **Game Over**. Indeed, even if the attacker has no direct access to existing servers, mainly because cluster SSH private key as well as kube config are not stored into Terraform state, he still has full control of infrastructure, and can do the following actions :
-
-1. Create new server to same cluster network with its own SSH access.
-2. Install a new K3s agent and connect it to the controllers thanks to the generated K3s token stored into Terraform state.
-3. Sniff any data from the cluster that comes to the compromised server, including secrets, thanks to the new agent.
-
-In order to mitigate any risk of critical data leak, you may use data encryption whenever is possible. K3s offer it [natively for etcd](https://docs.k3s.io/security/secrets-encryption). Longhorn (treated later) also offer it [natively for volumes](https://longhorn.io/docs/latest/advanced-resources/security/volume-encryption/) (including backups).
-
-{{</ alert >}}
 
 #### Inputs
 
@@ -384,42 +408,48 @@ terraform init
 terraform apply
 ```
 
-Check the printed plan and confirm. The cluster creation will take about 2 minutes. When finished following SSH configuration should appear :
+Check the printed plan and confirm. The cluster creation will take about 1 minute. When finished following SSH configuration should appear :
 
 ```sh
-Host k3s
+Host kube
     HostName xxx.xxx.xxx.xxx
     User rocks
     Port 2222
 
-Host k3s-controller-01
+Host kube-controller-01
     HostName 10.0.0.2
-    HostKeyAlias k3s-controller-01
+    HostKeyAlias kube-controller-01
     User rocks
     Port 2222
-    ProxyJump k3s
+    ProxyJump kube
 
-Host k3s-worker-01
+Host kube-worker-01
     HostName 10.0.1.1
-    HostKeyAlias k3s-worker-01
+    HostKeyAlias kube-worker-01
     User rocks
     Port 2222
-    ProxyJump k3s
+    ProxyJump kube
 
-Host k3s-worker-02
+Host kube-worker-02
     HostName 10.0.1.2
-    HostKeyAlias k3s-worker-02
+    HostKeyAlias kube-worker-02
     User rocks
     Port 2222
-    ProxyJump k3s
+    ProxyJump kube
 
-Host k3s-worker-03
+Host kube-worker-03
     HostName 10.0.1.3
-    HostKeyAlias k3s-worker-03
+    HostKeyAlias kube-worker-03
     User rocks
     Port 2222
-    ProxyJump k3s
+    ProxyJump kube
 ```
+
+We are finally ready to access the cluster. Merge this SSH config into your `~/.ssh/config` file, then test the connection with `ssh kube`.
+
+{{< alert >}}
+If you get "Connection refused", it's probably because the server is still on cloud-init phase. Wait a few minutes and try again. Be sure to have the same public IPs as the one you whitelisted in the Terraform variables. You can edit them and reapply the Terraform configuration at any moment.
+{{</ alert >}}
 
 ### K3s configuration and usage
 
