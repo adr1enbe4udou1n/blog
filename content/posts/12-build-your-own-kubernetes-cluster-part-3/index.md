@@ -63,6 +63,10 @@ resource "helm_release" "kubereboot" {
 
 After applying this, you can check that the daemonset is running on all nodes with `kg ds`.
 
+{{< alert >}}
+`tolerations` will ensure that all tainted nodes will receive the daemonset.
+{{</ alert >}}
+
 ### Automatic K3s upgrade
 
 kubectl apply -k github.com/rancher/system-upgrade-controller
