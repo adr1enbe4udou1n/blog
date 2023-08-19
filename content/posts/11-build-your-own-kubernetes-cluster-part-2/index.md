@@ -1,6 +1,6 @@
 ---
-title: "Setup a HA Kubernetes cluster Part II - Cluster initialization with Terraform"
-date: 2023-06-09
+title: "Setup a HA Kubernetes cluster Part II - Cluster initialization with Terraform and K3s"
+date: 2023-10-02
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "terraform", "hetzner", "k3s", "gitops"]
 draft: true
@@ -10,7 +10,7 @@ draft: true
 Be free from AWS/Azure/GCP by building a production grade On-Premise Kubernetes cluster on cheap VPS provider, fully GitOps managed, and with complete CI/CD tools 🎉
 {{< /lead >}}
 
-This is the **Part II** of more global topic tutorial. [Back to first part]({{< ref "/posts/10-build-your-kubernetes-cluster" >}}) for intro.
+This is the **Part II** of more global topic tutorial. [Back to first part]({{< ref "/posts/10-build-your-own-kubernetes-cluster" >}}) for intro.
 
 ## The boring part (prerequisites)
 
@@ -105,7 +105,7 @@ For this guide, I'll consider using the starter kit. You may read [associated re
 
 ### 1st Terraform project
 
-Let's initialize basic cluster setup with 1 master associate to 3 workers nodes. Create an empty folder for our terraform project, and create following `kube.tf` file :
+Let's initialize basic cluster setup. Create an empty folder for our terraform project, and create following `kube.tf` file :
 
 {{< highlight file="kube.tf" >}}
 
@@ -205,7 +205,7 @@ module "hcloud_kube" {
       name              = "worker"
       server_type       = "cx21"
       location          = "nbg1"
-      count             = 3
+      count             = 1
       private_interface = "ens10"
       labels            = []
       taints            = []
@@ -334,7 +334,7 @@ agent_nodepools = [
     name              = "worker"
     server_type       = "cx21"
     location          = "nbg1"
-    count             = 3
+    count             = 1
     private_interface = "ens10"
     labels            = []
     taints            = []
@@ -342,7 +342,7 @@ agent_nodepools = [
 ]
 ```
 
-This is the heart configuration of the cluster, where you can define the number of control planes and workers nodes, their type, and their network interface. We'll use 1 master and 3 workers to begin with.
+This is the heart configuration of the cluster, where you can define the number of control planes and workers nodes, their type, and their network interface. We'll use 1 master and 1 worker to begin with.
 
 The interface "ens10" is proper for intel CPU, use "enp7s0" for AMD.
 
@@ -429,48 +429,87 @@ Host kube-worker-01
     User rocks
     Port 2222
     ProxyJump kube
-
-Host kube-worker-02
-    HostName 10.0.1.2
-    HostKeyAlias kube-worker-02
-    User rocks
-    Port 2222
-    ProxyJump kube
-
-Host kube-worker-03
-    HostName 10.0.1.3
-    HostKeyAlias kube-worker-03
-    User rocks
-    Port 2222
-    ProxyJump kube
 ```
 
-We are finally ready to access the cluster. Merge this SSH config into your `~/.ssh/config` file, then test the connection with `ssh kube`.
+#### Cluster access
+
+Merge above SSH config into your `~/.ssh/config` file, then test the connection with `ssh kube`.
 
 {{< alert >}}
 If you get "Connection refused", it's probably because the server is still on cloud-init phase. Wait a few minutes and try again. Be sure to have the same public IPs as the one you whitelisted in the Terraform variables. You can edit them and reapply the Terraform configuration at any moment.
 {{</ alert >}}
 
-### K3s configuration and usage
+Before using K3s, let's enable Salt for OS management by taping `sudo salt-key -A -y`. This will accept all pending keys, and allow Salt to connect to all nodes. To upgrade all nodes at one, just type `sudo salt '*' pkg.upgrade`.
 
-Let's initialize basic cluster setup with 1 master associate to 3 workers nodes.
+In order to access the 1st worker node, you only have to use `ssh kube-worker-01`.
 
-* Local SSH + Kube apiserver access to the cluster
-* Usage of salt
-* K3s S3 backup
+### K3s access and usage
 
-## Automatic upgrades
+It's time to log in to K3s and check the cluster status from local.
 
-* OS reboot
-* K3s upgrade
+From the controller, copy `/etc/rancher/k3s/k3s.yaml` on your machine located outside the cluster as `~/.kube/config`. Then replace the value of the server field with the IP or name of your K3s server. `kubectl` can now manage your K3s cluster.
 
-## HTTP access
+{{< alert >}}
+If `~/.kube/config` already existing, you have to properly [merging the config inside it](https://able8.medium.com/how-to-merge-multiple-kubeconfig-files-into-one-36fc987c2e2f). You can use `kubectl config view --flatten` for that.
 
-* Traefik + cert-manager
-* DNS configuration
-* Dashboard traefik access
-* Middlewares IP and auth
+Then use `kubectl config use-context kube` for switching to your new cluster.
+{{</ alert >}}
+
+Type `kubectl get nodes` and you should see the 2 nodes of your cluster in **Ready** state.
+
+```txt
+NAME                 STATUS   ROLES                       AGE    VERSION
+kube-controller-01   Ready    control-plane,etcd,master   153m   v1.27.4+k3s1
+kube-worker-01       Ready    <none>                      152m   v1.27.4+k3s1
+```
+
+{{< alert >}}
+As we'll use `kubectl` a lot, I highly encourage you to use aliases for better productivity :
+
+* <https://github.com/ahmetb/kubectl-aliases> for bash
+* <https://github.com/shanoor/kubectl-aliases-powershell> for Powershell
+
+After the install the equivalent of `kubectl get nodes` is `kgno`.
+{{</ alert >}}
+
+#### Test adding new workers
+
+Now, adding new workers is as simple as increment the `count` value of the worker nodepool 🚀
+
+```tf
+agent_nodepools = [
+  {
+    // ...
+    count = 3
+    // ...
+  }
+]
+```
+
+Then apply the Terraform configuration again. After few minutes, you should see 2 new nodes in **Ready** state.
+
+```txt
+NAME                 STATUS   ROLES                       AGE    VERSION
+kube-controller-01   Ready    control-plane,etcd,master   166m   v1.27.4+k3s1
+kube-worker-01       Ready    <none>                      165m   v1.27.4+k3s1
+kube-worker-02       Ready    <none>                      42s    v1.27.4+k3s1
+kube-worker-03       Ready    <none>                      25s    v1.27.4+k3s1
+```
+
+{{< alert >}}
+You'll have to use `sudo salt-key -A -y` each time you'll add a new node to the cluster for global OS management.
+{{</ alert >}}
+
+#### Deleting workers
+
+Simply decrement the `count` value of the worker nodepool, and apply the Terraform configuration again. After few minutes, you should see the node in **NotReady** state.
+
+To finalize the deletion, delete the node from the cluster with `krm no kube-worker-03`.
+
+{{< alert >}}
+If node have some workloads running, you'll have to consider a proper [draining](https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/) before deleting it.
+{{</ alert >}}
 
 ## 1st check ✅
 
-We now have a working cluster, let's install [a load balanced ingress controller for external access through SSL]({{< ref "/posts/12-build-your-kubernetes-cluster-part-3" >}}) and proper HA storage.
+We now have a working cluster, fully GitOps managed, easy to scale up, let's install [a load balanced ingress controller for external access through SSL]({{< ref "/posts/12-build-your-own-kubernetes-cluster-part-3" >}}).
