@@ -32,7 +32,7 @@ For better fluidity, here is the expected list of variables you'll need to prepa
 | `hcloud_token`    | xxx                             | Token of existing **empty** Hetzner Cloud project <sup>1</sup>                                                          |
 | `domain_name`     | kube.rocks                      | Valid registred domain name                                                                                             |
 | `acme_email`      | <me@kube.rocks>                 | Valid email for Let's Encrypt registration                                                                              |
-| `dns_token`       | xxx                             | Token of your DNS provider in order to issue certificates <sup>2</sup>                                                  |
+| `dns_api_token`   | xxx                             | Token of your DNS provider in order to issue certificates <sup>2</sup>                                                  |
 | `ssh_public_key`  | ssh-ed25519 xxx <me@kube.rocks> | Your public SSH key for cluster OS level access, generate a new SSH key with `ssh-keygen -t ed25519 -C "me@kube.rocks"` |
 | `whitelisted_ips` | [82.82.82.82]                   | List of dedicated public IPs allowed for cluster management access <sup>3</sup>                                         |
 | `s3_endpoint`     | s3.fr-par.scw.cloud             | Custom endpoint if not using AWS                                                                                        |
@@ -472,15 +472,20 @@ After the install the equivalent of `kubectl get nodes` is `kgno`.
 
 Now, adding new workers is as simple as increment the `count` value of the worker nodepool 🚀
 
+{{< highlight file="kube.tf" >}}
+
 ```tf
 agent_nodepools = [
   {
+    name = "worker"
     // ...
     count = 3
     // ...
   }
 ]
 ```
+
+{{</ highlight >}}
 
 Then apply the Terraform configuration again. After few minutes, you should see 2 new nodes in **Ready** state.
 

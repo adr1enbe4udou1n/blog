@@ -12,7 +12,7 @@ Be free from AWS/Azure/GCP by building a production grade On-Premise Kubernetes 
 
 This is the **Part III** of more global topic tutorial. [Back to first part]({{< ref "/posts/10-build-your-own-kubernetes-cluster" >}}) for intro.
 
-## Kubernetes cluster initialization with Terraform
+## 2nd Terraform project
 
 For this part let's create a new Terraform project that will be dedicated to Kubernetes infrastructure provisioning. Start from scratch with a new empty folder and the following `main.tf` file then `terraform init`.
 
@@ -187,6 +187,131 @@ You may set the same channel as previous step for hcloud cluster creation.
 
 Now it's time to expose our cluster to the outside world. We'll use Traefik as ingress controller and cert-manager for SSL certificates management.
 
+### Traefik
+
+Apply following file :
+
+{{< highlight file="traefik.tf" >}}
+
+```tf
+locals {
+  certificate_secret_name = "tls-cert"
+}
+
+resource "kubernetes_namespace_v1" "traefik" {
+  metadata {
+    name = "traefik"
+  }
+}
+
+resource "helm_release" "traefik" {
+  chart      = "traefik"
+  version    = "24.0.0"
+  repository = "https://traefik.github.io/charts"
+
+  name      = "traefik"
+  namespace = kubernetes_namespace_v1.traefik.metadata[0].name
+
+  set {
+    name  = "ports.web.redirectTo"
+    value = "websecure"
+  }
+
+  set {
+    name  = "ports.websecure.forwardedHeaders.trustedIPs"
+    value = "{127.0.0.1/32,10.0.0.0/8}"
+  }
+
+  set {
+    name  = "ports.websecure.proxyProtocol.trustedIPs"
+    value = "{127.0.0.1/32,10.0.0.0/8}"
+  }
+
+  set {
+    name  = "logs.access.enabled"
+    value = "true"
+  }
+
+  set {
+    name  = "providers.kubernetesCRD.allowCrossNamespace"
+    value = "true"
+  }
+
+  set {
+    name  = "tlsStore.default.defaultCertificate.secretName"
+    value = local.certificate_secret_name
+  }
+}
+```
+
+{{</ highlight >}}
+
+`ports.web.redirectTo` will redirect all HTTP traffic to HTTPS.
+
+`forwardedHeaders` and `proxyProtocol` will allow Traefik to get real IP of clients.
+
+`providers.kubernetesCRD.allowCrossNamespace` will allow Traefik to read ingress from all namespaces.
+
+`tlsStore.default.defaultCertificate.secretName` will be used to store the default certificate that will be used for all ingress that don't have a specific certificate.
+
+By default, it will deploy 1 single replica of Traefik. But don't worry, when upgrading, the default update strategy is `RollingUpdate`, so it will be upgraded one by one without downtime.
+
+### Load balancer
+
+Traefik should be running with `kg deploy -n traefik`. Check now with `kg svc -n traefik` if the traefik `LoadBalancer` service is available in all nodes.
+
+```txt
+NAME      TYPE           CLUSTER-IP      EXTERNAL-IP                           PORT(S)                      AGE
+traefik   LoadBalancer   10.43.134.216   10.0.0.2,10.0.1.1,10.0.1.2,10.0.1.3   80:32180/TCP,443:30273/TCP   21m
+```
+
+External IP are privates IPs of all nodes. In order to access them, we only need to put a load balancer in front of workers. It's time to get back to our 1st Terraform project.
+
+{{< highlight file="kube.tf" >}}
+
+```tf
+//...
+
+module "hcloud_kube" {
+  //...
+
+  agent_nodepools = [
+    {
+      name = "worker"
+      // ...
+      lb_type = "lb11"
+    }
+  ]
+}
+
+resource "hcloud_load_balancer_service" "http_service" {
+  load_balancer_id = module.hcloud_kube.lbs.worker.id
+  protocol         = "tcp"
+  listen_port      = 80
+  destination_port = 80
+}
+
+resource "hcloud_load_balancer_service" "https_service" {
+  load_balancer_id = module.hcloud_kube.lbs.worker.id
+  protocol         = "tcp"
+  listen_port      = 443
+  destination_port = 443
+  proxyprotocol    = true
+}
+```
+
+{{</ highlight >}}
+
+Use `hcloud load-balancer-type list` to get the list of available load balancer types.
+
+{{< alert >}}
+Don't forget to add `hcloud_load_balancer_service` resource for each service (aka port) you want to serve.
+
+We use `tcp` protocol as Traefik will handle SSL termination. Set `proxyprotocol` to true to allow Traefik to get real IP of clients.
+{{</ alert >}}
+
+One applied, use `hcloud load-balancer list` to get the public IP of the load balancer and try it. You should be properly redirected to HTTPS and have certificate error. It's time to get SSL certificates.
+
 ### cert-manager
 
 First we need to install cert-manager for proper distributed SSL management. First install CRDs manually.
@@ -232,18 +357,42 @@ All should be ok with `kg deploy -n cert-manager`.
 
 #### Wildcard certificate via DNS01
 
-We'll use [DNS01 challenge](https://cert-manager.io/docs/configuration/acme/dns01/) to get wildcard certificate for our domain. This is the most convenient way to get a certificate for a domain without having to expose it to the outside world.
+We'll use [DNS01 challenge](https://cert-manager.io/docs/configuration/acme/dns01/) to get wildcard certificate for our domain. This is the most convenient way to get a certificate for a domain without having to expose the cluster.
 
 {{< alert >}}
 You may use a DNS provider that is supported by cert-manager. Check the [list of supported providers](https://cert-manager.io/docs/configuration/acme/dns01/#supported-dns01-providers). But cert-manager is highly extensible, and you can easily add your own provider if needed with some efforts. Check [available contrib webhooks](https://cert-manager.io/docs/configuration/acme/dns01/#webhook).
 {{</ alert >}}
 
-### Traefik
+First prepare variables :
 
-* Traefik + cert-manager
-* DNS configuration
-* Dashboard traefik access
-* Middlewares IP and auth
+{{< highlight file="main.tf" >}}
+
+```tf
+variable "domain" {
+  type = string
+}
+
+variable "acme_email" {
+  type = string
+}
+
+variable "dns_api_token" {
+  type      = string
+  sensitive = true
+}
+```
+
+{{</ highlight >}}
+
+{{< highlight file="terraform.tfvars" >}}
+
+```tf
+acme_email    = "me@kube.rocks"
+domain        = "kube.rocks"
+dns_api_token = "xxx"
+```
+
+{{</ highlight >}}
 
 ## 2nd check ✅
 
