@@ -18,12 +18,6 @@ This is the **Part IV** of more global topic tutorial. [Back to first part]({{< 
 
 ## Redis cluster
 
-## Test with PgAdmin (valid both ingress and storage)
-
-## Test some nocode tools
-
-n8n + nocodb
-
 ## Backups (dumps + longhorn snapshots)
 
 ## 2nd check ✅

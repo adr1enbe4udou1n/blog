@@ -1,8 +1,8 @@
 ---
-title: "Setup a HA Kubernetes cluster Part VI - Monitoring Stack"
-date: 2023-10-06
+title: "Setup a HA Kubernetes cluster Part VI - CI/CD tools"
+date: 2023-10-05
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
-tags: ["kubernetes", "prometheus", "loki", "grafana"]
+tags: ["kubernetes", "postgresql", "longhorn"]
 draft: true
 ---
 
@@ -12,12 +12,24 @@ Be free from AWS/Azure/GCP by building a production grade On-Premise Kubernetes 
 
 This is the **Part VI** of more global topic tutorial. [Back to first part]({{< ref "/posts/10-build-your-own-kubernetes-cluster" >}}) for intro.
 
-1. Add monitor-01
-2. Prometheus Stack
-3. Loki / Promtail
-4. Grafana
-5. Services Monitor & Dashboards
+Dev Only - skippable
+Add runner-01
 
-## 4th check ✅
+## Gitea
 
-We now have a full monitoring suite ! Go [next part]({{< ref "/posts/16-build-your-own-kubernetes-cluster-part-7" >}}) for advanced tracing / load testing.
+* Validate DB & redis access
+* Enable SSH access
+* First commit test with basic DotNet sample app
+
+## Concourse CI
+
+* Automatic build on commit
+* Push to Gitea Container Registry
+
+## Flux
+
+* Automatic deployment on commit
+
+## 3rd check ✅
+
+We have everything we need for app building with automatic deployment ! Go [next part]({{< ref "/posts/15-build-your-own-kubernetes-cluster-part-6" >}}) to add complete monitoring stack !

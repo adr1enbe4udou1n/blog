@@ -1,8 +1,8 @@
 ---
-title: "Setup a HA Kubernetes cluster Part VII - Load testing & tracing"
-date: 2023-10-07
+title: "Setup a HA Kubernetes cluster Part VII - Monitoring Stack"
+date: 2023-10-06
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
-tags: ["kubernetes", "k6", "jaeger"]
+tags: ["kubernetes", "prometheus", "loki", "grafana"]
 draft: true
 ---
 
@@ -12,14 +12,12 @@ Be free from AWS/Azure/GCP by building a production grade On-Premise Kubernetes 
 
 This is the **Part VII** of more global topic tutorial. [Back to first part]({{< ref "/posts/10-build-your-own-kubernetes-cluster" >}}) for intro.
 
-1. K6
-2. InfluxDB
-3. Load balancing sample app (database clustering case)
-4. Tempo
-5. Tracing test inside app / OpenTelemetry
+1. Add monitor-01
+2. Prometheus Stack
+3. Loki / Promtail
+4. Grafana
+5. Services Monitor & Dashboards
 
-## Final check 🎊🏁🎊
+## 4th check ✅
 
-Congratulation if you're getting that far !!!
-
-You have a complete CI/CD flexible solution, HA ready and not that expensive.
+We now have a full monitoring suite ! Go [next part]({{< ref "/posts/16-build-your-own-kubernetes-cluster-part-7" >}}) for advanced tracing / load testing.

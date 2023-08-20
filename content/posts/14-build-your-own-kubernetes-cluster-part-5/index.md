@@ -1,5 +1,5 @@
 ---
-title: "Setup a HA Kubernetes cluster Part V - CI/CD tools"
+title: "Setup a HA Kubernetes cluster Part V - CD with Flux"
 date: 2023-10-05
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "postgresql", "longhorn"]
@@ -12,21 +12,15 @@ Be free from AWS/Azure/GCP by building a production grade On-Premise Kubernetes 
 
 This is the **Part V** of more global topic tutorial. [Back to first part]({{< ref "/posts/10-build-your-own-kubernetes-cluster" >}}) for intro.
 
-Dev Only - skippable
-Add runner-01
-
-## Gitea
-
-* Validate DB & redis access
-* Enable SSH access
-* First commit test with basic DotNet sample app
-
-## Concourse CI
-
-* Automatic build on commit
-* Push to Gitea Container Registry
-
 ## Flux
+
+* Automatic deployment on commit
+
+## PgAdmin
+
+* Automatic deployment on commit
+
+## Nocode tools
 
 * Automatic deployment on commit
 
