@@ -609,7 +609,7 @@ Now go to `https://traefik.kube.rocks` and you should be asked for credentials. 
 This allow to validate that `auth` and `ip` middelwares are working properly.
 
 {{< alert >}}
-If you get `Forbidden`, it's because `middleware-ip` can't get your real IP, try to disable it firstly to confirm you have dashboard access with credentials. Then try to re-enable it by changing the [ip strategy](https://doc.traefik.io/traefik/middlewares/http/ipwhitelist/#ipstrategy). For exemple, if you're behing Cloudflare edge proxies :
+If you get `Forbidden`, it's because `middleware-ip` can't get your real IP, try to disable it firstly to confirm you have dashboard access with credentials. Then try to re-enable it by changing the [IP strategy](https://doc.traefik.io/traefik/middlewares/http/ipwhitelist/#ipstrategy). For example, if you're behind Cloudflare edge proxies :
 
 {{< highlight file="traefik.tf" >}}
 
@@ -637,4 +637,4 @@ resource "kubernetes_manifest" "traefik_middleware_ip" {
 
 ## 2nd check ✅
 
-Our cluster is now perfectly securely accessible from outside with minimal setup needed for any new apps. Persistence is insured by Longhorn with replicated storage and Minio for S3 needs. The next important part is now to have a [working database for real world apps]({{< ref "/posts/13-build-your-own-kubernetes-cluster-part-4" >}}).
+Our cluster is now perfectly securely accessible from outside with automatic routing. The next important part is now to have a [resilient storage and database]({{< ref "/posts/13-build-your-own-kubernetes-cluster-part-4" >}}).
