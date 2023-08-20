@@ -363,7 +363,7 @@ We'll use [DNS01 challenge](https://cert-manager.io/docs/configuration/acme/dns0
 You may use a DNS provider that is supported by cert-manager. Check the [list of supported providers](https://cert-manager.io/docs/configuration/acme/dns01/#supported-dns01-providers). But cert-manager is highly extensible, and you can easily add your own provider if needed with some efforts. Check [available contrib webhooks](https://cert-manager.io/docs/configuration/acme/dns01/#webhook).
 {{</ alert >}}
 
-First prepare variables :
+First prepare variables and set them accordingly :
 
 {{< highlight file="main.tf" >}}
 
@@ -393,6 +393,247 @@ dns_api_token = "xxx"
 ```
 
 {{</ highlight >}}
+
+Finally, apply the following Terraform code in order to issue the new wildcard certificate for your domain.
+
+{{< highlight file="certificates.tf" >}}
+
+```tf
+resource "kubernetes_secret_v1" "cloudflare_api_token" {
+  metadata {
+    name      = "cloudflare-api-token-secret"
+    namespace = kubernetes_namespace_v1.cert_manager.metadata[0].name
+  }
+
+  data = {
+    "api-token" = var.dns_api_token
+  }
+}
+
+resource "kubernetes_manifest" "letsencrypt_production_issuer" {
+  manifest = {
+    apiVersion = "cert-manager.io/v1"
+    kind       = "ClusterIssuer"
+    metadata = {
+      name = "letsencrypt-production"
+    }
+    spec = {
+      acme = {
+        email = var.acme_email
+        privateKeySecretRef = {
+          name = "letsencrypt-production"
+        }
+        server = "https://acme-v02.api.letsencrypt.org/directory"
+        solvers = [
+          {
+            dns01 = {
+              cloudflare = {
+                apiTokenSecretRef = {
+                  name = kubernetes_secret_v1.cloudflare_api_token.metadata[0].name
+                  key  = "api-token"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+
+resource "kubernetes_manifest" "tls_certificate" {
+  manifest = {
+    apiVersion = "cert-manager.io/v1"
+    kind       = "Certificate"
+    metadata = {
+      name      = "default-certificate"
+      namespace = kubernetes_namespace_v1.traefik.metadata[0].name
+    }
+    spec = {
+      commonName = var.domain
+      dnsNames = [
+        var.domain,
+        "*.${var.domain}",
+      ]
+      issuerRef = {
+        kind = kubernetes_manifest.letsencrypt_production_issuer.manifest.kind
+        name = kubernetes_manifest.letsencrypt_production_issuer.manifest.metadata.name
+      }
+      secretName = local.certificate_secret_name
+      privateKey = {
+        rotationPolicy = "Always"
+      }
+    }
+  }
+}
+```
+
+{{</ highlight >}}
+
+In the meantime, go to your DNS provider and add a new `*.kube.rocks` entry pointing to the load balancer IP.
+
+Try `test.kube.rocks` to check certificate validity. If not valid, check the certificate status with `kg cert -n traefik` and get challenge status `kg challenges -n traefik`. The certificate must be in `Ready` state after many minutes.
+
+### Access to Traefik dashboard
+
+Traefik dashboard is a nice tool to check all ingress and their status. Let's expose it with a simple ingress and protecting with IP whitelist and basic auth, which can be done with middlewares.
+
+First the auth variables :
+
+First prepare variables and set them accordingly :
+
+{{< highlight file="main.tf" >}}
+
+```tf
+variable "http_username" {
+  type = string
+}
+
+variable "http_password" {
+  type      = string
+  sensitive = true
+}
+
+variable "whitelisted_ips" {
+  type      = list(string)
+  sensitive = true
+}
+
+resource "null_resource" "encrypted_admin_password" {
+  triggers = {
+    orig = var.http_password
+    pw   = bcrypt(var.http_password)
+  }
+
+  lifecycle {
+    ignore_changes = [triggers["pw"]]
+  }
+}
+```
+
+{{</ highlight >}}
+
+{{< highlight file="terraform.tfvars" >}}
+
+```tf
+http_username   = "admin"
+http_password   = "xxx"
+whitelisted_ips = ["82.82.82.82"]
+```
+
+{{</ highlight >}}
+
+{{< alert >}}
+Note on encrypted_admin_password, we generate a bcrypt hash of the password compatible for HTTP basic auth and keep the original to avoid to regenerate it each time.
+{{</ alert >}}
+
+Then apply the following Terraform code :
+
+{{< highlight file="traefik.tf" >}}
+
+```tf
+resource "helm_release" "traefik" {
+  //...
+
+  set {
+    name  = "ingressRoute.dashboard.entryPoints"
+    value = "{websecure}"
+  }
+
+  set {
+    name  = "ingressRoute.dashboard.matchRule"
+    value = "Host(`traefik.${var.domain}`)"
+  }
+
+  set {
+    name  = "ingressRoute.dashboard.middlewares[0].name"
+    value = "middleware-ip"
+  }
+
+  set {
+    name  = "ingressRoute.dashboard.middlewares[1].name"
+    value = "middleware-auth"
+  }
+}
+
+resource "kubernetes_secret_v1" "traefik_auth_secret" {
+  metadata {
+    name      = "auth-secret"
+    namespace = kubernetes_namespace_v1.traefik.metadata[0].name
+  }
+
+  data = {
+    "users" = "${var.http_username}:${null_resource.encrypted_admin_password.triggers.pw}"
+  }
+}
+
+resource "kubernetes_manifest" "traefik_middleware_auth" {
+  manifest = {
+    apiVersion = "traefik.io/v1alpha1"
+    kind       = "Middleware"
+    metadata = {
+      name      = "middleware-auth"
+      namespace = kubernetes_namespace_v1.traefik.metadata[0].name
+    }
+    spec = {
+      basicAuth = {
+        secret = kubernetes_secret_v1.traefik_auth_secret.metadata[0].name
+      }
+    }
+  }
+}
+
+resource "kubernetes_manifest" "traefik_middleware_ip" {
+  manifest = {
+    apiVersion = "traefik.io/v1alpha1"
+    kind       = "Middleware"
+    metadata = {
+      name      = "middleware-ip"
+      namespace = kubernetes_namespace_v1.traefik.metadata[0].name
+    }
+    spec = {
+      ipWhiteList = {
+        sourceRange = var.whitelisted_ips
+      }
+    }
+  }
+}
+```
+
+{{</ highlight >}}
+
+Now go to `https://traefik.kube.rocks` and you should be asked for credentials. After login, you should see the dashboard.
+
+[![Traefik Dashboard](traefik-dashboard.png)](traefik-dashboard.png)
+
+This allow to validate that `auth` and `ip` middelwares are working properly.
+
+{{< alert >}}
+If you get `Forbidden`, it's because `middleware-ip` can't get your real IP, try to disable it firstly to confirm you have dashboard access with credentials. Then try to re-enable it by changing the [ip strategy](https://doc.traefik.io/traefik/middlewares/http/ipwhitelist/#ipstrategy). For exemple, if you're behing Cloudflare edge proxies :
+
+{{< highlight file="traefik.tf" >}}
+
+```tf
+//...
+
+resource "kubernetes_manifest" "traefik_middleware_ip" {
+  manifest = {
+    //...
+    spec = {
+      ipWhiteList = {
+        sourceRange = var.whitelisted_ips
+        ipStrategy = {
+          depth = 1
+        }
+      }
+    }
+  }
+}
+```
+
+{{</ highlight >}}
+
+{{</ alert >}}
 
 ## 2nd check ✅
 
