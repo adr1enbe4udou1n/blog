@@ -24,7 +24,7 @@ In general `RWO` is more performant, but only one pod can mount it, while `RWX` 
 
 `K3s` come with a built-in `local-path` provisioner, which is the most performant `RWO` solution by directly using local NVMe SSD. But it's not resilient neither scalable. I think it's a good solution for what you consider at no critical data.
 
-A dedicated NFS server is a good `RWX` solution, by using [this provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner). It allows scalability and resiliency with [GlusterFS](https://www.gluster.org/). But it stays a single point of failure in case of network problems, and give of course low IOPs. It's also a separate server to maintain.
+A dedicated NFS server is a good `RWX` solution, by using [this provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner). It allows scalability and resiliency with [GlusterFS](https://www.gluster.org/). But it stays a single point of failure in case of network problems, and give of course low IOPS. It's also a separate server to maintain.
 
 For Hetzner, the easiest `RWO` solution is to use the [official CSI](https://github.com/hetznercloud/csi-driver) for automatic block volumes mounting. It's far more performant than NFS (but still less than local SSD), but there is no resiliency neither scalability. It's really easy to go with and very resource efficient for the cluster, note that multiple pods can [reference same volume](https://github.com/hetznercloud/csi-driver/issues/146) which allow reusability without wasting 10 GB each time.
 
@@ -136,10 +136,170 @@ Return to the 2nd Kubernetes terraform project, and add Longhorn installation:
 {{< highlight file="longhorn.tf" >}}
 
 ```tf
+resource "kubernetes_namespace_v1" "longhorn" {
+  metadata {
+    name = "longhorn-system"
+  }
+}
 
+resource "helm_release" "longhorn" {
+  chart      = "longhorn"
+  version    = "1.5.1"
+  repository = "https://charts.longhorn.io"
+
+  name      = "longhorn"
+  namespace = kubernetes_namespace_v1.longhorn.metadata[0].name
+
+  set {
+    name  = "persistence.defaultClass"
+    value = "false"
+  }
+
+  set {
+    name  = "persistence.defaultClassReplicaCount"
+    value = "2"
+  }
+
+  set {
+    name  = "defaultSettings.defaultReplicaCount"
+    value = "2"
+  }
+
+  set {
+    name  = "defaultSettings.taintToleration"
+    value = "node-role.kubernetes.io/storage:NoSchedule"
+  }
+
+  set {
+    name  = "longhornManager.tolerations[0].key"
+    value = "node-role.kubernetes.io/storage"
+  }
+
+  set {
+    name  = "longhornManager.tolerations[0].effect"
+    value = "NoSchedule"
+  }
+}
 ```
 
 {{< /highlight >}}
+
+{{< alert >}}
+Set both `persistence.defaultClassReplicaCount` (used for Kubernetes configuration in longhorn storage class) and `defaultSettings.defaultReplicaCount` (for volumes created from the UI) to 2 as we have 2 storage nodes.  
+The toleration is required to allow Longhorn pods (managers and drivers) to be scheduled on storage nodes in addition to workers.  
+Note as we need to have longhorn deployed on workers too, otherwise pods scheduled on these nodes can't be attached to longhorn volumes.
+{{</ alert >}}
+
+Use `kgpo -n longhorn-system -o wide` to check that Longhorn pods are correctly running on storage nodes as well as worker nodes. You should have `instance-manager` deployed on each node.
+
+### Monitoring
+
+Longhorn Helm doesn't include Prometheus integration yet, in this case all we have to do is to deploy a `ServiceMonitor` which allow metrics scraping to Longhorn pods.
+
+{{< highlight file="longhorn.tf" >}}
+
+```tf
+resource "kubernetes_manifest" "longhorn_service_monitor" {
+  manifest = {
+    apiVersion = "monitoring.coreos.com/v1"
+    kind       = "ServiceMonitor"
+    metadata = {
+      name      = "metrics"
+      namespace = kubernetes_namespace_v1.longhorn.metadata[0].name
+    }
+    spec = {
+      endpoints = [
+        {
+          port = "manager"
+        }
+      ]
+      selector = {
+        matchLabels = {
+          app = "longhorn-manager"
+        }
+      }
+    }
+  }
+}
+```
+
+{{< /highlight >}}
+
+Monitoring will have dedicated post later.
+
+### Ingress
+
+Now we only have to expose Longhorn UI to the world. We'll use `IngressRoute` provided by Traefik.
+
+{{< highlight file="longhorn.tf" >}}
+
+```tf
+resource "kubernetes_manifest" "longhorn_ingress" {
+  manifest = {
+    apiVersion = "traefik.io/v1alpha1"
+    kind       = "IngressRoute"
+    metadata = {
+      name      = "longhorn"
+      namespace = kubernetes_namespace_v1.longhorn.metadata[0].name
+    }
+    spec = {
+      entryPoints = ["websecure"]
+      routes = [
+        {
+          match = "Host(`longhorn.${var.domain}`)"
+          kind  = "Rule"
+          middlewares = [
+            {
+              namespace = "traefik"
+              name      = "middleware-ip"
+            },
+            {
+              namespace = "traefik"
+              name      = "middleware-auth"
+            }
+          ]
+          services = [
+            {
+              name = "longhorn-frontend"
+              port = 80
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+{{< /highlight >}}
+
+{{< alert >}}
+It's vital that you have at least IP and AUTH middlewares with a strong password for Longhorn UI access, as its concern the most critical part of cluster.  
+Of course, you can skip this ingress and directly use `kpf svc/longhorn-frontend -n longhorn-system 8000:80` to access Longhorn UI securely.
+{{</ alert >}}
+
+### Configuration
+
+Longhorn is now installed and accessible, but we still have to configure it. Let's disable volume scheduling on worker nodes, as we want to use only storage nodes for it. All can be done via Longhorn UI but let's do more automatable way.
+
+```sh
+k patch nodes.longhorn.io kube-worker-01 kube-worker-02 kube-worker-03 -n longhorn-system --type=merge --patch '{"spec": {"allowScheduling": false}}'
+```
+
+By default, Longhorn use local disk for storage, which is great for high IOPS critical workloads as databases, but we want also use our expandable dedicated block volume as default for large dataset.
+
+Type this commands for both storage nodes or use Longhorn UI from **Node** tab:
+
+```sh
+# patch main disk as fast storage, set default-disk-xxx accordingly
+k patch nodes.longhorn.io kube-storage-0x -n longhorn-system --type=merge --patch '{"spec": {"disks": {"default-disk-xxx": {"tags": ["fast"]}}}}'
+# add a new schedulable disk, set HC_Volume_XXXXXXXX accordingly to mounted volume
+k patch nodes.longhorn.io kube-storage-0x -n longhorn-system --type=merge --patch '{"spec": {"disks": {"disk-mnt": {"allowScheduling": true, "evictionRequested": false, "path": "/mnt/HC_Volume_XXXXXXXX/", "storageReserved": 0}}}}'
+```
+
+Longhorn is now ready for volumes creation.
+
+[![Longhorn UI](longhorn-ui.png)](longhorn-ui.png)
 
 ## PostgreSQL with replication
 
