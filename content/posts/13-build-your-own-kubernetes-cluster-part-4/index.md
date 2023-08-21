@@ -771,11 +771,19 @@ resource "kubernetes_manifest" "longhorn_jobs" {
       task        = "backup"
     }
   }
+
+  depends_on = [
+    helm_release.longhorn
+  ]
 }
 
 ```
 
 {{< /highlight >}}
+
+{{< alert >}}
+`depends_on` is required to ensure that Longhorn CRDs is correctly installed before creating jobs when relaunching all terraform project from start.
+{{< /alert >}}
 
 Bam it's done ! After apply, check trough UI under **Recurring Job** menu if backup jobs are created. The `default` group is the default one, which backup all volumes. You can of course set custom groups to specific volumes, allowing very flexible backup strategies.
 
@@ -786,6 +794,16 @@ Thanks to GitOps, the default backup strategy described by `job_backups` is marb
 * Monthly backup until 3 months
 
 Configure this variable according to your needs.
+
+### DB dumps
+
+If you need some regular dump of your database without requiring Kubernetes `CronJob`, you can simply use following crontab line on control plane node:
+
+```sh
+0 */8   * * *   root    /usr/local/bin/k3s kubectl exec sts/postgresql-primary -n postgres -- /bin/sh -c 'PGUSER="okami" PGPASSWORD="$POSTGRES_PASSWORD" pg_dumpall -c | gzip > /bitnami/postgresql/dump_$(date "+\%H")h.sql.gz'
+```
+
+It will generate 3 daily dumps, one every 8 hours, on the same primary db volume, allowing easy `psql` restore from the same container.
 
 ## 3th check ✅
 
