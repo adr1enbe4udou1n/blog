@@ -254,7 +254,7 @@ resource "helm_release" "traefik" {
 
 `tlsStore.default.defaultCertificate.secretName` will be used to store the default certificate that will be used for all ingress that don't have a specific certificate.
 
-By default, it will deploy 1 single replica of Traefik. But don't worry, when upgrading, the default update strategy is `RollingUpdate`, so it will be upgraded one by one without downtime.
+By default, it will deploy 1 single replica of Traefik. But don't worry, when upgrading, the default update strategy is `RollingUpdate`, so it will be upgraded one by one without downtime. Increment `deployment.replicas` if you need more performance.
 
 ### Load balancer
 
@@ -394,7 +394,7 @@ dns_api_token = "xxx"
 
 {{</ highlight >}}
 
-Finally, apply the following Terraform code in order to issue the new wildcard certificate for your domain.
+Then we need to create a default `Certificate` k8s resource associated to a valid `ClusterIssuer` resource that will manage its generation. Apply the following Terraform code for issuing the new wildcard certificate for your domain.
 
 {{< highlight file="certificates.tf" >}}
 
@@ -469,6 +469,13 @@ resource "kubernetes_manifest" "tls_certificate" {
 ```
 
 {{</ highlight >}}
+
+{{< alert >}}
+
+You can set `acme.privateKeySecretRef.name` to **letsencrypt-staging** for testing purpose and note waste limited LE quota.  
+Set `privateKey.rotationPolicy` to **Always** to ensure that the certificate will be [renewed automatically](https://cert-manager.io/docs/usage/certificate/) 30 days before expires without downtime.
+
+{{</ alert >}}
 
 In the meantime, go to your DNS provider and add a new `*.kube.rocks` entry pointing to the load balancer IP.
 
