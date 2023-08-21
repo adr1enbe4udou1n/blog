@@ -101,7 +101,7 @@ Choose the starter-kit module if :
 * Very quick to set up, as it doesn't require any packer image creation, and use cloud-config for initial setup, without any client OS dependencies
 * Preferring manage additional helm dependencies on a separated terraform project
 
-For this guide, I'll consider using the starter kit. You may read [associated readme](https://github.com/okami101/terraform-hcloud-k3s) before continue.
+For this guide, I'll consider using the starter kit as it's more suited for tutorials and allow better understanding of all steps of cluster creation process. You'll can more easily switch to the Kube Hetzner version later.
 
 ### 1st Terraform project
 

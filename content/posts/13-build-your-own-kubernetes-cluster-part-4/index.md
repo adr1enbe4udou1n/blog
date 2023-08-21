@@ -129,6 +129,50 @@ The volume is of course automatically mounted on each node reboot, it's done via
 Note as if you set volume in same time as node pool creation, Hetzner doesn't seem to automatically mount the volume. So it's preferable to create the node pool first, then add the volume as soon as the node in ready state. You can always delete and recreate volume by commenting then uncommenting `volume_size` variable, which will force a remount properly.
 {{</ alert >}}
 
+### Longhorn variables
+
+Let's add s3 related variables in order to preconfigure Longhorn backup:
+
+{{< highlight file="main" >}}
+
+```tf
+variable "s3_endpoint" {
+  type = string
+}
+
+variable "s3_region" {
+  type = string
+}
+
+variable "s3_bucket" {
+  type = string
+}
+
+variable "s3_access_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "s3_secret_key" {
+  type      = string
+  sensitive = true
+}
+```
+
+{{< /highlight >}}
+
+{{< highlight file="terraform.tf.vars" >}}
+
+```tf
+s3_endpoint    = "s3.fr-par.scw.cloud"
+s3_region      = "fr-par"
+s3_bucket      = "mykuberocks"
+s3_access_key  = "xxx"
+s3_secret_key  = "xxx"
+```
+
+{{< /highlight >}}
+
 ### Longhorn installation
 
 Return to the 2nd Kubernetes terraform project, and add Longhorn installation:
@@ -139,6 +183,19 @@ Return to the 2nd Kubernetes terraform project, and add Longhorn installation:
 resource "kubernetes_namespace_v1" "longhorn" {
   metadata {
     name = "longhorn-system"
+  }
+}
+
+resource "kubernetes_secret_v1" "longhorn_backup_credential" {
+  metadata {
+    name      = "longhorn-backup-credential"
+    namespace = kubernetes_namespace_v1.longhorn.metadata[0].name
+  }
+  data = {
+    AWS_ENDPOINTS         = "https://${var.s3_endpoint}"
+    AWS_ACCESS_KEY_ID     = var.s3_access_key
+    AWS_SECRET_ACCESS_KEY = var.s3_secret_key
+    AWS_REGION            = var.s3_region
   }
 }
 
@@ -163,6 +220,16 @@ resource "helm_release" "longhorn" {
   set {
     name  = "defaultSettings.defaultReplicaCount"
     value = "2"
+  }
+
+  set {
+    name  = "defaultSettings.backupTarget"
+    value = "s3://${var.s3_bucket}@${var.s3_region}/"
+  }
+
+  set {
+    name  = "defaultSettings.backupTargetCredentialSecret"
+    value = kubernetes_secret_v1.longhorn_backup_credential.metadata[0].name
   }
 
   set {
@@ -278,7 +345,7 @@ It's vital that you have at least IP and AUTH middlewares with a strong password
 Of course, you can skip this ingress and directly use `kpf svc/longhorn-frontend -n longhorn-system 8000:80` to access Longhorn UI securely.
 {{</ alert >}}
 
-### Configuration
+### Nodes and volumes configuration
 
 Longhorn is now installed and accessible, but we still have to configure it. Let's disable volume scheduling on worker nodes, as we want to use only storage nodes for it. All can be done via Longhorn UI but let's do more automatable way.
 
@@ -297,16 +364,429 @@ k patch nodes.longhorn.io kube-storage-0x -n longhorn-system --type=merge --patc
 k patch nodes.longhorn.io kube-storage-0x -n longhorn-system --type=merge --patch '{"spec": {"disks": {"disk-mnt": {"allowScheduling": true, "evictionRequested": false, "path": "/mnt/HC_Volume_XXXXXXXX/", "storageReserved": 0}}}}'
 ```
 
-Longhorn is now ready for volumes creation.
+Now all that's left is to create a dedicated storage class for fast local volumes. We'll use it for IOPS critical statefulset workloads like PostgreSQL and Redis. Let's apply nest `StorageClass` configuration and check it with `kg sc`:
+
+{{< highlight file="longhorn.tf" >}}
+
+```tf
+resource "kubernetes_storage_class_v1" "longhorn_fast" {
+  metadata {
+    name = "longhorn-fast"
+  }
+
+  storage_provisioner    = "driver.longhorn.io"
+  allow_volume_expansion = true
+  reclaim_policy         = "Delete"
+  volume_binding_mode    = "Immediate"
+
+  parameters = {
+    numberOfReplicas    = "1"
+    staleReplicaTimeout = "30"
+    fromBackup          = ""
+    fsType              = "ext4"
+    diskSelector        = "fast"
+  }
+}
+```
+
+{{< /highlight >}}
+
+Longhorn is now ready for block and fast local volumes creation.
 
 [![Longhorn UI](longhorn-ui.png)](longhorn-ui.png)
 
 ## PostgreSQL with replication
 
+Now it's time to set up some critical statefulset persistence workloads, and firstly a PostgreSQL cluster with replication.
+
+### PostgreSQL variables
+
+{{< highlight file="main" >}}
+
+```tf
+variable "pgsql_user" {
+  type = string
+}
+
+variable "pgsql_admin_password" {
+  type      = string
+  sensitive = true
+}
+
+variable "pgsql_password" {
+  type      = string
+  sensitive = true
+}
+
+variable "pgsql_replication_password" {
+  type      = string
+  sensitive = true
+}
+```
+
+{{< /highlight >}}
+
+{{< highlight file="terraform.tf.vars" >}}
+
+```tf
+pgsql_user                 = "kube"
+pgsql_password             = "xxx"
+pgsql_admin_password       = "xxx"
+pgsql_replication_password = "xxx"
+```
+
+{{< /highlight >}}}
+
+### PostgreSQL installation
+
+Before continue it's important to identify which storage node will serve the primary database, and which one will serve the replica.
+
+```sh
+k label nodes kube-storage-01 node-role.kubernetes.io/primary=true
+k label nodes kube-storage-02 node-role.kubernetes.io/read=true
+```
+
+We can finally apply next Terraform configuration:
+
+{{< highlight file="postgresql" >}}
+
+```tf
+resource "kubernetes_namespace_v1" "postgres" {
+  metadata {
+    name = "postgres"
+  }
+}
+
+resource "kubernetes_secret_v1" "postgresql_auth" {
+  metadata {
+    name      = "postgresql-auth"
+    namespace = kubernetes_namespace_v1.postgres.metadata[0].name
+  }
+  data = {
+    "postgres-password"    = var.pgsql_admin_password
+    "password"             = var.pgsql_password
+    "replication-password" = var.pgsql_replication_password
+  }
+}
+
+resource "helm_release" "postgresql" {
+  chart      = "postgresql"
+  version    = var.chart_postgresql_version
+  repository = "https://charts.bitnami.com/bitnami"
+
+  name      = "postgresql"
+  namespace = kubernetes_namespace_v1.postgres.metadata[0].name
+
+  set {
+    name  = "architecture"
+    value = "replication"
+  }
+
+  set {
+    name  = "auth.username"
+    value = var.pgsql_user
+  }
+
+  set {
+    name  = "auth.database"
+    value = var.pgsql_user
+  }
+
+  set {
+    name  = "auth.existingSecret"
+    value = kubernetes_secret_v1.postgresql_auth.metadata[0].name
+  }
+
+  set {
+    name  = "auth.replicationUsername"
+    value = "replication"
+  }
+
+  set {
+    name  = "architecture"
+    value = "replication"
+  }
+
+  set {
+    name  = "metrics.enabled"
+    value = "true"
+  }
+
+  set {
+    name  = "serviceMonitor.enabled"
+    value = "true"
+  }
+
+  set {
+    name  = "primary.tolerations[0].key"
+    value = "node-role.kubernetes.io/storage"
+  }
+
+  set {
+    name  = "primary.tolerations[0].effect"
+    value = "NoSchedule"
+  }
+
+  set {
+    name  = "primary.nodeSelector.node-role\\.kubernetes\\.io/primary"
+    type  = "string"
+    value = "true"
+  }
+
+  set {
+    name  = "primary.persistence.size"
+    value = "10Gi"
+  }
+
+  set {
+    name  = "primary.persistence.storageClass"
+    value = "longhorn-fast"
+  }
+
+  set {
+    name  = "readReplicas.tolerations[0].key"
+    value = "node-role.kubernetes.io/storage"
+  }
+
+  set {
+    name  = "readReplicas.tolerations[0].effect"
+    value = "NoSchedule"
+  }
+
+  set {
+    name  = "readReplicas.nodeSelector.node-role\\.kubernetes\\.io/read"
+    type  = "string"
+    value = "true"
+  }
+
+  set {
+    name  = "readReplicas.persistence.size"
+    value = "10Gi"
+  }
+
+  set {
+    name  = "readReplicas.persistence.storageClass"
+    value = "longhorn-fast"
+  }
+}
+```
+
+{{</ highlight >}}
+
+{{< alert >}}
+Don't forget to use fast storage by setting `primary.persistence.storageClass` and `readReplicas.persistence.storageClass` accordingly.
+{{</ alert >}}
+
+Now check that PostgreSQL pods are correctly running on storage nodes with `kgpo -n postgres -o wide`.
+
+```txt
+NAME                       READY   STATUS    RESTARTS   AGE    IP            NODE               NOMINATED NODE   READINESS GATES
+postgresql-primary-0       2/2     Running   0          151m   10.42.5.253   okami-storage-01   <none>           <none>
+postgresql-read-0          2/2     Running   0          152m   10.42.2.216   okami-storage-02   <none>           <none>
+```
+
+And that it, we have replicated PostgreSQL cluster ready to use ! Go to longhorn UI and be sure that 2 volumes are created on fast disk under **Volume** menu.
+
 ## Redis cluster
 
-## Backups (dumps + longhorn snapshots)
+After PostgreSQL, set up a redis cluster is a piece of cake.
+
+### Redis variables
+
+{{< highlight file="main" >}}
+
+```tf
+variable "redis_password" {
+  type      = string
+  sensitive = true
+}
+```
+
+{{< /highlight >}}
+
+{{< highlight file="terraform.tf.vars" >}}
+
+```tf
+redis_password = "xxx"
+```
+
+{{< /highlight >}}}
+
+### Redis installation
+
+{{< highlight file="redis.tf" >}}
+
+```tf
+resource "kubernetes_namespace_v1" "redis" {
+  metadata {
+    name = "redis"
+  }
+}
+
+resource "kubernetes_secret_v1" "redis_auth" {
+  metadata {
+    name      = "redis-auth"
+    namespace = kubernetes_namespace_v1.redis.metadata[0].name
+  }
+  data = {
+    "redis-password" = var.redis_password
+  }
+}
+
+resource "helm_release" "redis" {
+  chart      = "redis"
+  version    = "17.15.6"
+  repository = "https://charts.bitnami.com/bitnami"
+
+  name      = "redis"
+  namespace = kubernetes_namespace_v1.redis.metadata[0].name
+
+  set {
+    name  = "architecture"
+    value = "standalone"
+  }
+
+  set {
+    name  = "auth.existingSecret"
+    value = kubernetes_secret_v1.redis_auth.metadata[0].name
+  }
+
+  set {
+    name  = "auth.existingSecretPasswordKey"
+    value = "redis-password"
+  }
+
+  set {
+    name  = "metrics.enabled"
+    value = "true"
+  }
+
+  set {
+    name  = "serviceMonitor.enabled"
+    value = "true"
+  }
+
+  set {
+    name  = "master.tolerations[0].key"
+    value = "node-role.kubernetes.io/storage"
+  }
+
+  set {
+    name  = "master.tolerations[0].effect"
+    value = "NoSchedule"
+  }
+
+  set {
+    name  = "master.nodeSelector.node-role\\.kubernetes\\.io/primary"
+    type  = "string"
+    value = "true"
+  }
+
+  set {
+    name  = "master.persistence.size"
+    value = "10Gi"
+  }
+
+  set {
+    name  = "master.persistence.storageClass"
+    value = "longhorn-fast"
+  }
+
+  set {
+    name  = "replica.replicaCount"
+    value = "1"
+  }
+
+  set {
+    name  = "replica.tolerations[0].key"
+    value = "node-role.kubernetes.io/storage"
+  }
+
+  set {
+    name  = "replica.tolerations[0].effect"
+    value = "NoSchedule"
+  }
+
+  set {
+    name  = "replica.nodeSelector.node-role\\.kubernetes\\.io/read"
+    type  = "string"
+    value = "true"
+  }
+
+  set {
+    name  = "replica.persistence.size"
+    value = "10Gi"
+  }
+
+  set {
+    name  = "replica.persistence.storageClass"
+    value = "longhorn-fast"
+  }
+}
+```
+
+{{< /highlight >}}
+
+And that's it, job done ! Always check that Redis pods are correctly running on storage nodes with `kgpo -n redis -o wide` and volumes are ready on Longhorn.
+
+## Backups
+
+Final essential steps is to set up s3 backup for volumes. We already configured S3 backup on [longhorn variables step](#longhorn-variables), so we only have to configure backup strategy. We can use UI for that, but don't we are GitOps ? So let's do it with Terraform.
+
+{{< highlight file="longhorn.tf" >}}
+
+```tf
+locals {
+  job_backups = {
+    daily = {
+      cron   = "15 0 * * *"
+      retain = 7
+    },
+    weekly = {
+      cron   = "30 0 * * 1"
+      retain = 4
+    }
+    monthly = {
+      cron   = "45 0 1 * *"
+      retain = 3
+    }
+  }
+}
+
+resource "kubernetes_manifest" "longhorn_jobs" {
+  for_each = local.job_backups
+  manifest = {
+    apiVersion = "longhorn.io/v1beta2"
+    kind       = "RecurringJob"
+    metadata = {
+      name      = each.key
+      namespace = kubernetes_namespace_v1.longhorn.metadata[0].name
+    }
+    spec = {
+      concurrency = 1
+      cron        = each.value.cron
+      groups      = ["default"]
+      name        = each.key
+      retain      = each.value.retain
+      task        = "backup"
+    }
+  }
+}
+
+```
+
+{{< /highlight >}}
+
+Bam it's done ! After apply, check trough UI under **Recurring Job** menu if backup jobs are created. The `default` group is the default one, which backup all volumes. You can of course set custom groups to specific volumes, allowing very flexible backup strategies.
+
+Thanks to GitOps, the default backup strategy described by `job_backups` is marbled and self-explanatory:
+
+* Daily backup until 7 days
+* Weekly backup until 4 weeks
+* Monthly backup until 3 months
+
+Configure this variable according to your needs.
 
 ## 3th check ✅
 
-Persistence is now insured by Longhorn as a resilient storage and a DB replicated cluster. It's now time to test some [real world apps]({{< ref "/posts/13-build-your-own-kubernetes-cluster-part-4" >}}) with a proper CD solution.
+Persistence is now insured by Longhorn as main resilient storage. And we have production grade DB replicated cluster. It's finally now time to play with all of this by testing some [real world apps]({{< ref "/posts/13-build-your-own-kubernetes-cluster-part-4" >}}) with a proper CD solution.
