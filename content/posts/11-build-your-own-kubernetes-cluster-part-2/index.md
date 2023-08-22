@@ -105,9 +105,9 @@ For this guide, I'll consider using the starter kit as it's more suited for tuto
 
 ### 1st Terraform project
 
-Let's initialize basic cluster setup. Create an empty folder for our terraform project, and create following `kube.tf` file :
+Let's initialize basic cluster setup. Create an empty folder (I name it `demo-kube-hcloud` here) for our terraform project, and create following `kube.tf` file :
 
-{{< highlight file="kube.tf" >}}
+{{< highlight host="demo-kube-hcloud" file="kube.tf" >}}
 
 ```tf
 terraform {
@@ -233,16 +233,12 @@ I'm using a local backend for simplicity, but for teams sharing, you may use mor
 
 Treat the Terraform state very carefully in secured place, as it's the only source of truth for your cluster. If leaked, consider the cluster as **compromised and you should active DRP (disaster recovery plan)**. The first vital action is at least to renew the Hetzner Cloud and S3 tokens immediately.
 
-{{< alert >}}
-
 At any case, consider any leak of writeable Hetzner Cloud token as a **Game Over**. Indeed, even if the attacker has no direct access to existing servers, mainly because cluster SSH private key as well as kube config are not stored into Terraform state, he still has full control of infrastructure, and can do the following actions :
 
 1. Create new server to same cluster network with its own SSH access.
 2. Install a new K3s agent and connect it to the controllers thanks to the generated K3s token stored into Terraform state.
 3. Sniff any data from the cluster that comes to the compromised server, including secrets, thanks to the new agent.
 4. Get access to remote S3 backups.
-
-{{</ alert >}}
 
 In order to mitigate any risk of critical data leak, you may use data encryption whenever is possible. K3s offer it [natively for etcd](https://docs.k3s.io/security/secrets-encryption). Longhorn (treated later) also offer it [natively for volumes](https://longhorn.io/docs/latest/advanced-resources/security/volume-encryption/) (including backups).
 
@@ -365,7 +361,7 @@ As input variables, you have the choice to use environment variables or separate
 {{< tabs >}}
 {{< tab tabName="terraform.tfvars file" >}}
 
-{{< highlight file="terraform.tfvars" >}}
+{{< highlight host="demo-kube-hcloud" file="terraform.tfvars" >}}
 
 ```tf
 hcloud_token = "xxx"
@@ -427,6 +423,17 @@ Host kube-worker-01
     ProxyJump kube
 ```
 
+#### Git-able project
+
+As we are GitOps, you'll need to version the Terraform project. With a proper gitignore generator tool like [gitignore.io](https://docs.gitignore.io/install/command-line) It's just a matter of:
+
+```sh
+git init
+gig terraform
+```
+
+And the project is ready to be pushed to any Git repository.
+
 #### Cluster access
 
 Merge above SSH config into your `~/.ssh/config` file, then test the connection with `ssh kube`.
@@ -446,8 +453,7 @@ It's time to log in to K3s and check the cluster status from local.
 From the controller, copy `/etc/rancher/k3s/k3s.yaml` on your machine located outside the cluster as `~/.kube/config`. Then replace the value of the server field with the IP or name of your K3s server. `kubectl` can now manage your K3s cluster.
 
 {{< alert >}}
-If `~/.kube/config` already existing, you have to properly [merging the config inside it](https://able8.medium.com/how-to-merge-multiple-kubeconfig-files-into-one-36fc987c2e2f). You can use `kubectl config view --flatten` for that.
-
+If `~/.kube/config` already existing, you have to properly [merging the config inside it](https://able8.medium.com/how-to-merge-multiple-kubeconfig-files-into-one-36fc987c2e2f). You can use `kubectl config view --flatten` for that.  
 Then use `kubectl config use-context kube` for switching to your new cluster.
 {{</ alert >}}
 
@@ -459,14 +465,14 @@ kube-controller-01   Ready    control-plane,etcd,master   153m   v1.27.4+k3s1
 kube-worker-01       Ready    <none>                      152m   v1.27.4+k3s1
 ```
 
-{{< alert >}}
+#### Kubectl Aliases
+
 As we'll use `kubectl` a lot, I highly encourage you to use aliases for better productivity :
 
 * <https://github.com/ahmetb/kubectl-aliases> for bash
 * <https://github.com/shanoor/kubectl-aliases-powershell> for Powershell
 
 After the install the equivalent of `kubectl get nodes` is `kgno`.
-{{</ alert >}}
 
 #### Test adding new workers
 

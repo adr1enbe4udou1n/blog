@@ -64,7 +64,7 @@ storage-02 --> streaming
 
 Let's get back to our 1st Hcloud Terraform Project, and add a new node pool for storage:
 
-{{< highlight file="kube.tf" >}}
+{{< highlight host="demo-kube-hcloud" file="kube.tf" >}}
 
 ```tf
 module "hcloud_kube" {
@@ -95,7 +95,7 @@ Be sure to have labels and taints correctly set, as we'll use them later for Lon
 
 After `terraform apply`, check that new storage nodes are ready with `kgno`. Now we'll also apply a configurable dedicated block volume on each node for more flexible space management.
 
-{{< highlight file="kube.tf" >}}
+{{< highlight host="demo-kube-hcloud" file="kube.tf" >}}
 
 ```tf
 module "hcloud_kube" {
@@ -133,7 +133,7 @@ Note as if you set volume in same time as node pool creation, Hetzner doesn't se
 
 Let's add s3 related variables in order to preconfigure Longhorn backup:
 
-{{< highlight file="main" >}}
+{{< highlight host="demo-kube-k3s" file="main.tf" >}}
 
 ```tf
 variable "s3_endpoint" {
@@ -161,7 +161,7 @@ variable "s3_secret_key" {
 
 {{< /highlight >}}
 
-{{< highlight file="terraform.tf.vars" >}}
+{{< highlight host="demo-kube-k3s" file="terraform.tf.vars" >}}
 
 ```tf
 s3_endpoint    = "s3.fr-par.scw.cloud"
@@ -177,7 +177,7 @@ s3_secret_key  = "xxx"
 
 Return to the 2nd Kubernetes terraform project, and add Longhorn installation:
 
-{{< highlight file="longhorn.tf" >}}
+{{< highlight host="demo-kube-k3s" file="longhorn.tf" >}}
 
 ```tf
 resource "kubernetes_namespace_v1" "longhorn" {
@@ -263,7 +263,7 @@ Use `kgpo -n longhorn-system -o wide` to check that Longhorn pods are correctly 
 
 Longhorn Helm doesn't include Prometheus integration yet, in this case all we have to do is to deploy a `ServiceMonitor` which allow metrics scraping to Longhorn pods.
 
-{{< highlight file="longhorn.tf" >}}
+{{< highlight host="demo-kube-k3s" file="longhorn.tf" >}}
 
 ```tf
 resource "kubernetes_manifest" "longhorn_service_monitor" {
@@ -298,7 +298,7 @@ Monitoring will have dedicated post later.
 
 Now we only have to expose Longhorn UI to the world. We'll use `IngressRoute` provided by Traefik.
 
-{{< highlight file="longhorn.tf" >}}
+{{< highlight host="demo-kube-k3s" file="longhorn.tf" >}}
 
 ```tf
 resource "kubernetes_manifest" "longhorn_ingress" {
@@ -366,7 +366,7 @@ k patch nodes.longhorn.io kube-storage-0x -n longhorn-system --type=merge --patc
 
 Now all that's left is to create a dedicated storage class for fast local volumes. We'll use it for IOPS critical statefulset workloads like PostgreSQL and Redis. Let's apply nest `StorageClass` configuration and check it with `kg sc`:
 
-{{< highlight file="longhorn.tf" >}}
+{{< highlight host="demo-kube-k3s" file="longhorn.tf" >}}
 
 ```tf
 resource "kubernetes_storage_class_v1" "longhorn_fast" {
@@ -401,7 +401,7 @@ Now it's time to set up some critical statefulset persistence workloads, and fir
 
 ### PostgreSQL variables
 
-{{< highlight file="main" >}}
+{{< highlight host="demo-kube-k3s" file="main.tf" >}}
 
 ```tf
 variable "pgsql_user" {
@@ -426,7 +426,7 @@ variable "pgsql_replication_password" {
 
 {{< /highlight >}}
 
-{{< highlight file="terraform.tf.vars" >}}
+{{< highlight host="demo-kube-k3s" file="terraform.tf.vars" >}}
 
 ```tf
 pgsql_user                 = "kube"
@@ -448,7 +448,7 @@ k label nodes kube-storage-02 node-role.kubernetes.io/read=true
 
 We can finally apply next Terraform configuration:
 
-{{< highlight file="postgresql" >}}
+{{< highlight host="demo-kube-k3s" file="postgresql.tf" >}}
 
 ```tf
 resource "kubernetes_namespace_v1" "postgres" {
@@ -593,7 +593,7 @@ After PostgreSQL, set up a redis cluster is a piece of cake.
 
 ### Redis variables
 
-{{< highlight file="main" >}}
+{{< highlight host="demo-kube-k3s" file="main.tf" >}}
 
 ```tf
 variable "redis_password" {
@@ -604,7 +604,7 @@ variable "redis_password" {
 
 {{< /highlight >}}
 
-{{< highlight file="terraform.tf.vars" >}}
+{{< highlight host="demo-kube-k3s" file="terraform.tf.vars" >}}
 
 ```tf
 redis_password = "xxx"
@@ -614,7 +614,7 @@ redis_password = "xxx"
 
 ### Redis installation
 
-{{< highlight file="redis.tf" >}}
+{{< highlight host="demo-kube-k3s" file="redis.tf" >}}
 
 ```tf
 resource "kubernetes_namespace_v1" "redis" {
@@ -733,7 +733,7 @@ And that's it, job done ! Always check that Redis pods are correctly running on 
 
 Final essential steps is to set up s3 backup for volumes. We already configured S3 backup on [longhorn variables step](#longhorn-variables), so we only have to configure backup strategy. We can use UI for that, but don't we are GitOps ? So let's do it with Terraform.
 
-{{< highlight file="longhorn.tf" >}}
+{{< highlight host="demo-kube-k3s" file="longhorn.tf" >}}
 
 ```tf
 locals {

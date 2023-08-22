@@ -16,7 +16,7 @@ This is the **Part III** of more global topic tutorial. [Back to first part]({{<
 
 For this part let's create a new Terraform project that will be dedicated to Kubernetes infrastructure provisioning. Start from scratch with a new empty folder and the following `main.tf` file then `terraform init`.
 
-{{< highlight file="main.tf" >}}
+{{< highlight host="demo-kube-k3s" file="main.tf" >}}
 
 ```tf
 terraform {
@@ -41,7 +41,7 @@ kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-oper
 
 When OS kernel is upgraded, the system needs to be rebooted to apply it. This is a critical operation for a Kubernetes cluster as can cause downtime. To avoid this, we'll use [kured](https://github.com/kubereboot/kured) that will take care of cordon & drains before rebooting nodes one by one.
 
-{{< highlight file="kured.tf" >}}
+{{< highlight host="demo-kube-k3s" file="kured.tf" >}}
 
 ```tf
 resource "helm_release" "kubereboot" {
@@ -101,7 +101,7 @@ kg deploy -n system-upgrade
 
 Next apply the following upgrade plans for servers and agents.
 
-{{< highlight file="plans.tf" >}}
+{{< highlight host="demo-kube-k3s" file="plans.tf" >}}
 
 ```tf
 resource "kubernetes_manifest" "server_plan" {
@@ -191,7 +191,7 @@ Now it's time to expose our cluster to the outside world. We'll use Traefik as i
 
 Apply following file :
 
-{{< highlight file="traefik.tf" >}}
+{{< highlight host="demo-kube-k3s" file="traefik.tf" >}}
 
 ```tf
 locals {
@@ -267,7 +267,7 @@ traefik   LoadBalancer   10.43.134.216   10.0.0.2,10.0.1.1,10.0.1.2,10.0.1.3   8
 
 External IP are privates IPs of all nodes. In order to access them, we only need to put a load balancer in front of workers. It's time to get back to our 1st Terraform project.
 
-{{< highlight file="kube.tf" >}}
+{{< highlight host="demo-kube-hcloud" file="kube.tf" >}}
 
 ```tf
 //...
@@ -305,8 +305,7 @@ resource "hcloud_load_balancer_service" "https_service" {
 Use `hcloud load-balancer-type list` to get the list of available load balancer types.
 
 {{< alert >}}
-Don't forget to add `hcloud_load_balancer_service` resource for each service (aka port) you want to serve.
-
+Don't forget to add `hcloud_load_balancer_service` resource for each service (aka port) you want to serve.  
 We use `tcp` protocol as Traefik will handle SSL termination. Set `proxyprotocol` to true to allow Traefik to get real IP of clients.
 {{</ alert >}}
 
@@ -322,7 +321,7 @@ ka https://github.com/cert-manager/cert-manager/releases/download/v1.12.3/cert-m
 
 Then apply the following Terraform code.
 
-{{< highlight file="cert-manager.tf" >}}
+{{< highlight host="demo-kube-k3s" file="cert-manager.tf" >}}
 
 ```tf
 resource "kubernetes_namespace_v1" "cert_manager" {
@@ -365,7 +364,7 @@ You may use a DNS provider that is supported by cert-manager. Check the [list of
 
 First prepare variables and set them accordingly :
 
-{{< highlight file="main.tf" >}}
+{{< highlight host="demo-kube-k3s" file="main.tf" >}}
 
 ```tf
 variable "domain" {
@@ -384,7 +383,7 @@ variable "dns_api_token" {
 
 {{</ highlight >}}
 
-{{< highlight file="terraform.tfvars" >}}
+{{< highlight host="demo-kube-k3s" file="terraform.tfvars" >}}
 
 ```tf
 acme_email    = "me@kube.rocks"
@@ -396,7 +395,7 @@ dns_api_token = "xxx"
 
 Then we need to create a default `Certificate` k8s resource associated to a valid `ClusterIssuer` resource that will manage its generation. Apply the following Terraform code for issuing the new wildcard certificate for your domain.
 
-{{< highlight file="certificates.tf" >}}
+{{< highlight host="demo-kube-k3s" file="certificates.tf" >}}
 
 ```tf
 resource "kubernetes_secret_v1" "cloudflare_api_token" {
@@ -471,10 +470,8 @@ resource "kubernetes_manifest" "tls_certificate" {
 {{</ highlight >}}
 
 {{< alert >}}
-
 You can set `acme.privateKeySecretRef.name` to **letsencrypt-staging** for testing purpose and note waste limited LE quota.  
 Set `privateKey.rotationPolicy` to **Always** to ensure that the certificate will be [renewed automatically](https://cert-manager.io/docs/usage/certificate/) 30 days before expires without downtime.
-
 {{</ alert >}}
 
 In the meantime, go to your DNS provider and add a new `*.kube.rocks` entry pointing to the load balancer IP.
@@ -489,7 +486,7 @@ First the auth variables :
 
 First prepare variables and set them accordingly :
 
-{{< highlight file="main.tf" >}}
+{{< highlight host="demo-kube-k3s" file="main.tf" >}}
 
 ```tf
 variable "http_username" {
@@ -520,7 +517,7 @@ resource "null_resource" "encrypted_admin_password" {
 
 {{</ highlight >}}
 
-{{< highlight file="terraform.tfvars" >}}
+{{< highlight host="demo-kube-k3s" file="terraform.tfvars" >}}
 
 ```tf
 http_username   = "admin"
@@ -536,7 +533,7 @@ Note on encrypted_admin_password, we generate a bcrypt hash of the password comp
 
 Then apply the following Terraform code :
 
-{{< highlight file="traefik.tf" >}}
+{{< highlight host="demo-kube-k3s" file="traefik.tf" >}}
 
 ```tf
 resource "helm_release" "traefik" {
@@ -615,10 +612,11 @@ Now go to `https://traefik.kube.rocks` and you should be asked for credentials. 
 
 This allow to validate that `auth` and `ip` middelwares are working properly.
 
-{{< alert >}}
-If you get `Forbidden`, it's because `middleware-ip` can't get your real IP, try to disable it firstly to confirm you have dashboard access with credentials. Then try to re-enable it by changing the [IP strategy](https://doc.traefik.io/traefik/middlewares/http/ipwhitelist/#ipstrategy). For example, if you're behind Cloudflare edge proxies :
+#### Forbidden troubleshooting
 
-{{< highlight file="traefik.tf" >}}
+If you get `Forbidden`, it's because `middleware-ip` can't get your real IP, try to disable it firstly to confirm you have dashboard access with credentials. Then try to re-enable it by changing the [IP strategy](https://doc.traefik.io/traefik/middlewares/http/ipwhitelist/#ipstrategy). For example, if you're behind another reverse proxy like Cloudflare, increment `depth` to 1:
+
+{{< highlight host="demo-kube-k3s" file="traefik.tf" >}}
 
 ```tf
 //...
@@ -640,7 +638,44 @@ resource "kubernetes_manifest" "traefik_middleware_ip" {
 
 {{</ highlight >}}
 
-{{</ alert >}}
+In the case of Cloudflare, you may need also to trust the [Cloudflare IP ranges](https://www.cloudflare.com/ips-v4) in addition to Hetzner load balancer. Just set `ports.websecure.forwardedHeaders.trustedIPs` and `ports.websecure.proxyProtocol.trustedIPs` accordingly.
+
+{{< highlight host="demo-kube-k3s" file="main.tf" >}}
+
+```tf
+variable "cloudflare_ips" {
+  type      = list(string)
+  sensitive = true
+}
+```
+
+{{</ highlight >}}
+
+{{< highlight host="demo-kube-k3s" file="traefik.tf" >}}
+
+```tf
+locals {
+  trusted_ips = concat(["127.0.0.1/32", "10.0.0.0/8"], var.cloudflare_ips)
+}
+
+resource "helm_release" "traefik" {
+  //...
+
+  set {
+    name  = "ports.websecure.forwardedHeaders.trustedIPs"
+    value = "{${join(",", local.trusted_ips)}}"
+  }
+
+  set {
+    name  = "ports.websecure.proxyProtocol.trustedIPs"
+    value = "{${join(",", local.trusted_ips)}}"
+  }
+}
+```
+
+{{</ highlight >}}
+
+Or for testing purpose set `ports.websecure.forwardedHeaders.insecure` and `ports.websecure.proxyProtocol.insecure` to true.
 
 ## 2nd check ✅
 
