@@ -143,14 +143,579 @@ Note as we'll use `components_extra` to add `image-reflector-controller` and `im
 
 After applying this, use `kg deploy -n flux-system` to check that Flux is correctly installed and running.
 
-## PgAdmin
+### Managing secrets
 
-* Automatic deployment on commit
+As always with GitOps, a secured secrets management is critical. Nobody wants to expose sensitive data in a git repository. An easy to go solution is to use [Bitnami Sealed Secrets](https://github.com/bitnami-labs/sealed-secrets), which will deploy a dedicated controller in your cluster that will automatically decrypt sealed secrets.
 
-## Nocode tools
+Open `demo-kube-flux` project and create helm deployment for sealed secret.
 
-* Automatic deployment on commit
+{{< highlight host="demo-kube-flux" file="clusters/demo/flux-system/sealed-secrets.yaml" >}}
 
-## 3rd check ✅
+```yaml
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: sealed-secrets
+  namespace: flux-system
+spec:
+  interval: 1h0m0s
+  url: https://bitnami-labs.github.io/sealed-secrets
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: sealed-secrets
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: sealed-secrets
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: sealed-secrets
+      version: ">=2.12.0"
+  interval: 1m
+  releaseName: sealed-secrets-controller
+  targetNamespace: flux-system
+  install:
+    crds: Create
+  upgrade:
+    crds: CreateReplace
+```
 
-We have everything we need for app building with automatic deployment ! Go [next part]({{< ref "/posts/15-build-your-own-kubernetes-cluster-part-6" >}}) to add complete monitoring stack !
+{{< /highlight >}}
+
+And add this file to main flux kustomization file:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/flux-system/kustomization.yaml" >}}
+
+```yaml
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - gotk-components.yaml
+  - gotk-sync.yaml
+  - sealed-secrets.yaml
+```
+
+{{< /highlight >}}
+
+Then push it and check that sealed secret controller is correctly deployed with `kg deploy sealed-secrets-controller -n flux-system`.
+
+Private key is automatically generated, so last step is to fetch the public key. Type this in project root to include it in your git repository:
+
+```sh
+kpf svc/sealed-secrets-controller -n flux-system 8080
+curl http://localhost:8080/v1/cert.pem > pub-sealed-secrets.pem
+```
+
+{{< alert >}}
+By the way install the client with `brew install kubeseal` (Mac / Linux) or `scoop install kubeseal` (Windows).
+{{< /alert >}}
+
+## Install some tools
+
+It's now finally time to install some tools to help us in our CD journey.
+
+### pgAdmin
+
+A 1st good example is typically pgAdmin, which is a web UI for Postgres. We'll use it to manage our database cluster. It requires a local PVC to store its data user and settings.
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/postgres/kustomization.yaml" >}}
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - deploy-pgadmin.yaml
+  - sealed-secret-pgadmin.yaml
+```
+
+{{< /highlight >}}
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/postgres/deploy-pgadmin.yaml" >}}
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgadmin
+  namespace: postgres
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: pgadmin
+  template:
+    metadata:
+      labels:
+        app: pgadmin
+    spec:
+      securityContext:
+        runAsUser: 5050
+        runAsGroup: 5050
+        fsGroup: 5050
+        fsGroupChangePolicy: "OnRootMismatch"
+      containers:
+        - name: pgadmin
+          image: dpage/pgadmin4:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: PGADMIN_DEFAULT_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: pgadmin-auth
+                  key: default-email
+            - name: PGADMIN_DEFAULT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pgadmin-auth
+                  key: default-password
+          volumeMounts:
+            - name: pgadmin-data
+              mountPath: /var/lib/pgadmin
+      volumes:
+        - name: pgadmin-data
+          persistentVolumeClaim:
+            claimName: pgadmin-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pgadmin-data
+  namespace: postgres
+spec:
+  resources:
+    requests:
+      storage: 128Mi
+  volumeMode: Filesystem
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgadmin
+  namespace: postgres
+spec:
+  selector:
+    app: pgadmin
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: pgadmin
+  namespace: postgres
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`pgadmin.kube.rocks`)
+      kind: Rule
+      middlewares:
+        - name: middleware-ip
+          namespace: traefik
+      services:
+        - name: pgadmin
+          port: 80
+```
+
+{{< /highlight >}}
+
+Here are the secrets to adapt to your needs:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/postgres/secret-pgadmin.yaml" >}}
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pgadmin-auth
+  namespace: postgres
+type: Opaque
+data:
+  default-email: YWRtaW5Aa3ViZS5yb2Nrcw==
+  default-password: YWRtaW4=
+```
+
+{{< /highlight >}}
+
+```sh
+cat clusters/demo/postgres/secret-pgadmin.yaml | kubeseal --format=yaml --cert=pub-sealed-secrets.pem > clusters/demo/postgres/sealed-secret-pgadmin.yaml
+rm clusters/demo/postgres/secret-pgadmin.yaml
+```
+
+{{< alert >}}
+Don't forget to remove the original secret file before commit for obvious reason ! If too late, consider password leaked and regenerate a new one.  
+You may use [VSCode extension](https://github.com/codecontemplator/vscode-kubeseal)
+{{< /alert >}}
+
+Wait few minutes, and go to `pgadmin.kube.rocks` and login with chosen credentials. Now try to register a new server with `postgresql-primary.postgres` as hostname, and the rest with your PostgreSQL credential on previous installation. It should work !
+
+You can test the read replica too by register a new server using the hostname `postgresql-read.postgres`. Try to do some update on primary and check that it's replicated on read replica. Any modification on replicas should be rejected as well.
+
+It's time to use some useful apps.
+
+### n8n
+
+Let's try some app that require a bit more configuration and real database connection with n8n, a workflow automation tool.
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/n8n/kustomization.yaml" >}}
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - deploy-n8n.yaml
+  - sealed-secret-n8n-db.yaml
+  - sealed-secret-n8n-smtp.yaml
+```
+
+{{< /highlight >}}
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/n8n/deploy-n8n.yaml" >}}
+
+```yaml
+apiVersion: apps/v1
+kind: Namespace
+metadata:
+  name: n8n
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: n8n
+  namespace: n8n
+spec:
+  selector:
+    matchLabels:
+      app: n8n
+  template:
+    metadata:
+      labels:
+        app: n8n
+    spec:
+      containers:
+        - name: n8n
+          image: n8nio/n8n:latest
+          ports:
+            - containerPort: 5678
+          env:
+            - name: N8N_PROTOCOL
+              value: https
+            - name: N8N_HOST
+              value: n8n.kube.rocks
+            - name: N8N_PORT
+              value: "5678"
+            - name: NODE_ENV
+              value: production
+            - name: WEBHOOK_URL
+              value: https://n8n.kube.rocks/
+            - name: DB_TYPE
+              value: postgresdb
+            - name: DB_POSTGRESDB_DATABASE
+              value: n8n
+            - name: DB_POSTGRESDB_HOST
+              value: postgresql-primary.postgres
+            - name: DB_POSTGRESDB_USER
+              value: n8n
+            - name: DB_POSTGRESDB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-db
+                  key: password
+            - name: N8N_EMAIL_MODE
+              value: smtp
+            - name: N8N_SMTP_HOST
+              value: smtp.mailgun.org
+            - name: N8N_SMTP_PORT
+              value: "587"
+            - name: N8N_SMTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-smtp
+                  key: username
+            - name: N8N_SMTP_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: n8n-smtp
+                  key: password
+            - name: N8N_SMTP_SENDER
+              value: n8n@kube.rocks
+          volumeMounts:
+            - name: n8n-data
+              mountPath: /home/node/.n8n
+      volumes:
+        - name: n8n-data
+          persistentVolumeClaim:
+            claimName: n8n-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: n8n-data
+  namespace: n8n
+spec:
+  resources:
+    requests:
+      storage: 1Gi
+  volumeMode: Filesystem
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: n8n
+  namespace: n8n
+spec:
+  selector:
+    app: n8n
+  ports:
+    - port: 5678
+      targetPort: 5678
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: n8n
+  namespace: n8n
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`n8n.kube.rocks`)
+      kind: Rule
+      services:
+        - name: n8n
+          port: 5678
+```
+
+{{< /highlight >}}
+
+Here are the secrets to adapt to your needs:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/n8n/secret-n8n-db.yaml" >}}
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: n8n-db
+  namespace: n8n
+type: Opaque
+data:
+  password: YWRtaW4=
+```
+
+{{< /highlight >}}
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/n8n/secret-n8n-smtp.yaml" >}}
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: n8n-smtp
+  namespace: n8n
+type: Opaque
+data:
+  username: YWRtaW4=
+  password: YWRtaW4=
+```
+
+{{< /highlight >}}
+
+Before continue go to pgAdmin and create `n8n` DB and link it to `n8n` user with proper credentials.
+
+Then don't forget to seal secrets and remove original files the same way as pgAdmin. Once pushed, n8n should be deploying, automatically migrate the db, and soon after `n8n.kube.rocks` should be available, allowing you to create your 1st account.
+
+### NocoDB
+
+Let's try a final candidate with NocoDB, an Airtable-like generator for Postgres. It's very similar to n8n.
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/nocodb/kustomization.yaml" >}}
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - deploy-nocodb.yaml
+  - sealed-secret-nocodb-db.yaml
+  - sealed-secret-nocodb-auth.yaml
+  - sealed-secret-nocodb-smtp.yaml
+```
+
+{{< /highlight >}}
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/nocodb/deploy-nocodb.yaml" >}}
+
+```yaml
+apiVersion: apps/v1
+kind: Namespace
+metadata:
+  name: nocodb
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nocodb
+  namespace: nocodb
+spec:
+  selector:
+    matchLabels:
+      app: nocodb
+  template:
+    metadata:
+      labels:
+        app: nocodb
+    spec:
+      containers:
+        - name: nocodb
+          image: nocodb/nocodb:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nocodb-db
+                  key: password
+            - name: DATABASE_URL
+              value: postgresql://nocodb:$(DB_PASSWORD)@postgresql-primary.postgres/nocodb
+            - name: NC_AUTH_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: nocodb-auth
+                  key: jwt-secret
+            - name: NC_SMTP_HOST
+              value: smtp.mailgun.org
+            - name: NC_SMTP_PORT
+              value: "587"
+            - name: NC_SMTP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: nocodb-smtp
+                  key: username
+            - name: NC_SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nocodb-smtp
+                  key: password
+            - name: NC_SMTP_FROM
+              value: nocodb@kube.rocks
+          volumeMounts:
+            - name: nocodb-data
+              mountPath: /usr/app/data
+      volumes:
+        - name: nocodb-data
+          persistentVolumeClaim:
+            claimName: nocodb-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nocodb-data
+  namespace: nocodb
+spec:
+  resources:
+    requests:
+      storage: 1Gi
+  volumeMode: Filesystem
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nocodb
+  namespace: nocodb
+spec:
+  selector:
+    app: nocodb
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: nocodb
+  namespace: nocodb
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`nocodb.kube.rocks`)
+      kind: Rule
+      services:
+        - name: nocodb
+          port: 8080
+```
+
+{{< /highlight >}}
+
+Here are the secrets to adapt to your needs:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/nocodb/secret-nocodb-db.yaml" >}}
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nocodb-db
+  namespace: nocodb
+type: Opaque
+data:
+  password: YWRtaW4=
+```
+
+{{< /highlight >}}
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/nocodb/secret-nocodb-auth.yaml" >}}
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nocodb-auth
+  namespace: nocodb
+type: Opaque
+data:
+  jwt-secret: MDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAw
+```
+
+{{< /highlight >}}
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/nocodb/secret-nocodb-smtp.yaml" >}}
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nocodb-smtp
+  namespace: nocodb
+type: Opaque
+data:
+  username: YWRtaW4=
+  password: YWRtaW4=
+```
+
+{{< /highlight >}}
+
+The final process is identical to n8n.
+
+## 4th check ✅
+
+We now have a functional continuous delivery with some nice no-code tools to play with ! The final missing stack for production grade cluster is to install a complete monitoring stack, this is the [next part]({{< ref "/posts/15-build-your-own-kubernetes-cluster-part-6" >}})
