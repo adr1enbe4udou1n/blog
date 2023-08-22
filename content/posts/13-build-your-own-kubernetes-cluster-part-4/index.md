@@ -2,7 +2,7 @@
 title: "Setup a HA Kubernetes cluster Part IV - HA storage & DB"
 date: 2023-10-04
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
-tags: ["kubernetes", "traefik", "cert-manager", "longhorn"]
+tags: ["kubernetes", "longhorn", "bitnami", "postgresql", "redis"]
 draft: true
 ---
 

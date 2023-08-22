@@ -2,7 +2,7 @@
 title: "Setup a HA Kubernetes cluster Part V - CD with Flux"
 date: 2023-10-05
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
-tags: ["kubernetes", "postgresql", "longhorn"]
+tags: ["kubernetes", "cd", "flux", "nocode", "n8n", "nocodb"]
 draft: true
 ---
 

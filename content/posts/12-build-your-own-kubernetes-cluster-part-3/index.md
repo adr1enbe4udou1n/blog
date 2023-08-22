@@ -2,7 +2,7 @@
 title: "Setup a HA Kubernetes cluster Part III - Load Balancer & Ingress with SSL"
 date: 2023-10-03
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
-tags: ["kubernetes", "traefik", "cert-manager", "longhorn"]
+tags: ["kubernetes", "traefik", "cert-manager"]
 draft: true
 ---
 
