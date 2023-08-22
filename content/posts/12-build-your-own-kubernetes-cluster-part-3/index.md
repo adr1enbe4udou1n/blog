@@ -14,7 +14,7 @@ This is the **Part III** of more global topic tutorial. [Back to first part]({{<
 
 ## 2nd Terraform project
 
-For this part let's create a new Terraform project that will be dedicated to Kubernetes infrastructure provisioning. Start from scratch with a new empty folder and the following `main.tf` file then `terraform init`.
+For this part let's create a new Terraform project (`demo-kube-k3s` here) that will be dedicated to Kubernetes infrastructure provisioning. Start from scratch with a new empty folder and the following `main.tf` file then `terraform init`.
 
 {{< highlight host="demo-kube-k3s" file="main.tf" >}}
 

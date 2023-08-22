@@ -29,15 +29,119 @@ You can probably eliminate with some efforts the 2nd stack by using both `Kube-H
 But as it's increase complexity and dependencies problem, I prefer personally to keep a clear separation between the middle part and the rest, as it's more straightforward for me. Just a matter of taste 🥮
 {{< /alert >}}
 
-### Flux installation
+### Flux bootstrap
 
 Create a dedicated Git repository for Flux somewhere, I'm using Github, which is just a matter of:
 
 ```sh
-gh repo create demo-kube-flux --private
+gh repo create demo-kube-flux --private --add-readme
 gh repo clone demo-kube-flux
-cd demo-kube-flux
 ```
+
+{{< alert >}}
+Put `--add-readme` option to have a non-empty repo, otherwise Flux bootstrap will give you an error.
+{{< /alert >}}
+
+Let's back to `demo-kube-k3s` terraform project and add Flux bootstrap connected to above repository:
+
+{{< highlight host="demo-kube-k3s" file="main.tf" >}}
+
+```tf
+terraform {
+  //...
+
+  required_providers {
+    flux = {
+      source = "fluxcd/flux"
+    }
+    github = {
+      source = "integrations/github"
+    }
+  }
+}
+
+//...
+
+variable "github_token" {
+  sensitive = true
+  type      = string
+}
+
+variable "github_org" {
+  type = string
+}
+
+variable "github_repository" {
+  type = string
+}
+```
+
+{{< /highlight >}}
+
+{{< highlight host="demo-kube-k3s" file="flux.tf" >}}
+
+```tf
+github_org           = "mykuberocks"
+github_repository    = "demo-kube-flux"
+github_token         = "xxx"
+```
+
+{{< /highlight >}}
+
+{{< alert >}}
+Create a [Github token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with repo permissions and add it to `github_token` variable.
+{{< /alert >}}
+
+{{< highlight host="demo-kube-k3s" file="flux.tf" >}}
+
+```tf
+provider "github" {
+  owner = var.github_org
+  token = var.github_token
+}
+
+resource "tls_private_key" "flux" {
+  algorithm   = "ECDSA"
+  ecdsa_curve = "P256"
+}
+
+resource "github_repository_deploy_key" "this" {
+  title      = "Flux"
+  repository = var.github_repository
+  key        = tls_private_key.flux.public_key_openssh
+  read_only  = false
+}
+
+provider "flux" {
+  kubernetes = {
+    config_path = "~/.kube/config"
+  }
+  git = {
+    url = "ssh://git@github.com/${var.github_org}/${var.github_repository}.git"
+    ssh = {
+      username    = "git"
+      private_key = tls_private_key.flux.private_key_pem
+    }
+  }
+}
+
+resource "flux_bootstrap_git" "this" {
+  path = "clusters/demo"
+
+  components_extra = [
+    "image-reflector-controller",
+    "image-automation-controller"
+  ]
+
+  depends_on = [github_repository_deploy_key.this]
+}
+```
+
+{{< /highlight >}}
+
+Note as we'll use `components_extra` to add `image-reflector-controller` and `image-automation-controller` to Flux, as it will serve us later for new image tag detection.
+
+After applying this, use `kg deploy -n flux-system` to check that Flux is correctly installed and running.
 
 ## PgAdmin
 
