@@ -718,4 +718,4 @@ The final process is identical to n8n.
 
 ## 4th check ✅
 
-We now have a functional continuous delivery with some nice no-code tools to play with ! The final missing stack for production grade cluster is to install a complete monitoring stack, this is the [next part]({{< ref "/posts/15-build-your-own-kubernetes-cluster-part-6" >}})
+We now have a functional continuous delivery with some nice no-code tools to play with ! The final missing stack for a production grade cluster is to install a complete monitoring stack, this is the [next part]({{< ref "/posts/15-build-your-own-kubernetes-cluster-part-6" >}}).
