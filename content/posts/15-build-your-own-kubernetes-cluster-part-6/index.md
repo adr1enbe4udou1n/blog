@@ -133,6 +133,11 @@ resource "helm_release" "kube_prometheus_stack" {
   }
 
   set {
+    name  = "grafana.forceDeployDatasources"
+    value = "true"
+  }
+
+  set {
     name  = "grafana.forceDeployDashboards"
     value = "true"
   }
@@ -147,7 +152,7 @@ Important notes :
 
 * We set a retention of **15 days** and **5GB** of storage for Prometheus. Set this according to your needs.
 * As we don't set any storage class, the default one will be used, which is `local-path` when using K3s. If you want to use longhorn instead and benefit of automatic monitoring backup, you can set it with `...volumeClaimTemplate.spec.storageClassName`. But don't forget to deploy Longhorn manager by adding monitor toleration.
-* As it's a huge chart, I want to minimize dependencies by disabling Grafana, as I prefer manage it separately. However, in this case we must set `grafana.forceDeployDashboards` to `true` in order to benefit of all included Kubernetes dashboards, and deploy them to config maps that can be used for next Grafana install by provisioning.
+* As it's a huge chart, I want to minimize dependencies by disabling Grafana, as I prefer manage it separately. However, in this case we must set `grafana.forceDeployDatasources` and `grafana.forceDeployDashboards` to `true` in order to benefit of all included Kubernetes dashboards and automatic Prometheus datasource injection, and deploy them to config maps that can be used for next Grafana install by provisioning.
 
 And finally the ingress for external access:
 
@@ -323,6 +328,11 @@ resource "helm_release" "grafana" {
   }
 
   set {
+    name  = "sidecar.datasources.enabled"
+    value = "true"
+  }
+
+  set {
     name  = "sidecar.dashboards.enabled"
     value = "true"
   }
@@ -417,9 +427,69 @@ resource "kubernetes_manifest" "grafana_ingress" {
 
 {{< /highlight >}}
 
+We enable both data source and dashboard sidecars by setting `sidecar.datasources.enabled` and `sidecar.dashboards.enabled`. These sidecars will automatically inject all dashboards and data sources from `ConfigMap`, like those provided by Prometheus stack and Flux. `serviceMonitor.enabled` will create a `ServiceMonitor` for Prometheus to scrape Grafana metrics.
+
 Grafana should be deploying and migrate database successfully. Let's log in immediately after in `https://grafana.kube.rocks/login` with admin account. You can get the password with `kg secret -n monitoring grafana -o jsonpath='{.data.admin-password}' | base64 -d`.
 
-### Some dashboards
+### Native dashboards
+
+If you go to `https://grafana.kube.rocks/dashboards`, you should see a many dashboards available that should already perfectly work, giving you a complete vision of :
+
+* Some core components of K8s, like coredns, kube api server, all kubelets
+* Detail of pods, namespace, workloads
+* Nodes thanks to Node exporter
+* Prometheus and Grafana itself stats
+* Flux stats
+
+{{< alert >}}
+Some other core components like etcd, scheduler, proxy, and controller manager need to have metrics enabled to be scraped. See K3s docs or [this issue](https://github.com/k3s-io/k3s/issues/3619)
+{{< /alert >}}
+
+#### Prometheus
+
+[![Prometheus](dashboards-prometheus.png)](dashboards-prometheus.png)
+
+#### Nodes
+
+[![Nodes](dashboards-nodes.png)](dashboards-nodes.png)
+
+#### Cluster
+
+[![Cluster compute](dashboards-cluster-compute.png)](dashboards-cluster-compute.png)
+[![Cluster networks](dashboards-cluster-network.png)](dashboards-cluster-network.png)
+[![Pods](dashboards-pods.png)](dashboards-pods.png)
+
+#### Kube components
+
+[![Kube API Server](dashboards-api-server.png)](dashboards-api-server.png)
+[![Kubelets](dashboards-kubelets.png)](dashboards-kubelets.png)
+[![CoreDNS](dashboards-coredns.png)](dashboards-coredns.png)
+
+#### Flux
+
+[![Flux](dashboards-flux.png)](dashboards-flux.png)
+
+### Additional dashboards
+
+You can easily import some additional dashboards by importing them from Grafana marketplace or include them in `ConfigMap` for automatic provisioning.
+
+#### Traefik
+
+[Link](https://grafana.com/grafana/dashboards/17346-traefik-official-standalone-dashboard/)
+
+[![Traefik](dashboards-traefik.png)](dashboards-traefik.png)
+
+#### cert-manager
+
+[Link](https://github.com/monitoring-mixins/website/blob/master/assets/cert-manager/dashboards/cert-manager.json)
+
+[![cert-manager](dashboards-cert-manager.png)](dashboards-cert-manager.png)
+
+#### Longhorn
+
+[Link](https://grafana.com/grafana/dashboards/16888-longhorn/)
+
+[![Longhorn](dashboards-longhorn.png)](dashboards-longhorn.png)
 
 ## Logging with Loki
 
