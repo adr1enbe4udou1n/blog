@@ -59,7 +59,7 @@ But remember previous chapter with the house analogies. I personally consider mo
 
 Go back to 2nd Terraform project and let's apply this pretty big boy:
 
-{{< highlight host="demo-kube-k3s" file="prometheus.tf" >}}
+{{< highlight host="demo-kube-k3s" file="monitoring.tf" >}}
 
 ```tf
 resource "kubernetes_namespace_v1" "monitoring" {
@@ -156,11 +156,9 @@ Important notes :
 
 And finally the ingress for external access:
 
-{{< highlight host="demo-kube-k3s" file="prometheus.tf" >}}
+{{< highlight host="demo-kube-k3s" file="monitoring.tf" >}}
 
 ```tf
-//...
-
 resource "kubernetes_manifest" "prometheus_ingress" {
   manifest = {
     apiVersion = "traefik.io/v1alpha1"
@@ -613,7 +611,7 @@ resource "helm_release" "loki" {
 
   set {
     name  = "monitoring.dashboards.namespace"
-    value = "monitoring"
+    value = kubernetes_namespace_v1.monitoring.metadata[0].name
   }
 
   set {
@@ -723,6 +721,47 @@ Go can now admire logs in Loki UI at `https://grafana.kube.rocks/explore` !
 We have nothing more to do, all dashboards are already provided by Loki Helm chart.
 
 [![Loki explore](dashboards-loki.png)](dashboards-loki.png)
+
+## Helm Exporter
+
+We have installed many Helm Charts so far, but how we manage upgrading plans ? We may need to be aware of new versions and security fixes. For that, we can use Helm Exporter:
+
+{{< highlight host="demo-kube-k3s" file="monitoring.tf" >}}
+
+```tf
+resource "helm_release" "helm_exporter" {
+  chart      = "helm-exporter"
+  version    = "1.2.5+1cbc9c5"
+  repository = "https://shanestarcher.com/helm-charts"
+
+  name      = "helm-exporter"
+  namespace = kubernetes_namespace_v1.monitoring.metadata[0].name
+
+  set {
+    name  = "serviceMonitor.create"
+    value = "true"
+  }
+
+  set {
+    name  = "grafanaDashboard.enabled"
+    value = "true"
+  }
+
+  set {
+    name  = "grafanaDashboard.grafanaDashboard.namespace"
+    value = kubernetes_namespace_v1.monitoring.metadata[0].name
+  }
+
+  set {
+    name  = "config.helmRegistries.registryNames[0]"
+    value = "bitnami"
+  }
+}
+```
+
+{{< /highlight >}}
+
+You can easily start from provisioned dashboard and customize it for using `helm_chart_outdated` instead of `helm_chart_info` to list all outdated helms.
 
 ## 5th check ✅
 
