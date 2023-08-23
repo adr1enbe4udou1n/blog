@@ -53,19 +53,371 @@ module "hcloud_kube" {
 
 When using k8s, the standard de facto is to install [Prometheus stack](https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack). It includes all necessary CRDs and element for a proper monitoring stack.
 
-Go back to 2nd Terraform project and apply next configuration:
+You have 2 choices to install it, are we using Flux or Terraform ? Flux include a full documentation of [how to install it with](https://fluxcd.io/flux/guides/monitoring/).
+
+But remember previous chapter with the house analogies. I personally consider monitoring as part of my infrastructure. And I prefer to keep all my infrastructure configuration in Terraform, and only use Flux for apps. Moreover, the Prometheus stack is a pretty big Helm chart, and upgrading it can be a bit tricky. So I prefer to have a full control of it with Terraform.
+
+Go back to 2nd Terraform project and let's apply this pretty big boy:
 
 {{< highlight host="demo-kube-k3s" file="prometheus.tf" >}}
 
 ```tf
+resource "kubernetes_namespace_v1" "monitoring" {
+  metadata {
+    name = "monitoring"
+  }
+}
 
+resource "helm_release" "kube_prometheus_stack" {
+  chart      = "kube-prometheus-stack"
+  version    = "48.3.3"
+  repository = "https://prometheus-community.github.io/helm-charts"
+
+  name      = "kube-prometheus-stack"
+  namespace = kubernetes_namespace_v1.monitoring.metadata[0].name
+
+  set {
+    name  = "prometheus.prometheusSpec.retention"
+    value = "15d"
+  }
+
+  set {
+    name  = "prometheus.prometheusSpec.retentionSize"
+    value = "5GB"
+  }
+
+  set {
+    name  = "prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues"
+    value = "false"
+  }
+
+  set {
+    name  = "prometheus.prometheusSpec.podMonitorSelectorNilUsesHelmValues"
+    value = "false"
+  }
+
+  set {
+    name  = "prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.accessModes[0]"
+    value = "ReadWriteOnce"
+  }
+
+  set {
+    name  = "prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.resources.requests.storage"
+    value = "8Gi"
+  }
+
+  set {
+    name  = "prometheus.prometheusSpec.tolerations[0].key"
+    value = "node-role.kubernetes.io/storage"
+  }
+
+  set {
+    name  = "prometheus.prometheusSpec.tolerations[0].operator"
+    value = "Exists"
+  }
+
+  set {
+    name  = "prometheus.prometheusSpec.nodeSelector\\.node-role\\.kubernetes\\.io/storage"
+    type  = "string"
+    value = "true"
+  }
+
+  set {
+    name  = "alertmanager.enabled"
+    value = "false"
+  }
+
+  set {
+    name  = "grafana.enabled"
+    value = "false"
+  }
+
+  set {
+    name  = "grafana.forceDeployDashboards"
+    value = "true"
+  }
+}
 ```
 
 {{< /highlight >}}
 
+The application is deployed in `monitoring` namespace. It can takes a few minutes to be fully up and running. You can check the status with `kgpo -n monitoring`.
+
+Important notes :
+
+* We set a retention of **15 days** and **5GB** of storage for Prometheus. Set this according to your needs.
+* As we don't set any storage class, the default one will be used, which is `local-path` when using K3s. If you want to use longhorn instead and benefit of automatic monitoring backup, you can set it with `...volumeClaimTemplate.spec.storageClassName`. But don't forget to deploy Longhorn manager by adding monitor toleration.
+* As it's a huge chart, I want to minimize dependencies by disabling Grafana, as I prefer manage it separately. However, in this case we must set `grafana.forceDeployDashboards` to `true` in order to benefit of all included Kubernetes dashboards, and deploy them to config maps that can be used for next Grafana install by provisioning.
+
+And finally the ingress for external access:
+
+{{< highlight host="demo-kube-k3s" file="prometheus.tf" >}}
+
+```tf
+//...
+
+resource "kubernetes_manifest" "prometheus_ingress" {
+  manifest = {
+    apiVersion = "traefik.io/v1alpha1"
+    kind       = "IngressRoute"
+    metadata = {
+      name      = "prometheus"
+      namespace = kubernetes_namespace_v1.monitoring.metadata[0].name
+    }
+    spec = {
+      entryPoints = ["websecure"]
+      routes = [
+        {
+          match = "Host(`prometheus.${var.domain}`)"
+          kind  = "Rule"
+          middlewares = [
+            {
+              name      = "middleware-ip"
+              namespace = "traefik"
+            },
+            {
+              name      = "middleware-auth"
+              namespace = "traefik"
+            }
+          ]
+          services = [
+            {
+              name = "prometheus-operated"
+              port = 9090
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+{{< /highlight >}}
+
+No go to `prometheus.kube.rocks`, after login you should access the Prometheus UI. Check under `/targets` that all targets are up and running. In previous chapters, because we have enabled monitoring for all our apps supporting metrics, you should see following available targets:
+
+* 1 instance of Traefik
+* 1 instance of cert-manager
+* 1 instance of each PostgreSQL primary and read
+* 2 instances of Redis
+* 5 instances of Longhorn manager
+* 1 instance of n8n
+
+This is exactly how it works, the `ServiceMonitor` custom resource is responsible to discover and centralize all metrics for prometheus, allowing automatic discovery without touch the Prometheus config. Use `kg smon -A` to list them all.
+
+### Monitoring Flux
+
+There is one missing however, let's add monitoring for flux. Go back to flux project and push following manifests:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/flux-add-ons/flux-monitoring.yaml" >}}
+
+```yaml
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: flux-monitoring
+  namespace: flux-system
+spec:
+  interval: 30m0s
+  ref:
+    branch: main
+  url: https://github.com/fluxcd/flux2
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: monitoring-config
+  namespace: flux-system
+spec:
+  interval: 1h0m0s
+  path: ./manifests/monitoring/monitoring-config
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-monitoring
+```
+
+{{< /highlight >}}
+
+The `spec.path` under `Kustomization` tells Flux to scrape [remote monitoring manifests](https://github.com/fluxcd/flux2/tree/main/manifests/monitoring/monitoring-config), avoiding us to write all of them manually. It includes the `PodMonitor` as well as Grafana dashboards.
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/flux-add-ons/kustomization.yaml" >}}
+
+```yaml
+# ...
+resources:
+  # ...
+  - flux-monitoring.yaml
+```
+
+{{< /highlight >}}
+
+After some minutes, flux should be appearing in Prometheus targets.
+
+[![Prometheus targets](prometheus-targets.png)](prometheus-targets.png)
+
 ### Grafana
 
-...
+We have the basement of our monitoring stack, it's time to get a UI to visualize all these metrics. Grafana is the most popular tool for that, and it's also available as Helm chart. Prepare some variables:
+
+{{< highlight host="demo-kube-k3s" file="main.tf" >}}
+
+```tf
+variable "smtp_host" {
+  sensitive = true
+}
+
+variable "smtp_port" {
+  type = string
+}
+
+variable "smtp_user" {
+  type      = string
+  sensitive = true
+}
+
+variable "smtp_password" {
+  type      = string
+  sensitive = true
+}
+
+variable "grafana_db_password" {
+  type      = string
+  sensitive = true
+}
+```
+
+{{< /highlight >}}
+
+Create `grafana` database through pgAdmin with same user and according `grafana_db_password`.
+
+{{< highlight host="demo-kube-k3s" file="terraform.tfvars" >}}
+
+```tf
+smtp_host            = "smtp.mailgun.org"
+smtp_port            = "587"
+smtp_user            = "xxx"
+smtp_password        = "xxx"
+```
+
+{{< /highlight >}}
+
+Apply next configuration to Terraform project:
+
+{{< highlight host="demo-kube-k3s" file="grafana.tf" >}}
+
+```tf
+resource "helm_release" "grafana" {
+  chart      = "grafana"
+  version    = "6.58.9"
+  repository = "https://grafana.github.io/helm-charts"
+
+  name      = "grafana"
+  namespace = kubernetes_namespace_v1.monitoring.metadata[0].name
+
+  set {
+    name  = "serviceMonitor.enabled"
+    value = "true"
+  }
+
+  set {
+    name  = "sidecar.dashboards.enabled"
+    value = "true"
+  }
+
+  set {
+    name  = "env.GF_SERVER_DOMAIN"
+    value = var.domain
+  }
+
+  set {
+    name  = "env.GF_SERVER_ROOT_URL"
+    value = "https://grafana.${var.domain}"
+  }
+
+  set {
+    name  = "env.GF_SMTP_ENABLED"
+    value = "true"
+  }
+
+  set {
+    name  = "env.GF_SMTP_HOST"
+    value = "${var.smtp_host}:${var.smtp_port}"
+  }
+
+  set {
+    name  = "env.GF_SMTP_USER"
+    value = var.smtp_user
+  }
+
+  set {
+    name  = "env.GF_SMTP_PASSWORD"
+    value = var.smtp_password
+  }
+
+  set {
+    name  = "env.GF_SMTP_FROM_ADDRESS"
+    value = "grafana@${var.domain}"
+  }
+
+  set {
+    name  = "env.GF_DATABASE_TYPE"
+    value = "postgres"
+  }
+
+  set {
+    name  = "env.GF_DATABASE_HOST"
+    value = "postgresql-primary.postgres"
+  }
+
+  set {
+    name  = "env.GF_DATABASE_NAME"
+    value = "grafana"
+  }
+
+  set {
+    name  = "env.GF_DATABASE_USER"
+    value = "grafana"
+  }
+
+  set {
+    name  = "env.GF_DATABASE_PASSWORD"
+    value = var.grafana_db_password
+  }
+}
+
+resource "kubernetes_manifest" "grafana_ingress" {
+  manifest = {
+    apiVersion = "traefik.io/v1alpha1"
+    kind       = "IngressRoute"
+    metadata = {
+      name      = "grafana"
+      namespace = kubernetes_namespace_v1.monitoring.metadata[0].name
+    }
+    spec = {
+      entryPoints = ["websecure"]
+      routes = [
+        {
+          match = "Host(`grafana.${var.domain}`)"
+          kind  = "Rule"
+          services = [
+            {
+              name = "grafana"
+              port = 80
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+{{< /highlight >}}
+
+Grafana should be deploying and migrate database successfully. Let's log in immediately after in `https://grafana.kube.rocks/login` with admin account. You can get the password with `kg secret -n monitoring grafana -o jsonpath='{.data.admin-password}' | base64 -d`.
 
 ### Some dashboards
 

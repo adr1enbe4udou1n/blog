@@ -513,7 +513,7 @@ resource "helm_release" "postgresql" {
   }
 
   set {
-    name  = "serviceMonitor.enabled"
+    name  = "metrics.serviceMonitor.enabled"
     value = "true"
   }
 
@@ -662,7 +662,7 @@ resource "helm_release" "redis" {
   }
 
   set {
-    name  = "serviceMonitor.enabled"
+    name  = "metrics.serviceMonitor.enabled"
     value = "true"
   }
 

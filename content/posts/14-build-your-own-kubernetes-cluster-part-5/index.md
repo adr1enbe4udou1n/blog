@@ -149,7 +149,7 @@ As always with GitOps, a secured secrets management is critical. Nobody wants to
 
 Open `demo-kube-flux` project and create helm deployment for sealed secret.
 
-{{< highlight host="demo-kube-flux" file="clusters/demo/flux-system/sealed-secrets.yaml" >}}
+{{< highlight host="demo-kube-flux" file="clusters/demo/flux-add-ons/sealed-secrets.yaml" >}}
 
 ```yaml
 ---
@@ -187,21 +187,23 @@ spec:
 
 {{< /highlight >}}
 
-And add this file to main flux kustomization file:
+Then create kustomization file:
 
-{{< highlight host="demo-kube-flux" file="clusters/demo/flux-system/kustomization.yaml" >}}
+{{< highlight host="demo-kube-flux" file="clusters/demo/flux-add-ons/kustomization.yaml" >}}
 
 ```yaml
 ---
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - gotk-components.yaml
-  - gotk-sync.yaml
   - sealed-secrets.yaml
 ```
 
 {{< /highlight >}}
+
+{{< alert >}}
+Don't touch manifests under `flux-system` folder, as it's managed by Flux itself and overload on each flux bootstrap.
+{{< /alert >}}
 
 Then push it and check that sealed secret controller is correctly deployed with `kg deploy sealed-secrets-controller -n flux-system`.
 
@@ -308,7 +310,6 @@ spec:
     app: pgadmin
   ports:
     - port: 80
-      targetPort: 80
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -396,6 +397,8 @@ metadata:
   name: n8n
   namespace: n8n
 spec:
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: n8n
@@ -418,6 +421,10 @@ spec:
               value: "5678"
             - name: NODE_ENV
               value: production
+            - name: N8N_METRICS
+              value: "true"
+            - name: QUEUE_HEALTH_CHECK_ACTIVE
+              value: "true"
             - name: WEBHOOK_URL
               value: https://n8n.kube.rocks/
             - name: DB_TYPE
@@ -443,7 +450,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: n8n-smtp
-                  key: username
+                  key: user
             - name: N8N_SMTP_PASS
               valueFrom:
                 secretKeyRef:
@@ -478,12 +485,25 @@ kind: Service
 metadata:
   name: n8n
   namespace: n8n
+  labels:
+    app: n8n
 spec:
   selector:
     app: n8n
   ports:
     - port: 5678
-      targetPort: 5678
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: metrics
+  namespace: n8n
+spec:
+  endpoints:
+    - targetPort: 5678
+  selector:
+    matchLabels:
+      app: n8n
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -502,6 +522,8 @@ spec:
 ```
 
 {{< /highlight >}}
+
+Because n8n support metrics by setting `N8N_METRICS` to `true`, note as we add `ServiceMonitor` to allow Prometheus to scrape metrics (next chapter).
 
 Here are the secrets to adapt to your needs:
 
@@ -530,13 +552,13 @@ metadata:
   namespace: n8n
 type: Opaque
 data:
-  username: YWRtaW4=
+  user: YWRtaW4=
   password: YWRtaW4=
 ```
 
 {{< /highlight >}}
 
-Before continue go to pgAdmin and create `n8n` DB and link it to `n8n` user with proper credentials.
+Before continue go to pgAdmin and create `n8n` DB and set `n8n` user with proper credentials as owner.
 
 Then don't forget to seal secrets and remove original files the same way as pgAdmin. Once pushed, n8n should be deploying, automatically migrate the db, and soon after `n8n.kube.rocks` should be available, allowing you to create your 1st account.
 
@@ -572,6 +594,8 @@ metadata:
   name: nocodb
   namespace: nocodb
 spec:
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: nocodb
@@ -606,7 +630,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: nocodb-smtp
-                  key: username
+                  key: user
             - name: NC_SMTP_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -646,7 +670,6 @@ spec:
     app: nocodb
   ports:
     - port: 8080
-      targetPort: 8080
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -708,7 +731,7 @@ metadata:
   namespace: nocodb
 type: Opaque
 data:
-  username: YWRtaW4=
+  user: YWRtaW4=
   password: YWRtaW4=
 ```
 

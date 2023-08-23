@@ -241,6 +241,11 @@ resource "helm_release" "traefik" {
     name  = "tlsStore.default.defaultCertificate.secretName"
     value = local.certificate_secret_name
   }
+
+  set {
+    name  = "metrics.prometheus.serviceMonitor.namespaceSelector"
+    value = ""
+  }
 }
 ```
 
@@ -253,6 +258,8 @@ resource "helm_release" "traefik" {
 `providers.kubernetesCRD.allowCrossNamespace` will allow Traefik to read ingress from all namespaces.
 
 `tlsStore.default.defaultCertificate.secretName` will be used to store the default certificate that will be used for all ingress that don't have a specific certificate.
+
+`metrics.prometheus.serviceMonitor.namespaceSelector` will allow Prometheus to scrape Traefik metrics from all namespaces.
 
 By default, it will deploy 1 single replica of Traefik. But don't worry, when upgrading, the default update strategy is `RollingUpdate`, so it will be upgraded one by one without downtime. Increment `deployment.replicas` if you need more performance.
 
