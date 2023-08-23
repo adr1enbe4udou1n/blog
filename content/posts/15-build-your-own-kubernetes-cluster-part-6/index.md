@@ -475,7 +475,7 @@ You can easily import some additional dashboards by importing them from Grafana 
 
 #### Traefik
 
-[Link](https://grafana.com/grafana/dashboards/17346-traefik-official-standalone-dashboard/)
+[Link](https://grafana.com/grafana/17346)
 
 [![Traefik](dashboards-traefik.png)](dashboards-traefik.png)
 
@@ -487,13 +487,25 @@ You can easily import some additional dashboards by importing them from Grafana 
 
 #### Longhorn
 
-[Link](https://grafana.com/grafana/dashboards/16888-longhorn/)
+[Link](https://grafana.com/grafana/16888)
 
 [![Longhorn](dashboards-longhorn.png)](dashboards-longhorn.png)
 
+#### PostgreSQL
+
+[Link](https://grafana.com/grafana/9628)
+
+[![PostgreSQL](dashboards-postgresql.png)](dashboards-postgresql.png)
+
+#### Redis
+
+[Link](https://grafana.com/grafana/dashboards/763)
+
+[![Redis](dashboards-redis.png)](dashboards-redis.png)
+
 ## Logging with Loki
 
-...
+Last but not least, we need to add a logging stack. The most popular one is [Elastic Stack](https://www.elastic.co/elastic-stack), but it's very resource intensive. A better option is to use [Loki](https://grafana.com/oss/loki/) which is a more lightweight solution, and also part of Grafana Labs.
 
 ## 5th check ✅
 
