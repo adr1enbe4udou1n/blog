@@ -752,11 +752,71 @@ resource "helm_release" "helm_exporter" {
     value = kubernetes_namespace_v1.monitoring.metadata[0].name
   }
 
-  set {
-    name  = "config.helmRegistries.registryNames[0]"
-    value = "bitnami"
-  }
+  values = [
+    file("${path.module}/values/helm-exporter-values.yaml")
+  ]
 }
+```
+
+{{< /highlight >}}
+
+As the helm exporter config is a bit tedious, it's more straightforward to use a separate helm values file. Here is a sample configuration for Helm Exporter for scraping all charts that we'll need:
+
+{{< highlight host="demo-kube-k3s" file="values/helm-exporter-values.tf" >}}
+
+```yaml
+config:
+  helmRegistries:
+    registryNames:
+      - bitnami
+    override:
+      - registry:
+          url: "https://concourse-charts.storage.googleapis.com"
+        charts:
+          - concourse
+      - registry:
+          url: "https://dl.gitea.io/charts"
+        charts:
+          - gitea
+      - registry:
+          url: "https://grafana.github.io/helm-charts"
+        charts:
+          - grafana
+          - loki
+          - promtail
+          - tempo
+      - registry:
+          url: "https://charts.longhorn.io"
+        charts:
+          - longhorn
+      - registry:
+          url: "https://charts.jetstack.io"
+        charts:
+          - cert-manager
+      - registry:
+          url: "https://traefik.github.io/charts"
+        charts:
+          - traefik
+      - registry:
+          url: "https://bitnami-labs.github.io/sealed-secrets"
+        charts:
+          - sealed-secrets
+      - registry:
+          url: "https://prometheus-community.github.io/helm-charts"
+        charts:
+          - kube-prometheus-stack
+      - registry:
+          url: "https://SonarSource.github.io/helm-chart-sonarqube"
+        charts:
+          - sonarqube
+      - registry:
+          url: "https://kubereboot.github.io/charts"
+        charts:
+          - kured
+      - registry:
+          url: "https://shanestarcher.com/helm-charts"
+        charts:
+          - helm-exporter
 ```
 
 {{< /highlight >}}
