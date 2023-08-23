@@ -503,10 +503,227 @@ You can easily import some additional dashboards by importing them from Grafana 
 
 [![Redis](dashboards-redis.png)](dashboards-redis.png)
 
-## Logging with Loki
+## Logging
 
 Last but not least, we need to add a logging stack. The most popular one is [Elastic Stack](https://www.elastic.co/elastic-stack), but it's very resource intensive. A better option is to use [Loki](https://grafana.com/oss/loki/) which is a more lightweight solution, and also part of Grafana Labs.
 
+In order to work on scalable mode, we need to have a S3 storage backend. We will reuse same S3 compatible storage as longhorn backup here, but it's recommended to use a separate bucket and credentials.
+
+### Loki
+
+Let's install it now:
+
+{{< highlight host="demo-kube-k3s" file="logging.tf" >}}
+
+```tf
+resource "kubernetes_namespace_v1" "logging" {
+  metadata {
+    name = "logging"
+  }
+}
+
+resource "helm_release" "loki" {
+  chart      = "loki"
+  version    = "5.15.0"
+  repository = "https://grafana.github.io/helm-charts"
+
+  name      = "loki"
+  namespace = kubernetes_namespace_v1.logging.metadata[0].name
+
+  set {
+    name  = "loki.auth_enabled"
+    value = "false"
+  }
+
+  set {
+    name  = "loki.compactor.retention_enabled"
+    value = "true"
+  }
+
+  set {
+    name  = "loki.limits_config.retention_period"
+    value = "24h"
+  }
+
+  set {
+    name  = "loki.storage.bucketNames.chunks"
+    value = var.s3_bucket
+  }
+
+  set {
+    name  = "loki.storage.bucketNames.ruler"
+    value = var.s3_bucket
+  }
+
+  set {
+    name  = "loki.storage.bucketNames.admin"
+    value = var.s3_bucket
+  }
+
+  set {
+    name  = "loki.storage.s3.endpoint"
+    value = var.s3_endpoint
+  }
+
+  set {
+    name  = "loki.storage.s3.region"
+    value = var.s3_region
+  }
+
+  set {
+    name  = "loki.storage.s3.accessKeyId"
+    value = var.s3_access_key
+  }
+
+  set {
+    name  = "loki.storage.s3.secretAccessKey"
+    value = var.s3_secret_key
+  }
+
+  set {
+    name  = "read.replicas"
+    value = "1"
+  }
+
+  set {
+    name  = "backend.replicas"
+    value = "1"
+  }
+
+  set {
+    name  = "write.replicas"
+    value = "2"
+  }
+
+  set {
+    name  = "write.tolerations[0].key"
+    value = "node-role.kubernetes.io/storage"
+  }
+
+  set {
+    name  = "write.tolerations[0].effect"
+    value = "NoSchedule"
+  }
+
+  set {
+    name  = "write.nodeSelector.node-role\\.kubernetes\\.io/storage"
+    type  = "string"
+    value = "true"
+  }
+
+  set {
+    name  = "monitoring.dashboards.namespace"
+    value = "monitoring"
+  }
+
+  set {
+    name  = "monitoring.selfMonitoring.enabled"
+    value = "false"
+  }
+
+  set {
+    name  = "monitoring.selfMonitoring.grafanaAgent.installOperator"
+    value = "false"
+  }
+
+  set {
+    name  = "monitoring.lokiCanary.enabled"
+    value = "false"
+  }
+
+  set {
+    name  = "test.enabled"
+    value = "false"
+  }
+}
+```
+
+{{< /highlight >}}
+
+Use `loki.limits_config.retention_period` to set a maximum period retention. You need to set at least **2** for `write.replicas` or you'll get this 500 API error "*too many unhealthy instances in the ring*". As we force them to be deployed on storage nodes, be sure to have 2 storage nodes.
+
+### Promtail
+
+Okay so Loki is running but not fed, for that we'll deploy [Promtail](https://grafana.com/docs/loki/latest/clients/promtail/), which is a log collector that will be deployed on each node and collect logs from all pods and send them to Loki.
+
+{{< highlight host="demo-kube-k3s" file="logging.tf" >}}
+
+```tf
+resource "helm_release" "promtail" {
+  chart      = "promtail"
+  version    = "6.15.0"
+  repository = "https://grafana.github.io/helm-charts"
+
+  name      = "promtail"
+  namespace = kubernetes_namespace_v1.logging.metadata[0].name
+
+  set {
+    name  = "tolerations[0].effect"
+    value = "NoSchedule"
+  }
+
+  set {
+    name  = "tolerations[0].operator"
+    value = "Exists"
+  }
+
+  set {
+    name  = "serviceMonitor.enabled"
+    value = "true"
+  }
+}
+```
+
+{{< /highlight >}}
+
+Ha, finally a simple Helm chart ! Seems too good to be true. We just have to add generic `tolerations` in order to deploy Promtail `DaemonSet` on every node for proper log scrapping.
+
+### Loki data source
+
+Because we are GitOps, we want to have all Loki dashboards and data sources automatically configured. It's already done for dashboards, but we need to add a data source.
+
+Let's apply next Terraform resource:
+
+{{< highlight host="demo-kube-k3s" file="logging.tf" >}}
+
+```tf
+resource "kubernetes_config_map_v1" "loki_grafana_datasource" {
+  metadata {
+    name      = "loki-grafana-datasource"
+    namespace = kubernetes_namespace_v1.monitoring.metadata[0].name
+    labels = {
+      grafana_datasource = "1"
+    }
+  }
+
+  data = {
+    "datasource.yaml" = <<EOF
+apiVersion: 1
+datasources:
+- name: Loki
+  type: loki
+  uid: loki
+  url: http://loki-gateway.logging/
+  access: proxy
+EOF
+  }
+}
+```
+
+{{< /highlight >}}
+
+Now go to `https://grafana.kube.rocks/connections/datasources/edit/loki` and ensure that Loki respond correctly by click on *Test*.
+
+Go can now admire logs in Loki UI at `https://grafana.kube.rocks/explore` !
+
+[![Loki explore](loki-explore.png)](loki-explore.png)
+
+### Loki dashboards
+
+We have nothing more to do, all dashboards are already provided by Loki Helm chart.
+
+[![Loki explore](dashboards-loki.png)](dashboards-loki.png)
+
 ## 5th check ✅
 
-We now have a full monitoring suite ! Go [next part]({{< ref "/posts/16-build-your-own-kubernetes-cluster-part-7" >}}) to add continuous integration stack.
+We now have a full monitoring suite with performant logging collector ! What a pretty massive subject done. At this stage, you have a good starting point to run many apps on your cluster with high scalability and observability. We are done for the pure **operational** part. It's finally time to tackle the **building** part for a complete development stack. Go [next part]({{< ref "/posts/16-build-your-own-kubernetes-cluster-part-7" >}}) to begin with continuous integration.
