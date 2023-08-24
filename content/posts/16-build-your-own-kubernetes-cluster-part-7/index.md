@@ -642,9 +642,134 @@ graph RL
   D -- deploy --> E((Kube API))
 {{< /mermaid >}}
 
-### Build the container image
+### The credentials
 
-We have to tell Concourse how to check our repo and build our container image. This is done through a pipeline, which is a YAML file. Let's reuse our flux repository and create a file `pipelines/demo.yaml` with following content:
+We need to:
+
+1. Give read/write access to our Gitea and registry for Concourse. Note as we need write access in code repository for concourse because we need to store the new image tag. We'll using [semver resource](https://github.com/concourse/semver-resource) for that.
+2. Give read registry credentials to Flux for regular image tag checking as well as Kubernetes in order to allow image pulling from the private registry.
+
+Let's create 2 new user `concourse` with admin acces and `container` as standard user on Gitea. Store these credentials on new variables:
+
+{{< highlight host="demo-kube-k3s" file="main.tf" >}}
+
+```tf
+variable "concourse_git_username" {
+  type = string
+}
+
+variable "concourse_git_password" {
+  type      = string
+  sensitive = true
+}
+
+variable "container_registry_username" {
+  type = string
+}
+
+variable "container_registry_password" {
+  type      = string
+  sensitive = true
+}
+```
+
+{{< /highlight >}}
+
+{{< highlight host="demo-kube-k3s" file="terraform.tfvars" >}}
+
+```tf
+concourse_git_username      = "concourse"
+concourse_git_password      = "xxx"
+container_registry_username = "container"
+container_registry_password = "xxx"
+```
+
+{{< /highlight >}}
+
+Apply the credentials for Concourse:
+
+{{< highlight host="demo-kube-k3s" file="concourse.tf" >}}
+
+```tf
+resource "kubernetes_secret_v1" "concourse_registry" {
+  metadata {
+    name      = "registry"
+    namespace = "concourse-main"
+  }
+
+  data = {
+    name     = "gitea.${var.domain}"
+    username = var.concourse_git_username
+    password = var.concourse_git_password
+  }
+
+  depends_on = [
+    helm_release.concourse
+  ]
+}
+
+resource "kubernetes_secret_v1" "concourse_git" {
+  metadata {
+    name      = "git"
+    namespace = "concourse-main"
+  }
+
+  data = {
+    username       = var.concourse_git_username
+    password       = var.concourse_git_password
+    git-user       = "Concourse CI <concourse@kube.rocks>"
+    commit-message = "bump to %version% [ci skip]"
+  }
+
+  depends_on = [
+    helm_release.concourse
+  ]
+}
+```
+
+{{< /highlight >}}
+
+Note as we use `concourse-main` namespace, already created by Concourse Helm installer, which is a dedicated namespace for the default team `main`. Because of that, we should keep `depends_on` to ensure the namespace is created before the secrets.
+
+{{< alert >}}
+Don't forget the `[ci skip]` in commit message, which is the commit for version bumping, otherwise you'll have an infinite loop of builds !
+{{< /alert >}}
+
+Then same for Flux and the namespace that will receive the app:
+
+{{< highlight host="demo-kube-k3s" file="flux.tf" >}}
+
+```tf
+resource "kubernetes_secret_v1" "image_pull_secrets" {
+  for_each = toset(["flux-system", "kuberocks"])
+  metadata {
+    name      = "dockerconfigjson"
+    namespace = each.value
+  }
+
+  type = "kubernetes.io/dockerconfigjson"
+
+  data = {
+    ".dockerconfigjson" = jsonencode({
+      auths = {
+        "gitea.${var.domain}" = {
+          auth = base64encode("${var.container_registry_username}:${var.container_registry_password}")
+        }
+      }
+    })
+  }
+}
+```
+
+{{< /highlight >}}
+
+{{< alert >}}
+Create the namespace `kuberocks` first by `k create namespace kuberocks`, or you'll get an error.
+{{< /alert >}}
+
+### Build and push the container image
+
+Now that all required credentials are in place, we have to tell Concourse how to check our repo and build our container image. This is done through a pipeline, which is a specific Concourse YAML file. Let's reuse our flux repository and create a file `pipelines/demo.yaml` with following content:
 
 {{< highlight host="demo-kube-flux" file="pipelines/demo.yaml" >}}
 
