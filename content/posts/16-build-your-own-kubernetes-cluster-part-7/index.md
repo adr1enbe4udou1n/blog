@@ -304,7 +304,18 @@ You should be able to log in `https://gitea.kube.rocks` with chosen admin creden
 
 ### Push a basic Web API project
 
-Let's generate a basic .NET Web API project. Create a new folder `demo` and initialize with `dotnet new webapi` (you may install [last .NET SDK](https://dotnet.microsoft.com/en-us/download)). Then create a new repo `kuberocks/demo` on Gitea, and follow the instructions to push your code.
+Let's generate a basic .NET Web API project. Create a new dotnet project like following (you may install [last .NET SDK](https://dotnet.microsoft.com/en-us/download)):
+
+```sh
+dotnet new webapi --name KubeRocksDemo -o kuberocks-demo`
+cd kuberocks-demo
+dotnet new gitignore
+git init
+git add .
+git commit -m "first commit"
+```
+
+Then create a new repo `kuberocks/demo` on Gitea, and follow the instructions of *existing repository* section to push your code.
 
 [![Gitea repo](gitea-repo.png)](gitea-repo.png)
 
@@ -397,6 +408,12 @@ resource "kubernetes_manifest" "gitea_ingress_ssh" {
 {{< /highlight >}}
 
 Now retry pull again and it should work seamlessly !
+
+### Gitea monitoring
+
+[Link](https://grafana.com/grafana/dashboards/17802)
+
+[![Gitea monitoring](gitea-monitoring.png)](gitea-monitoring.png)
 
 ## CI
 
@@ -617,7 +634,7 @@ You may set `worker.replicas` as the number of nodes in your runner pool. As usu
 
 Then go to `https://concourse.kube.rocks` and log in with chosen credentials.
 
-## Usage
+## Workflow
 
 It's now time to step back and think about how we'll use our CI. Our goal is to build our above dotnet Web API with Concourse CI as a container image, ready to deploy to our cluster through Flux. So we finish the complete CI/CD pipeline. To resume the scenario:
 
@@ -715,6 +732,7 @@ resource "kubernetes_secret_v1" "concourse_git" {
   }
 
   data = {
+    url            = "https://gitea.${var.domain}"
     username       = var.concourse_git_username
     password       = var.concourse_git_password
     git-user       = "Concourse CI <concourse@kube.rocks>"
@@ -769,17 +787,160 @@ Create the namespace `kuberocks` first by `k create namespace kuberocks`, or you
 
 ### Build and push the container image
 
-Now that all required credentials are in place, we have to tell Concourse how to check our repo and build our container image. This is done through a pipeline, which is a specific Concourse YAML file. Let's reuse our flux repository and create a file `pipelines/demo.yaml` with following content:
+Now that all required credentials are in place, we have to tell Concourse how to check our repo and build our container image. This is done through a pipeline, which is a specific Concourse YAML file.
 
-{{< highlight host="demo-kube-flux" file="pipelines/demo.yaml" >}}
+#### The Dockerfile
 
-```tf
+Firstly create following files in root of your repo that we'll use for building a production ready container image:
 
+{{< highlight host="kuberocks-demo" file=".dockerignore" >}}
+
+```txt
+**/bin/
+**/obj/
 ```
 
 {{< /highlight >}}
 
-In order to apply it we may need to install `fly` CLI tool. Just a matter of `scoop install concourse-fly` on Windows.
+{{< highlight host="kuberocks-demo" file="Dockerfile" >}}
+
+```Dockerfile
+FROM mcr.microsoft.com/dotnet/aspnet:7.0
+
+WORKDIR /publish
+COPY /publish .
+
+EXPOSE 80
+ENTRYPOINT ["dotnet", "KubeRocksDemo.dll"]
+```
+
+{{< /highlight >}}
+
+#### The pipeline
+
+Let's reuse our flux repository and create a file `pipelines/demo.yaml` with following content:
+
+{{< highlight host="demo-kube-flux" file="pipelines/demo.yaml" >}}
+
+```tf
+resources:
+  - name: version
+    type: semver
+    source:
+      driver: git
+      uri: ((git.url))/kuberocks/demo
+      branch: main
+      file: version
+      username: ((git.username))
+      password: ((git.password))
+      git_user: ((git.git-user))
+      commit_message: ((git.commit-message))
+  - name: source-code
+    type: git
+    icon: coffee
+    source:
+      uri: ((git.url))/kuberocks/demo
+      branch: main
+      username: ((git.username))
+      password: ((git.password))
+  - name: docker-image
+    type: registry-image
+    icon: docker
+    source:
+      repository: ((registry.name))/kuberocks/demo
+      tag: latest
+      username: ((registry.username))
+      password: ((registry.password))
+
+jobs:
+  - name: build
+    plan:
+      - get: source-code
+        trigger: true
+
+      - task: build-source
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: mcr.microsoft.com/dotnet/sdk
+              tag: "7.0"
+          inputs:
+            - name: source-code
+              path: .
+          outputs:
+            - name: binaries
+              path: publish
+          caches:
+            - path: /root/.nuget/packages
+          run:
+            path: /bin/sh
+            args:
+              - -ec
+              - |
+                dotnet format --verify-no-changes
+                dotnet build -c Release
+                dotnet publish -c Release -o publish --no-restore --no-build
+
+      - task: build-image
+        privileged: true
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: concourse/oci-build-task
+          inputs:
+            - name: source-code
+              path: .
+            - name: binaries
+              path: publish
+          outputs:
+            - name: image
+          run:
+            path: build
+      - put: version
+        params: { bump: patch }
+
+      - put: docker-image
+        params:
+          additional_tags: version/number
+          image: image/image.tar
+```
+
+{{< /highlight >}}
+
+A bit verbose compared to other CI, but it gets the job done. The price of maximum flexibility. Now in order to apply it we may need to install `fly` CLI tool. Just a matter of `scoop install concourse-fly` on Windows. Then:
+
+```sh
+# login to your Concourse instance
+fly -t kuberocks login -c https://concourse.kube.rocks
+
+# create the pipeline and active it
+fly -t kuberocks set-pipeline -p demo -c pipelines/demo.yaml
+fly -t kuberocks unpause-pipeline -p demo
+```
+
+A build will be trigger immediately. You can follow it on Concourse UI.
+
+[![Concourse pipeline](concourse-pipeline.png)](concourse-pipeline.png)
+
+If everything is ok, check in `https://gitea.kube.rocks/admin/packages`, you should see a new image tag on your registry ! A new file `version` is automatically pushed in code repo in order to keep tracking of the image tag version.
+
+[![Concourse build](concourse-build.png)](concourse-build.png)
+
+### The deployment
+
+If you followed the previous parts of this tutorial, you should have clue about how to deploy our app. Let's create a new Helm chart for that:
+
+{{< highlight host="demo-kube-flux" file="demo/aspnet.yaml" >}}
+
+```yaml
+
+```
+
+{{< /highlight >}}
 
 ## 6th check ✅
 
