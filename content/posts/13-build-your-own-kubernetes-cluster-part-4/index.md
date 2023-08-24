@@ -328,7 +328,7 @@ resource "kubernetes_manifest" "longhorn_ingress" {
           services = [
             {
               name = "longhorn-frontend"
-              port = 80
+              port = "http"
             }
           ]
         }

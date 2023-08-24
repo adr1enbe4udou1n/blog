@@ -186,7 +186,7 @@ resource "kubernetes_manifest" "prometheus_ingress" {
           services = [
             {
               name = "prometheus-operated"
-              port = 9090
+              port = "http-web"
             }
           ]
         }
@@ -413,7 +413,7 @@ resource "kubernetes_manifest" "grafana_ingress" {
           services = [
             {
               name = "grafana"
-              port = 80
+              port = "service"
             }
           ]
         }

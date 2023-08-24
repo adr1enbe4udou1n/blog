@@ -25,6 +25,19 @@ The Gitea Helm Chart is a bit tricky to configure properly. Let's begin with som
 {{< highlight host="demo-kube-k3s" file="main.tf" >}}
 
 ```tf
+variable "gitea_admin_username" {
+  type = string
+}
+
+variable "gitea_admin_password" {
+  type      = string
+  sensitive = true
+}
+
+variable "gitea_admin_email" {
+  type = string
+}
+
 variable "gitea_db_password" {
   type      = string
   sensitive = true
@@ -36,7 +49,10 @@ variable "gitea_db_password" {
 {{< highlight host="demo-kube-k3s" file="terraform.tfvars" >}}
 
 ```tf
-gitea_db_password = "xxx"
+gitea_admin_username = "kuberocks"
+gitea_admin_password = "xxx"
+gitea_admin_email    = "admin@kube.rocks"
+gitea_db_password    = "xxx"
 ```
 
 {{< /highlight >}}
@@ -61,6 +77,21 @@ resource "helm_release" "gitea" {
 
   name      = "gitea"
   namespace = kubernetes_namespace_v1.gitea.metadata[0].name
+
+  set {
+    name  = "gitea.admin.username"
+    value = var.gitea_admin_username
+  }
+
+  set {
+    name  = "gitea.admin.password"
+    value = var.gitea_admin_password
+  }
+
+  set {
+    name  = "gitea.admin.email"
+    value = var.gitea_admin_email
+  }
 
   set {
     name  = "strategy.type"
@@ -221,7 +252,7 @@ resource "helm_release" "gitea" {
 
 {{< /highlight >}}
 
-Note as we disable included Redis and PostgreSQL, because we use our own Redis and PostgreSQL cluster. We'll try to have a working SSH service too.
+Note as we disable included Redis and PostgreSQL sub charts, because w'l reuse our existing ones. Also note the use of `urlencode` function for Redis password, as it can contain special characters.
 
 The related ingress:
 
@@ -245,7 +276,7 @@ resource "kubernetes_manifest" "gitea_ingress" {
           services = [
             {
               name = "gitea-http"
-              port = 3000
+              port = "http"
             }
           ]
         }
@@ -257,7 +288,7 @@ resource "kubernetes_manifest" "gitea_ingress" {
 
 {{< /highlight >}}
 
-Go login in `https://gitea.kube.rocks` with default next credentials *gitea_admin / r8sA8CPHD9!bt6d*, and **change them immediately**.
+Go log in `https://gitea.kube.rocks` with chosen admin credentials.
 
 ### Push our first app
 
