@@ -57,6 +57,8 @@ gitea_db_password    = "xxx"
 
 {{< /highlight >}}
 
+Then the Helm chart itself:
+
 {{< highlight host="demo-kube-k3s" file="gitea.tf" >}}
 
 ```tf
@@ -115,7 +117,7 @@ resource "helm_release" "gitea" {
 
   set {
     name  = "persistence.size"
-    value = "2Gi"
+    value = "5Gi"
   }
 
   set {
@@ -125,7 +127,7 @@ resource "helm_release" "gitea" {
 
   set {
     name  = "gitea.config.server.SSH_DOMAIN"
-    value = "ssh.${var.domain}"
+    value = "gitea.${var.domain}"
   }
 
   set {
@@ -288,7 +290,95 @@ resource "kubernetes_manifest" "gitea_ingress" {
 
 {{< /highlight >}}
 
-Go log in `https://gitea.kube.rocks` with chosen admin credentials.
+Go log in `https://gitea.kube.rocks` with chosen admin credentials, and create a sample repo for test, I'll use `kuberocks/demo`.
+
+### Pushing via SSH
+
+We'll use SSH to push our code to Gitea. Put your public SSH key in your Gitea profile and follow push instructions from the sample repo. Here the SSH push remote is `git@gitea.kube.rocks:kuberocks/demo.git`.
+
+When you'll try to push, you'll get a connection timeout error. It's time to tackle SSH access to our cluster.
+
+Firstly, we have to open SSH port to our load balancer. Go back to the 1st Hcloud Terraform project and create a new service for SSH:
+
+{{< highlight host="demo-kube-hcloud" file="kube.tf" >}}
+
+```tf
+resource "hcloud_load_balancer_service" "ssh_service" {
+  load_balancer_id = module.hcloud_kube.lbs.worker.id
+  protocol         = "tcp"
+  listen_port      = 22
+  destination_port = 22
+}
+```
+
+{{< /highlight >}}
+
+SSH port is now opened, we have a new **connection refused** error. Let's configure SSH access from Traefik to Gitea pod.
+
+{{< highlight host="demo-kube-k3s" file="traefik.tf" >}}
+
+```tf
+resource "helm_release" "traefik" {
+  //...
+
+  set {
+    name  = "ports.ssh.port"
+    value = "2222"
+  }
+
+  set {
+    name  = "ports.ssh.expose"
+    value = "true"
+  }
+
+  set {
+    name  = "ports.ssh.exposedPort"
+    value = "22"
+  }
+
+  set {
+    name  = "ports.ssh.protocol"
+    value = "TCP"
+  }
+}
+```
+
+{{< /highlight >}}
+
+And finally, the route ingress :
+
+{{< highlight host="demo-kube-k3s" file="gitea.tf" >}}
+
+```tf
+resource "kubernetes_manifest" "gitea_ingress_ssh" {
+  manifest = {
+    apiVersion = "traefik.io/v1alpha1"
+    kind       = "IngressRouteTCP"
+    metadata = {
+      name      = "gitea-ssh"
+      namespace = kubernetes_namespace_v1.gitea.metadata[0].name
+    }
+    spec = {
+      entryPoints = ["ssh"]
+      routes = [
+        {
+          match = "HostSNI(`*`)"
+          services = [
+            {
+              name = "gitea-ssh"
+              port = "ssh"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+{{< /highlight >}}
+
+Now retry `git push -u origin main` and it should work seamlessly !
 
 ### Push our first app
 
