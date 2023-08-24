@@ -143,118 +143,9 @@ Note as we'll use `components_extra` to add `image-reflector-controller` and `im
 
 After applying this, use `kg deploy -n flux-system` to check that Flux is correctly installed and running.
 
-### Test with pgAdmin
-
-A 1st typical example is pgAdmin, a web UI for Postgres. We'll use it to manage our database cluster. It requires a local PVC to store its data user and settings.
-
-{{< highlight host="demo-kube-flux" file="clusters/demo/postgres/kustomization.yaml" >}}
-
-```yaml
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-  - deploy-pgadmin.yaml
-```
-
-{{< /highlight >}}
-
-{{< highlight host="demo-kube-flux" file="clusters/demo/postgres/deploy-pgadmin.yaml" >}}
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: pgadmin
-  namespace: postgres
-spec:
-  strategy:
-    type: Recreate
-  selector:
-    matchLabels:
-      app: pgadmin
-  template:
-    metadata:
-      labels:
-        app: pgadmin
-    spec:
-      securityContext:
-        runAsUser: 5050
-        runAsGroup: 5050
-        fsGroup: 5050
-        fsGroupChangePolicy: "OnRootMismatch"
-      containers:
-        - name: pgadmin
-          image: dpage/pgadmin4:latest
-          ports:
-            - containerPort: 80
-          env:
-            - name: PGADMIN_DEFAULT_EMAIL
-              value: admin@kube.rocks
-            - name: PGADMIN_DEFAULT_PASSWORD
-              value: kuberocks
-          volumeMounts:
-            - name: pgadmin-data
-              mountPath: /var/lib/pgadmin
-      volumes:
-        - name: pgadmin-data
-          persistentVolumeClaim:
-            claimName: pgadmin-data
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: pgadmin-data
-  namespace: postgres
-spec:
-  resources:
-    requests:
-      storage: 128Mi
-  volumeMode: Filesystem
-  storageClassName: longhorn
-  accessModes:
-    - ReadWriteOnce
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: pgadmin
-  namespace: postgres
-spec:
-  selector:
-    app: pgadmin
-  ports:
-    - port: 80
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: pgadmin
-  namespace: postgres
-spec:
-  entryPoints:
-    - websecure
-  routes:
-    - match: Host(`pgadmin.kube.rocks`)
-      kind: Rule
-      middlewares:
-        - name: middleware-ip
-          namespace: traefik
-      services:
-        - name: pgadmin
-          port: 80
-```
-
-{{< /highlight >}}
-
-Wait few minutes, and go to `pgadmin.kube.rocks` and login with default credentials. Don't forget to change them immediately after with a real password, as it's stored into pgAdmin local DB. Now try to register a new server with `postgresql-primary.postgres` as hostname, and the rest with your PostgreSQL credential on previous installation. It should work !
-
-You can test the read replica too by register a new server using the hostname `postgresql-read.postgres`. Try to do some update on primary and check that it's replicated on read replica. Any modification on replicas should be rejected as well.
-
-## Install some no code tools
-
 ### Managing secrets
 
-Before to continue with some more advanced apps, we should talk about secrets. As always with GitOps, a secured secrets management is critical. Nobody wants to expose sensitive data in a git repository. An easy to go solution is to use [Bitnami Sealed Secrets](https://github.com/bitnami-labs/sealed-secrets), which will deploy a dedicated controller in your cluster that will automatically decrypt sealed secrets.
+As always with GitOps, a secured secrets management is critical. Nobody wants to expose sensitive data in a git repository. An easy to go solution is to use [Bitnami Sealed Secrets](https://github.com/bitnami-labs/sealed-secrets), which will deploy a dedicated controller in your cluster that will automatically decrypt sealed secrets.
 
 Open `demo-kube-flux` project and create helm deployment for sealed secret.
 
@@ -327,7 +218,153 @@ curl http://localhost:8080/v1/cert.pem > pub-sealed-secrets.pem
 By the way install the client with `brew install kubeseal` (Mac / Linux) or `scoop install kubeseal` (Windows).
 {{< /alert >}}
 
-It's now finally time to install some useful tools to help us in our CD journey.
+## Install some tools
+
+It's now finally time to install some tools to help us in our CD journey.
+
+### pgAdmin
+
+A 1st good example is typically pgAdmin, which is a web UI for Postgres. We'll use it to manage our database cluster. It requires a local PVC to store its data user and settings.
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/postgres/kustomization.yaml" >}}
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - deploy-pgadmin.yaml
+  - sealed-secret-pgadmin.yaml
+```
+
+{{< /highlight >}}
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/postgres/deploy-pgadmin.yaml" >}}
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgadmin
+  namespace: postgres
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: pgadmin
+  template:
+    metadata:
+      labels:
+        app: pgadmin
+    spec:
+      securityContext:
+        runAsUser: 5050
+        runAsGroup: 5050
+        fsGroup: 5050
+        fsGroupChangePolicy: "OnRootMismatch"
+      containers:
+        - name: pgadmin
+          image: dpage/pgadmin4:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: PGADMIN_DEFAULT_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: pgadmin-auth
+                  key: default-email
+            - name: PGADMIN_DEFAULT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pgadmin-auth
+                  key: default-password
+          volumeMounts:
+            - name: pgadmin-data
+              mountPath: /var/lib/pgadmin
+      volumes:
+        - name: pgadmin-data
+          persistentVolumeClaim:
+            claimName: pgadmin-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pgadmin-data
+  namespace: postgres
+spec:
+  resources:
+    requests:
+      storage: 128Mi
+  volumeMode: Filesystem
+  storageClassName: longhorn
+  accessModes:
+    - ReadWriteOnce
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pgadmin
+  namespace: postgres
+spec:
+  selector:
+    app: pgadmin
+  ports:
+    - port: 80
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: pgadmin
+  namespace: postgres
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`pgadmin.kube.rocks`)
+      kind: Rule
+      middlewares:
+        - name: middleware-ip
+          namespace: traefik
+      services:
+        - name: pgadmin
+          port: 80
+```
+
+{{< /highlight >}}
+
+Here are the secrets to adapt to your needs:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/postgres/secret-pgadmin.yaml" >}}
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pgadmin-auth
+  namespace: postgres
+type: Opaque
+data:
+  default-email: YWRtaW5Aa3ViZS5yb2Nrcw==
+  default-password: YWRtaW4=
+```
+
+{{< /highlight >}}
+
+```sh
+cat clusters/demo/postgres/secret-pgadmin.yaml | kubeseal --format=yaml --cert=pub-sealed-secrets.pem > clusters/demo/postgres/sealed-secret-pgadmin.yaml
+rm clusters/demo/postgres/secret-pgadmin.yaml
+```
+
+{{< alert >}}
+Don't forget to remove the original secret file before commit for obvious reason ! If too late, consider password leaked and regenerate a new one.  
+You may use [VSCode extension](https://github.com/codecontemplator/vscode-kubeseal)
+{{< /alert >}}
+
+Wait few minutes, and go to `pgadmin.kube.rocks` and login with chosen credentials. Now try to register a new server with `postgresql-primary.postgres` as hostname, and the rest with your PostgreSQL credential on previous installation. It should work !
+
+You can test the read replica too by register a new server using the hostname `postgresql-read.postgres`. Try to do some update on primary and check that it's replicated on read replica. Any modification on replicas should be rejected as well.
+
+It's time to use some useful apps.
 
 ### n8n
 
@@ -502,20 +539,6 @@ data:
 ```
 
 {{< /highlight >}}
-
-Now you have to sealed this secrets with `kubeseal` and remove the original files. Type this in project root:
-
-```sh
-cat clusters/demo/n8n/secret-n8n-db.yaml | kubeseal --format=yaml --cert=pub-sealed-secrets.pem > clusters/demo/postgres/sealed-secret-n8n-db.yaml
-rm clusters/demo/n8n/secret-n8n-db.yaml
-```
-
-Do same for SMTP secret.
-
-{{< alert >}}
-Don't forget to remove the original secret file before commit for obvious reason ! If too late, consider password leaked and regenerate a new one.  
-You may use [VSCode extension](https://github.com/codecontemplator/vscode-kubeseal)
-{{< /alert >}}
 
 Before continue go to pgAdmin and create `n8n` DB and set `n8n` user with proper credentials as owner.
 

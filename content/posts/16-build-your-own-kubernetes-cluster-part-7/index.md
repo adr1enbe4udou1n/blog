@@ -121,6 +121,16 @@ resource "helm_release" "gitea" {
   }
 
   set {
+    name  = "gitea.metrics.enabled"
+    value = "true"
+  }
+
+  set {
+    name  = "gitea.metrics.serviceMonitor.enabled"
+    value = "true"
+  }
+
+  set {
     name  = "gitea.config.server.DOMAIN"
     value = "gitea.${var.domain}"
   }
@@ -290,13 +300,21 @@ resource "kubernetes_manifest" "gitea_ingress" {
 
 {{< /highlight >}}
 
-Go log in `https://gitea.kube.rocks` with chosen admin credentials, and create a sample repo for test, I'll use `kuberocks/demo`.
+You should be able to log in `https://gitea.kube.rocks` with chosen admin credentials.
+
+### Push a basic Web API project
+
+Let's generate a basic .NET Web API project. Create a new folder `demo` and initialize with `dotnet new webapi` (you may install [last .NET SDK](https://dotnet.microsoft.com/en-us/download)). Then create a new repo `kuberocks/demo` on Gitea, and follow the instructions to push your code.
+
+[![Gitea repo](gitea-repo.png)](gitea-repo.png)
+
+All should work as expected when HTTPS, even the fuzzy repo search. But what if you prefer SSH ?
 
 ### Pushing via SSH
 
-We'll use SSH to push our code to Gitea. Put your public SSH key in your Gitea profile and follow push instructions from the sample repo. Here the SSH push remote is `git@gitea.kube.rocks:kuberocks/demo.git`.
+We'll use SSH to push our code to Gitea. Put your public SSH key in your Gitea profile and follow push instructions from the sample repo. Here the SSH remote is `git@gitea.kube.rocks:kuberocks/demo.git`.
 
-When you'll try to push, you'll get a connection timeout error. It's time to tackle SSH access to our cluster.
+When you'll try to pull, you'll get a connection timeout error. It's time to tackle SSH access to our cluster.
 
 Firstly, we have to open SSH port to our load balancer. Go back to the 1st Hcloud Terraform project and create a new service for SSH:
 
@@ -378,13 +396,98 @@ resource "kubernetes_manifest" "gitea_ingress_ssh" {
 
 {{< /highlight >}}
 
-Now retry `git push -u origin main` and it should work seamlessly !
-
-### Push our first app
+Now retry pull again and it should work seamlessly !
 
 ## CI
 
+Now we have a working self-hosted VCS, let's add a CI tool. We'll use [Concourse CI](https://concourse-ci.org/), which is optimized for Kubernetes and have high scalability (and open source of course), with the price of some configuration and slight learning curve.
+
+{{< alert >}}
+If you prefer to have CI directly included into your VCS, which simplify configuration drastically, although limited to same Gitea host, note that Gitea team is working on a built-in CI, see [Gitea Actions](https://docs.gitea.com/usage/actions/overview) (not production ready).  
+I personally prefer to have a dedicated CI tool, as it's more flexible and can be used for any external VCS if needed.
+{{< /alert >}}
+
+### CI node pool
+
+Concourse CI is composed of 2 main components:
+
+* **Web UI**: the main UI, which is used to configure pipelines and visualize jobs, persisted in a PostgreSQL database
+* **Worker**: the actual CI worker, which will execute jobs for any app building
+
+It's obvious that the workers, which are the most resource intensive, should be scaled independently, without any impact on others critical components of our cluster. So, as you already guess, we'll use a dedicated pool for building. Let's apply this:
+
+{{< highlight host="demo-kube-hcloud" file="kube.tf" >}}
+
+```tf
+module "hcloud_kube" {
+  //...
+
+  agent_nodepools = [
+    //...
+    {
+      name              = "runner"
+      server_type       = "cx21"
+      location          = "nbg1"
+      count             = 1
+      private_interface = "ens10"
+      labels = [
+        "node.kubernetes.io/server-usage=runner"
+      ]
+      taints = [
+        "node-role.kubernetes.io/runner:NoSchedule"
+      ]
+    }
+  ]
+}
+```
+
+{{< /highlight >}}
+
 ### Concourse CI
+
+The variables:
+
+{{< highlight host="demo-kube-k3s" file="main.tf" >}}
+
+```tf
+variable "concourse_user" {
+  type = string
+}
+
+variable "concourse_password" {
+  type      = string
+  sensitive = true
+}
+
+variable "concourse_db_password" {
+  type      = string
+  sensitive = true
+}
+```
+
+{{< /highlight >}}
+
+{{< highlight host="demo-kube-k3s" file="terraform.tfvars" >}}
+
+```tf
+concourse_user        = "kuberocks"
+concourse_password    = "xxx"
+concourse_db_password = "xxx"
+```
+
+{{< /highlight >}}
+
+Let's apply Concourse Helm Chart:
+
+{{< highlight host="demo-kube-k3s" file="concourse.tf" >}}
+
+```tf
+
+```
+
+{{< /highlight >}}
+
+### Usage
 
 * Automatic build on commit
 * Push to Gitea Container Registry
