@@ -117,9 +117,8 @@ resource "helm_release" "kube_prometheus_stack" {
   }
 
   set {
-    name  = "prometheus.prometheusSpec.nodeSelector\\.node-role\\.kubernetes\\.io/storage"
-    type  = "string"
-    value = "true"
+    name  = "prometheus.prometheusSpec.nodeSelector.node\\.kubernetes\\.io/server-usage"
+    value = "monitor"
   }
 
   set {

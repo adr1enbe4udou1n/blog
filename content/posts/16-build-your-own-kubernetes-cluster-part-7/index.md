@@ -482,10 +482,140 @@ Let's apply Concourse Helm Chart:
 {{< highlight host="demo-kube-k3s" file="concourse.tf" >}}
 
 ```tf
+resource "kubernetes_namespace_v1" "concourse" {
+  metadata {
+    name = "concourse"
+  }
+}
 
+resource "helm_release" "concourse" {
+  chart      = "concourse"
+  version    = "17.2.0"
+  repository = "https://concourse-charts.storage.googleapis.com"
+
+  name      = "concourse"
+  namespace = kubernetes_namespace_v1.concourse.metadata[0].name
+
+  set {
+    name  = "concourse.web.externalUrl"
+    value = "https://concourse.${var.domain}"
+  }
+
+  set {
+    name  = "postgresql.enabled"
+    value = "false"
+  }
+
+  set {
+    name  = "secrets.postgresUser"
+    value = "concourse"
+  }
+
+  set {
+    name  = "secrets.postgresPassword"
+    value = var.concourse_db_password
+  }
+
+  set {
+    name  = "concourse.web.auth.mainTeam.localUser"
+    value = var.concourse_user
+  }
+
+  set {
+    name  = "secrets.localUsers"
+    value = "${var.concourse_user}:${var.concourse_password}"
+  }
+
+  set {
+    name  = "concourse.web.postgres.host"
+    value = "postgresql-primary.postgres"
+  }
+
+  set {
+    name  = "concourse.web.postgres.database"
+    value = "concourse"
+  }
+
+  set {
+    name  = "concourse.web.auth.cookieSecure"
+    value = "true"
+  }
+
+  set {
+    name  = "concourse.web.prometheus.enabled"
+    value = "true"
+  }
+
+  set {
+    name  = "concourse.web.prometheus.serviceMonitor.enabled"
+    value = "true"
+  }
+
+  set {
+    name  = "concourse.worker.runtime"
+    value = "containerd"
+  }
+
+  set {
+    name  = "worker.replicas"
+    value = "1"
+  }
+
+  set {
+    name  = "worker.minAvailable"
+    value = "0"
+  }
+
+  set {
+    name  = "worker.tolerations[0].key"
+    value = "node-role.kubernetes.io/runner"
+  }
+
+  set {
+    name  = "worker.tolerations[0].effect"
+    value = "NoSchedule"
+  }
+
+  set {
+    name  = "worker.nodeSelector.node\\.kubernetes\\.io/server-usage"
+    value = "runner"
+  }
+}
+
+resource "kubernetes_manifest" "concourse_ingress" {
+  manifest = {
+    apiVersion = "traefik.io/v1alpha1"
+    kind       = "IngressRoute"
+    metadata = {
+      name      = "concourse"
+      namespace = kubernetes_namespace_v1.concourse.metadata[0].name
+    }
+    spec = {
+      entryPoints = ["websecure"]
+      routes = [
+        {
+          match = "Host(`concourse.${var.domain}`)"
+          kind  = "Rule"
+          services = [
+            {
+              name = "concourse-web"
+              port = "atc"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
 ```
 
 {{< /highlight >}}
+
+Be sure to disable the PostgreSQL sub chart via `postgresql.enabled`.
+
+You may set `worker.replicas` as the number of nodes in your runner pool. As usual, note the use of `nodeSelector` and `tolerations` to ensure workers are deployed on runner nodes.
+
+Then go to `https://concourse.kube.rocks` and log in with chosen credentials.
 
 ### Usage
 
