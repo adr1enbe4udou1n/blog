@@ -617,10 +617,44 @@ You may set `worker.replicas` as the number of nodes in your runner pool. As usu
 
 Then go to `https://concourse.kube.rocks` and log in with chosen credentials.
 
-### Usage
+## Usage
 
-* Automatic build on commit
-* Push to Gitea Container Registry
+It's now time to step back and think about how we'll use our CI. Our goal is to build our above dotnet Web API with Concourse CI as a container image, ready to deploy to our cluster through Flux. So we finish the complete CI/CD pipeline. To resume the scenario:
+
+1. Concourse CI check the repo periodically (pull model) for new code pushed and trigger a build if applicable
+2. When container image build passed, Concourse CI push the new image to our private registry, which is already take care by Gitea
+3. Flux, which can perfectly be in a different cluster, check the registry periodically (pull model), if new image tag detected, it will deploy it automatically to our cluster
+
+{{< alert >}}
+Although it's the most secured way and configuration less, instead of default pull model, which is generally a check every minute, it's possible secured WebHook instead in order to reduce time between code push and deployment.
+{{< /alert >}}
+
+The flow pipeline is pretty straightforward:
+
+{{< mermaid >}}
+graph RL
+  A[Concourse CI] -- check --> B[(Code repository)]
+  A -- push --> C[/Container Registry/]
+  F{Worker} -- build --> A
+  I[Image Updater] -- check --> C
+  I -- push --> J[(Flux repository)]
+  D[Flux] -- check --> J
+  D -- deploy --> E((Kube API))
+{{< /mermaid >}}
+
+### Build the container image
+
+We have to tell Concourse how to check our repo and build our container image. This is done through a pipeline, which is a YAML file. Let's reuse our flux repository and create a file `pipelines/demo.yaml` with following content:
+
+{{< highlight host="demo-kube-flux" file="pipelines/demo.yaml" >}}
+
+```tf
+
+```
+
+{{< /highlight >}}
+
+In order to apply it we may need to install `fly` CLI tool. Just a matter of `scoop install concourse-fly` on Windows.
 
 ## 6th check ✅
 
