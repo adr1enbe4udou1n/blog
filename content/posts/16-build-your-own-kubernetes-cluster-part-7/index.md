@@ -307,9 +307,12 @@ You should be able to log in `https://gitea.kube.rocks` with chosen admin creden
 Let's generate a basic .NET Web API project. Create a new dotnet project like following (you may install [last .NET SDK](https://dotnet.microsoft.com/en-us/download)):
 
 ```sh
-dotnet new webapi --name KubeRocksDemo -o kuberocks-demo`
+mkdir kuberocks-demo
 cd kuberocks-demo
+dotnet new sln
 dotnet new gitignore
+dotnet new webapi -o src/KubeRocks.WebApi
+dotnet sln add src/KubeRocks.WebApi
 git init
 git add .
 git commit -m "first commit"
@@ -881,7 +884,7 @@ jobs:
               - |
                 dotnet format --verify-no-changes
                 dotnet build -c Release
-                dotnet publish -c Release -o publish --no-restore --no-build
+                dotnet publish src/KubeRocks.WebApi -c Release -o publish --no-restore --no-build
 
       - task: build-image
         privileged: true
@@ -934,13 +937,63 @@ If everything is ok, check in `https://gitea.kube.rocks/admin/packages`, you sho
 
 If you followed the previous parts of this tutorial, you should have clue about how to deploy our app. Let's create a new Helm chart for that:
 
-{{< highlight host="demo-kube-flux" file="demo/aspnet.yaml" >}}
+{{< highlight host="demo-kube-flux" file="kuberocks/demo.yaml" >}}
 
 ```yaml
-
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo
+  namespace: kuberocks
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo
+  template:
+    metadata:
+      labels:
+        app: demo
+    spec:
+      imagePullSecrets:
+        - name: dockerconfigjson
+      containers:
+        - name: api
+          image: gitea.kube.okami101.io/kuberocks/demo:latest
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo
+  namespace: kuberocks
+spec:
+  selector:
+    app: demo
+  ports:
+    - name: http
+      port: 80
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: demo
+  namespace: kuberocks
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`demo.kube.rocks`)
+      kind: Rule
+      services:
+        - name: demo
+          port: http
 ```
 
 {{< /highlight >}}
+
+`https://demo.kube.rocks/WeatherForecast`
 
 ## 6th check ✅
 

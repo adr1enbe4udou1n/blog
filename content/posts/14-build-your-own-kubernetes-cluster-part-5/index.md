@@ -187,20 +187,6 @@ spec:
 
 {{< /highlight >}}
 
-Then create kustomization file:
-
-{{< highlight host="demo-kube-flux" file="clusters/demo/flux-add-ons/kustomization.yaml" >}}
-
-```yaml
----
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-  - sealed-secrets.yaml
-```
-
-{{< /highlight >}}
-
 {{< alert >}}
 Don't touch manifests under `flux-system` folder, as it's managed by Flux itself and overload on each flux bootstrap.
 {{< /alert >}}
@@ -225,18 +211,6 @@ It's now finally time to install some tools to help us in our CD journey.
 ### pgAdmin
 
 A 1st good example is typically pgAdmin, which is a web UI for Postgres. We'll use it to manage our database cluster. It requires a local PVC to store its data user and settings.
-
-{{< highlight host="demo-kube-flux" file="clusters/demo/postgres/kustomization.yaml" >}}
-
-```yaml
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-  - deploy-pgadmin.yaml
-  - sealed-secret-pgadmin.yaml
-```
-
-{{< /highlight >}}
 
 {{< highlight host="demo-kube-flux" file="clusters/demo/postgres/deploy-pgadmin.yaml" >}}
 
@@ -369,19 +343,6 @@ It's time to use some useful apps.
 ### n8n
 
 Let's try some app that require a bit more configuration and real database connection with n8n, a workflow automation tool.
-
-{{< highlight host="demo-kube-flux" file="clusters/demo/n8n/kustomization.yaml" >}}
-
-```yaml
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-  - deploy-n8n.yaml
-  - sealed-secret-n8n-db.yaml
-  - sealed-secret-n8n-smtp.yaml
-```
-
-{{< /highlight >}}
 
 {{< highlight host="demo-kube-flux" file="clusters/demo/n8n/deploy-n8n.yaml" >}}
 
@@ -547,20 +508,6 @@ Then don't forget to seal secrets and remove original files the same way as pgAd
 ### NocoDB
 
 Let's try a final candidate with NocoDB, an Airtable-like generator for Postgres. It's very similar to n8n.
-
-{{< highlight host="demo-kube-flux" file="clusters/demo/nocodb/kustomization.yaml" >}}
-
-```yaml
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-  - deploy-nocodb.yaml
-  - sealed-secret-nocodb-db.yaml
-  - sealed-secret-nocodb-auth.yaml
-  - sealed-secret-nocodb-smtp.yaml
-```
-
-{{< /highlight >}}
 
 {{< highlight host="demo-kube-flux" file="clusters/demo/nocodb/deploy-nocodb.yaml" >}}
 

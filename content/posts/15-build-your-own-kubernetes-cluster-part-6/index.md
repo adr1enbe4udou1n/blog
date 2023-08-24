@@ -210,51 +210,7 @@ This is exactly how it works, the `ServiceMonitor` custom resource is responsibl
 
 ### Monitoring Flux
 
-There is one missing however, let's add monitoring for flux. Go back to flux project and push following manifests:
-
-{{< highlight host="demo-kube-flux" file="clusters/demo/flux-add-ons/flux-monitoring.yaml" >}}
-
-```yaml
----
-apiVersion: source.toolkit.fluxcd.io/v1
-kind: GitRepository
-metadata:
-  name: flux-monitoring
-  namespace: flux-system
-spec:
-  interval: 30m0s
-  ref:
-    branch: main
-  url: https://github.com/fluxcd/flux2
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: monitoring-config
-  namespace: flux-system
-spec:
-  interval: 1h0m0s
-  path: ./manifests/monitoring/monitoring-config
-  prune: true
-  sourceRef:
-    kind: GitRepository
-    name: flux-monitoring
-```
-
-{{< /highlight >}}
-
-The `spec.path` under `Kustomization` tells Flux to scrape [remote monitoring manifests](https://github.com/fluxcd/flux2/tree/main/manifests/monitoring/monitoring-config), avoiding us to write all of them manually. It includes the `PodMonitor` as well as Grafana dashboards.
-
-{{< highlight host="demo-kube-flux" file="clusters/demo/flux-add-ons/kustomization.yaml" >}}
-
-```yaml
-# ...
-resources:
-  # ...
-  - flux-monitoring.yaml
-```
-
-{{< /highlight >}}
+TODO
 
 After some minutes, flux should be appearing in Prometheus targets.
 
