@@ -935,7 +935,7 @@ If everything is ok, check in `https://gitea.kube.rocks/admin/packages`, you sho
 
 ### The deployment
 
-If you followed the previous parts of this tutorial, you should have clue about how to deploy our app. Let's create a new Helm chart for that:
+If you followed the previous parts of this tutorial, you should have clue about how to deploy your app. Let's create deploy it with Flux:
 
 {{< highlight host="demo-kube-flux" file="kuberocks/demo.yaml" >}}
 
@@ -993,7 +993,13 @@ spec:
 
 {{< /highlight >}}
 
-`https://demo.kube.rocks/WeatherForecast`
+Note as we have set `imagePullSecrets` in order to use fetch previously created credentials for private registry access. The rest is pretty straightforward. Once pushed, after about 1 minute, you should see your app deployed in `https://demo.kube.rocks`. Check the API response on `https://demo.kube.rocks/WeatherForecast`.
+
+However, one last thing missing: the automatic deployment.
+
+#### Image automation
+
+TODO
 
 ## 6th check ✅
 
