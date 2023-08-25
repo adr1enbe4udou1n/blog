@@ -947,7 +947,7 @@ If everything is ok, check in `https://gitea.kube.rocks/admin/packages`, you sho
 
 If you followed the previous parts of this tutorial, you should have clue about how to deploy your app. Let's create deploy it with Flux:
 
-{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/demo.yaml" >}}
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/deploy-demo.yaml" >}}
 
 ```yaml
 apiVersion: apps/v1
@@ -1048,7 +1048,7 @@ spec:
 
 Now we need to Image Reflector how to scan the repository, as well as the attached policy for tag update:
 
-{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/demo-images.yaml" >}}
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/images-demo.yaml" >}}
 
 ```yaml
 apiVersion: image.toolkit.fluxcd.io/v1beta1
@@ -1084,7 +1084,7 @@ As usual, don't forget `dockerconfigjson` for private registry access.
 
 And finally edit the deployment to use the policy by adding a specific marker next to the image tag:
 
-{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/demo.yaml" >}}
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/deploy-demo.yaml" >}}
 
 ```yaml
 # ...
@@ -1100,7 +1100,7 @@ It will tell to `Image Automation` where to update the tag in the Flux repositor
 
 Push the changes and wait for about 1 minute then pull the flux repo. You should see a new commit coming and `latest` should be replaced by an explicit tag like so:
 
-{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/demo.yaml" >}}
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/deploy-demo.yaml" >}}
 
 ```yaml
 # ...

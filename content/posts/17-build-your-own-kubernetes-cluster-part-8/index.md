@@ -124,7 +124,7 @@ public class User
     public int Id { get; set; }
 
     [MaxLength(255)]
-    public required string Username { get; set; }
+    public required string Name { get; set; }
 
     [MaxLength(255)]
     public required string Email { get; set; }
@@ -235,6 +235,8 @@ dotnet dotnet-ef -p src/KubeRocks.Application -s src/KubeRocks.WebApi database u
 
 ### Inject some dummy data
 
+We'll use Bogus on a separate console project:
+
 ```sh
 dotnet new console -o src/KubeRocks.Console
 dotnet sln add src/KubeRocks.Console
@@ -256,21 +258,503 @@ dotnet add src/KubeRocks.Console package Respawn
 
 {{< /highlight >}}
 
-{{< highlight host="kuberocks-demo" file="src/KubeRocks.Console/Commands/SeederCommand" >}}
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.Console/KubeRocks.Console.csproj" >}}
 
-```cs
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
 
+    <!-- ... -->
+
+  <PropertyGroup>
+    <!-- ... -->
+    <RunWorkingDirectory>$(MSBuildProjectDirectory)</RunWorkingDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
 ```
 
 {{< /highlight >}}
 
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.Console/Commands/DbCommand.cs" >}}
+
+```cs
+using Bogus;
+using KubeRocks.Application.Contexts;
+using KubeRocks.Application.Entities;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using Respawn;
+using Respawn.Graph;
+
+namespace KubeRocks.Console.Commands;
+
+[Command("db")]
+public class DbCommand : ConsoleAppBase
+{
+    private readonly AppDbContext _context;
+
+    public DbCommand(AppDbContext context)
+    {
+        _context = context;
+    }
+
+    [Command("migrate", "Migrate database")]
+    public async Task Migrate()
+    {
+        await _context.Database.MigrateAsync();
+    }
+
+    [Command("fresh", "Wipe data")]
+    public async Task FreshData()
+    {
+        await Migrate();
+
+        using var conn = new NpgsqlConnection(_context.Database.GetConnectionString());
+
+        await conn.OpenAsync();
+
+        var respawner = await Respawner.CreateAsync(conn, new RespawnerOptions
+        {
+            TablesToIgnore = new Table[] { "__EFMigrationsHistory" },
+            DbAdapter = DbAdapter.Postgres
+        });
+
+        await respawner.ResetAsync(conn);
+    }
+
+    [Command("seed", "Fake data")]
+    public async Task SeedData()
+    {
+        await Migrate();
+        await FreshData();
+
+        var users = new Faker<User>()
+            .RuleFor(m => m.Name, f => f.Person.FullName)
+            .RuleFor(m => m.Email, f => f.Person.Email)
+            .Generate(50);
+
+        await _context.Users.AddRangeAsync(users);
+        await _context.SaveChangesAsync();
+
+        var articles = new Faker<Article>()
+            .RuleFor(a => a.Title, f => f.Lorem.Sentence().TrimEnd('.'))
+            .RuleFor(a => a.Description, f => f.Lorem.Paragraphs(1))
+            .RuleFor(a => a.Body, f => f.Lorem.Paragraphs(5))
+            .RuleFor(a => a.Author, f => f.PickRandom(users))
+            .RuleFor(a => a.CreatedAt, f => f.Date.Recent(90).ToUniversalTime())
+            .RuleFor(a => a.Slug, (f, a) => a.Title.Replace(" ", "-").ToLowerInvariant())
+            .Generate(500)
+            .Select(a =>
+            {
+                new Faker<Comment>()
+                    .RuleFor(a => a.Body, f => f.Lorem.Paragraphs(2))
+                    .RuleFor(a => a.Author, f => f.PickRandom(users))
+                    .RuleFor(a => a.CreatedAt, f => f.Date.Recent(7).ToUniversalTime())
+                    .Generate(new Faker().Random.Number(10))
+                    .ForEach(c => a.Comments.Add(c));
+
+                return a;
+            });
+
+        await _context.Articles.AddRangeAsync(articles);
+        await _context.SaveChangesAsync();
+    }
+}
+```
+
+{{< /highlight >}}
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.Console/Program.cs" >}}
+
+```cs
+using KubeRocks.Application.Extensions;
+using KubeRocks.Console.Commands;
+
+var builder = ConsoleApp.CreateBuilder(args);
+
+builder.ConfigureServices((ctx, services) =>
+{
+    services.AddKubeRocksServices(ctx.Configuration);
+});
+
+var app = builder.Build();
+
+app.AddSubCommands<DbCommand>();
+
+app.Run();
+```
+
+{{< /highlight >}}
+
+Then launch the command:
+
+```sh
+dotnet run --project src/KubeRocks.Console db seed
+```
+
+Ensure with your favorite DB client that data is correctly inserted.
+
 ### Define endpoint access
+
+All that's left is to create the endpoint. Let's define all DTO first:
+
+```sh
+dotnet add src/KubeRocks.WebApi package Mapster
+```
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Models/ArticleListDto.cs" >}}
+
+```cs
+namespace KubeRocks.WebApi.Models;
+
+public class ArticleListDto
+{
+    public required string Title { get; set; }
+
+    public required string Slug { get; set; }
+
+    public required string Description { get; set; }
+
+    public required string Body { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public DateTime UpdatedAt { get; set; }
+
+    public required AuthorDto Author { get; set; }
+}
+```
+
+{{< /highlight >}}
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Models/ArticleDto.cs" >}}
+
+```cs
+namespace KubeRocks.WebApi.Models;
+
+public class ArticleDto : ArticleListDto
+{
+    public List<CommentDto> Comments { get; set; } = new();
+}
+```
+
+{{< /highlight >}}
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Models/AuthorDto.cs" >}}
+
+```cs
+namespace KubeRocks.WebApi.Models;
+
+public class AuthorDto
+{
+    public required string Name { get; set; }
+}
+```
+
+{{< /highlight >}}
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Models/CommentDto.cs" >}}
+
+```cs
+namespace KubeRocks.WebApi.Models;
+
+public class CommentDto
+{
+    public required string Body { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public required AuthorDto Author { get; set; }
+}
+```
+
+{{< /highlight >}}
+
+And finally the controller:
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Controllers/ArticlesController.cs" >}}
+
+```cs
+using KubeRocks.Application.Contexts;
+using KubeRocks.WebApi.Models;
+using Mapster;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace KubeRocks.WebApi.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+public class ArticlesController
+{
+    private readonly AppDbContext _context;
+
+    public record ArticlesResponse(IEnumerable<ArticleListDto> Articles, int ArticlesCount);
+
+    public ArticlesController(AppDbContext context)
+    {
+        _context = context;
+    }
+
+    [HttpGet(Name = "GetArticles")]
+    public ArticlesResponse Get([FromQuery] int page = 1, [FromQuery] int size = 10)
+    {
+        var articles = _context.Articles
+            .OrderByDescending(a => a.CreatedAt)
+            .Skip((page - 1) * size)
+            .Take(size)
+            .ProjectToType<ArticleListDto>();
+
+        var articlesCount = _context.Articles.Count();
+
+        return new ArticlesResponse(articles, articlesCount);
+    }
+
+    [HttpGet("{slug}", Name = "GetArticleBySlug")]
+    public ActionResult<ArticleDto> GetBySlug(string slug)
+    {
+        var article = _context.Articles
+            .Include(a => a.Author)
+            .Include(a => a.Comments.OrderByDescending(c => c.CreatedAt))
+            .ThenInclude(c => c.Author)
+            .FirstOrDefault(a => a.Slug == slug);
+
+        if (article is null)
+        {
+            return new NotFoundResult();
+        }
+
+        return article.Adapt<ArticleDto>();
+    }
+}
+```
+
+{{< /highlight >}}
+
+Launch the app and check that `/Articles` and `/Articles/{slug}` endpoints are working as expected.
 
 ## Production grade deployment
 
+### Database connection
+
+It's time to connect our app to the production database. Create a demo DB & user through pgAdmin and create the appropriate secret:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/secrets-demo-db.yaml" >}}
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: demo-db
+type: Opaque
+data:
+  password: ZGVtbw==
+```
+
+{{< /highlight >}}
+
+Generate the according sealed secret like previously chapters with `kubeseal` under `sealed-secret-demo-db.yaml` file and delete `secret-demo-db.yaml`.
+
+```sh
+cat clusters/demo/kuberocks/secret-demo.yaml | kubeseal --format=yaml --cert=pub-sealed-secrets.pem > clusters/demo/kuberocks/sealed-secret-demo.yaml
+rm clusters/demo/kuberocks/secret-demo.yaml
+```
+
+Let's inject the appropriate connection string as environment variable:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/deploy-demo.yaml" >}}
+
+```yaml
+# ...
+spec:
+  # ...
+  template:
+    # ...
+    spec:
+      # ...
+      containers:
+        - name: api
+          # ...
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: demo-db
+                  key: password
+            - name: ConnectionStrings__DefaultConnection
+              value: Server=postgresql-primary.postgres;Port=5432;User Id=demo;Password='$(DB_PASSWORD)';Database=demo;
+```
+
+{{< /highlight >}}
+
+### Database migration
+
+The DB connection should be done, but the database isn't migrated yet, the easiest is to add a migration step directly in startup app:
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
+
+```cs
+// ...
+var app = builder.Build();
+
+using var scope = app.Services.CreateScope();
+await using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+await dbContext.Database.MigrateAsync();
+
+// ...
+```
+
+{{< /highlight >}}
+
+The database should be migrated on first app launch on next deploy. Go to `https://demo.kube.rocks/Articles` to confirm all is ok. It should return next empty response:
+
+```json
+{
+  articles: []
+  articlesCount: 0
+}
+```
+
+{{< alert >}}
+Don't hesitate to abuse of `klo -n kuberocks deploy/demo` to debug any troubleshooting when pod is on error state.
+{{< /alert >}}
+
+### Database seeding
+
+We'll try to seed the database directly from local. Change temporarily the connection string in `appsettings.json` to point to the production database:
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.Console/appsettings.json" >}}
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Port=54321;User Id=demo;Password='xxx';Database=demo;"
+  }
+}
+```
+
+{{< /highlight >}}
+
+Then:
+
+```sh
+# forward the production database port to local
+kpf svc/postgresql -n postgres 54321:tcp-postgresql
+# launch the seeding command
+dotnet run --project src/KubeRocks.Console db seed
+```
+
+{{< alert >}}
+We may obviously never do this on real production database, but as it's only for seeding, it will never concern them.
+{{< /alert >}}
+
+Return to `https://demo.kube.rocks/Articles` to confirm articles are correctly returned.
+
+### Better logging with Serilog
+
+Default ASP.NET logging are not very standard, let's add Serilog for real requests logging with duration and status code:
+
+```sh
+dotnet add src/KubeRocks.WebApi package Serilog.AspNetCore
+```
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
+
+```cs
+// ...
+
+builder.Host.UseSerilog((ctx, cfg) => cfg
+    .ReadFrom.Configuration(ctx.Configuration)
+    .WriteTo.Console()
+);
+
+var app = builder.Build();
+
+app.UseSerilogRequestLogging();
+
+// ...
+```
+
+{{< /highlight >}}
+
+Then filtering through Loki stack should by far better.
+
 ### Liveness & readiness
 
-(liveness, readiness, resource limits, logging)
+All real production app should have liveness & readiness probes. It generally consists on particular URL which return the current health app status. We'll also include the DB access health. Let's add the standard `/healthz` endpoint, which is dead simple in ASP.NET Core:
+
+```sh
+dotnet add src/KubeRocks.WebApi package Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore
+```
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
+
+```cs
+// ...
+
+builder.Services
+    .AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>();
+
+var app = builder.Build();
+
+// ...
+
+app.MapControllers();
+app.MapHealthChecks("/healthz");
+
+app.Run();
+```
+
+{{< /highlight >}}
+
+And you're done ! Go to `https://demo.kube.rocks/healthz` to confirm it's working. Try to stop the database with `docker compose stop` and check the healthz endpoint again, it should return `503` status code.
+
+{{< alert >}}
+The `Microsoft.Extensions.Diagnostics.HealthChecks` package is very extensible and you can add any custom check to enrich the health app status.
+{{< /alert >}}
+
+And finally the probes:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/deploy-demo.yaml" >}}
+
+```yaml
+# ...
+spec:
+  # ...
+  template:
+    # ...
+    spec:
+      # ...
+      containers:
+        - name: api
+          # ...
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+```
+
+{{< /highlight >}}
+
+{{< alert >}}
+Be aware of difference between `liveness` and `readiness` probes. The first one is used to restart the pod if it's not responding, the second one is used to tell the pod is not ready to receive traffic, which is vital for preventing any downtime.  
+When **Rolling Update** strategy is used (the default), the old pod is not killed until the new one is ready (aka healthy).
+{{< /alert >}}
 
 ## Unit & integration Testing
 
