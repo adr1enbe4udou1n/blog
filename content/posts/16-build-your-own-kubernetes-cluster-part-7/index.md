@@ -653,13 +653,23 @@ The flow pipeline is pretty straightforward:
 
 {{< mermaid >}}
 graph RL
-  A[Concourse CI] -- check --> B[(Code repository)]
-  A -- push --> C[/Container Registry/]
-  F{Worker} -- build --> A
-  I[Image Updater] -- check --> C
-  I -- push --> J[(Flux repository)]
-  D[Flux] -- check --> J
-  D -- deploy --> E((Kube API))
+  subgraph R [Private registry]
+    C[/Container Registry/]
+  end
+  S -- scan --> R
+  S -- push --> J[(Flux repository)]
+  subgraph CD
+    D{Flux} -- check --> J
+    D -- deploy --> E((Kube API))
+  end
+  subgraph S [Image Scanner]
+    I[Image Reflector] -- trigger --> H[Image Automation]
+  end
+  subgraph CI
+    A{Concourse} -- check --> B[(Code repository)]
+    A -- push --> C
+    F((Worker)) -- build --> A
+  end
 {{< /mermaid >}}
 
 ### The credentials
@@ -937,7 +947,7 @@ If everything is ok, check in `https://gitea.kube.rocks/admin/packages`, you sho
 
 If you followed the previous parts of this tutorial, you should have clue about how to deploy your app. Let's create deploy it with Flux:
 
-{{< highlight host="demo-kube-flux" file="kuberocks/demo.yaml" >}}
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/demo.yaml" >}}
 
 ```yaml
 apiVersion: apps/v1
@@ -959,7 +969,7 @@ spec:
         - name: dockerconfigjson
       containers:
         - name: api
-          image: gitea.kube.okami101.io/kuberocks/demo:latest
+          image: gitea.kube.rocks/kuberocks/demo:latest
           ports:
             - containerPort: 80
 ---
@@ -995,11 +1005,152 @@ spec:
 
 Note as we have set `imagePullSecrets` in order to use fetch previously created credentials for private registry access. The rest is pretty straightforward. Once pushed, after about 1 minute, you should see your app deployed in `https://demo.kube.rocks`. Check the API response on `https://demo.kube.rocks/WeatherForecast`.
 
-However, one last thing missing: the automatic deployment.
+However, one last thing is missing: the automatic deployment.
 
 #### Image automation
 
-TODO
+If you checked the above flowchart, you'll note that Image automation is a separate process from Flux that only scan the registry for new image tags and push any new tag to Flux repository. Then Flux will detect the new commit in Git repository, including the new tag, and automatically deploy it to K8s.
+
+By default, if not any strategy is set, K8s will do a **rolling deployment**, i.e. creating new replica firstly be terminating the old one. This will prevent any downtime on the condition of you set as well **readiness probe** in your pod spec, which is a later topic.
+
+Let's define the image update automation task for main Flux repository:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/flux-add-ons/image-update-automation.yaml" >}}
+
+```yaml
+apiVersion: image.toolkit.fluxcd.io/v1beta1
+kind: ImageUpdateAutomation
+metadata:
+  name: flux-system
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  git:
+    checkout:
+      ref:
+        branch: main
+    commit:
+      author:
+        email: fluxcdbot@kube.rocks
+        name: fluxcdbot
+      messageTemplate: "{{range .Updated.Images}}{{println .}}{{end}}"
+    push:
+      branch: main
+  update:
+    path: ./clusters/demo
+    strategy: Setters
+```
+
+{{< /highlight >}}
+
+Now we need to Image Reflector how to scan the repository, as well as the attached policy for tag update:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/demo-images.yaml" >}}
+
+```yaml
+apiVersion: image.toolkit.fluxcd.io/v1beta1
+kind: ImageRepository
+metadata:
+  name: demo
+  namespace: flux-system
+spec:
+  image: gitea.kube.rocks/kuberocks/demo
+  interval: 1m0s
+  secretRef:
+    name: dockerconfigjson
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta1
+kind: ImagePolicy
+metadata:
+  name: demo
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: demo
+    namespace: flux-system
+  policy:
+    semver:
+      range: 0.0.x
+```
+
+{{< /highlight >}}
+
+{{< alert >}}
+As usual, don't forget `dockerconfigjson` for private registry access.
+{{< /alert >}}
+
+And finally edit the deployment to use the policy by adding a specific marker next to the image tag:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/demo.yaml" >}}
+
+```yaml
+# ...
+      containers:
+        - name: api
+          image: gitea.kube.rocks/kuberocks/demo:latest # {"$imagepolicy": "flux-system:demo"}
+# ...
+```
+
+{{< /highlight >}}
+
+It will tell to `Image Automation` where to update the tag in the Flux repository. The format is `{"$imagepolicy": "<policy-namespace>:<policy-name>"}`.
+
+Push the changes and wait for about 1 minute then pull the flux repo. You should see a new commit coming and `latest` should be replaced by an explicit tag like so:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/demo.yaml" >}}
+
+```yaml
+# ...
+      containers:
+        - name: api
+          image: gitea.kube.rocks/kuberocks/demo:0.0.1 # {"$imagepolicy": "flux-system:demo"}
+# ...
+```
+
+{{< /highlight >}}
+
+Check if the pod as been correctly updated with `kgpo -n kuberocks`. Use `kd -n kuberocks deploy/demo` to check if the same tag is here and no `latest`.
+
+```txt
+Pod Template:
+  Labels:  app=demo
+  Containers:
+   api:
+    Image:        gitea.kube.rocks/kuberocks/demo:0.0.1
+    Port:         80/TCP
+```
+
+### Retest all workflow
+
+Damn, I think we're done 🎉 ! It's time retest the full process. Add new controller endpoint from our demo project and push the code:
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Controllers/WeatherForecastController.cs" >}}
+
+```csharp
+//...
+public class WeatherForecastController : ControllerBase
+{
+    //...
+
+    [HttpGet("{id}", Name = "GetWeatherForecastById")]
+    public WeatherForecast GetById(int id)
+    {
+        return new WeatherForecast
+        {
+            Date = DateOnly.FromDateTime(DateTime.Now.AddDays(id)),
+            TemperatureC = Random.Shared.Next(-20, 55),
+            Summary = Summaries[Random.Shared.Next(Summaries.Length)]
+        };
+    }
+}
+```
+
+{{< /highlight >}}
+
+Wait the pod to be updated, then check the new endpoint `https://demo.kube.rocks/WeatherForecast/1`. The API should return a new unique random weather forecast with the tomorrow date.
 
 ## 6th check ✅
 

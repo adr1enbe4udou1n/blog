@@ -334,7 +334,11 @@ Don't forget to remove the original secret file before commit for obvious reason
 You may use [VSCode extension](https://github.com/codecontemplator/vscode-kubeseal)
 {{< /alert >}}
 
-Wait few minutes, and go to `pgadmin.kube.rocks` and login with chosen credentials. Now try to register a new server with `postgresql-primary.postgres` as hostname, and the rest with your PostgreSQL credential on previous installation. It should work !
+Push it and wait a minute, and go to `pgadmin.kube.rocks` and login with chosen credentials. Now try to register a new server with `postgresql-primary.postgres` as hostname, and the rest with your PostgreSQL credential on previous installation. It should work !
+
+{{< alert >}}
+If you won't wait, do `flux reconcile kustomization flux-system --with-source` (require `flux-cli`). It also allows easy debugging by printing any syntax error in your manifests. It applies for every push from the flux repo.
+{{< /alert >}}
 
 You can test the read replica too by register a new server using the hostname `postgresql-read.postgres`. Try to do some update on primary and check that it's replicated on read replica. Any modification on replicas should be rejected as well.
 
