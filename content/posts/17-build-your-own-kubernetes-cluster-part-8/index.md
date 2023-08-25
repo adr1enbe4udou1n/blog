@@ -1,8 +1,8 @@
 ---
-title: "Setup a HA Kubernetes cluster Part VIII - Load testing & tracing"
+title: "Setup a HA Kubernetes cluster Part VIII - QA & code metrics with SonarQube"
 date: 2023-10-08
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
-tags: ["kubernetes", "load-testing", "k6", "tracing", "tempo"]
+tags: ["kubernetes", "testing", "sonarqube"]
 draft: true
 ---
 
@@ -12,14 +12,12 @@ Be free from AWS/Azure/GCP by building a production grade On-Premise Kubernetes 
 
 This is the **Part VIII** of more global topic tutorial. [Back to first part]({{< ref "/posts/10-build-your-own-kubernetes-cluster" >}}) for intro.
 
-1. K6
-2. InfluxDB
-3. Load balancing sample app (database clustering case)
-4. Tempo
-5. Tracing test inside app / OpenTelemetry
+1. Real DB App sample
+2. Production grade deployment (liveness, readiness, healthcheck, resource limits, logging)
+3. Unit Testing
+4. SonarQube
+5. CodeCoverage
 
-## Final check 🎊🏁🎊
+## 7th check ✅
 
-Congratulation if you're getting that far !!!
-
-You have a complete CI/CD flexible solution, HA ready and not that expensive.
+We have everything we need for app building with automatic deployment ! Go [next part]({{< ref "/posts/18-build-your-own-kubernetes-cluster-part-9" >}}) for advanced tracing / load testing !

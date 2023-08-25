@@ -1154,4 +1154,4 @@ Wait the pod to be updated, then check the new endpoint `https://demo.kube.rocks
 
 ## 6th check ✅
 
-We have everything we need for app building with automatic deployment ! Go [next part]({{< ref "/posts/15-build-your-own-kubernetes-cluster-part-6" >}}) for advanced tracing / load testing !
+We have everything we need for app building with automatic deployment ! Go [next part]({{< ref "/posts/17-build-your-own-kubernetes-cluster-part-8" >}}) for advanced tracing / load testing !
