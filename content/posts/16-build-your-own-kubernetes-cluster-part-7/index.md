@@ -1129,7 +1129,7 @@ Damn, I think we're done 🎉 ! It's time retest the full process. Add new contr
 
 {{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Controllers/WeatherForecastController.cs" >}}
 
-```csharp
+```cs
 //...
 public class WeatherForecastController : ControllerBase
 {
