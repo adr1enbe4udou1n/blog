@@ -872,7 +872,7 @@ After some time, You can finally use the Prometheus dashboard to query your app 
 
 ### Application tracing
 
-A more useful case for OpenTelemetry is to integrate it to a tracing backend. [Tempo](https://grafana.com/oss/tempo/) is a good candidate, which is a free open-source alternative to Jaeger, simpler to install by requiring a simple s3 as storage.
+A more useful case for OpenTelemetry is to integrate it to a tracing backend. [Tempo](https://grafana.com/oss/tempo/) is a good candidate, which is a free open-source alternative to Jaeger, simpler to install by requiring a simple s3 as storage, and compatible to many protocols as Jaeger, OTLP, Zipkin.
 
 #### Installing Tempo
 
@@ -926,11 +926,6 @@ resource "helm_release" "tempo" {
   }
 
   set {
-    name  = "tempo.receivers.zipkin.endpoint"
-    value = "0.0.0.0:9411"
-  }
-
-  set {
     name  = "serviceMonitor.enabled"
     value = "true"
   }
@@ -962,6 +957,81 @@ EOF
 {{< /highlight >}}
 
 #### OpenTelemetry
+
+Let's firstly add another instrumentation package specialized for Npgsql driver used by EF Core to translate queries to PostgreSQL:
+
+```sh
+dotnet add src/KubeRocks.WebApi package Npgsql.OpenTelemetry
+```
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
+
+Then bridge all needed instrumentation as well as the OTLP exporter:
+
+```cs
+builder.Services.AddOpenTelemetry()
+    //...
+    .WithTracing(b =>
+    {
+        b
+            .SetResourceBuilder(ResourceBuilder
+                .CreateDefault()
+                .AddService("KubeRocks.Demo")
+                .AddTelemetrySdk()
+            )
+            .AddAspNetCoreInstrumentation(b =>
+            {
+                b.Filter = ctx =>
+                {
+                    return ctx.Request.Path.StartsWithSegments("/api");
+                };
+            })
+            .AddEntityFrameworkCoreInstrumentation()
+            .AddNpgsql()
+            .AddOtlpExporter();
+    });
+```
+
+{{< /highlight >}}
+
+Then add the exporter endpoint config in order to push traces to Tempo:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/deploy-demo.yaml" >}}
+
+```yaml
+#...
+spec:
+  #...
+  template:
+    #...
+    spec:
+      #...
+      containers:
+        - name: api
+          #...
+          env:
+            #...
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://tempo.tracing:4317
+```
+
+{{< /highlight >}}
+
+Call some API URLs and get back to Grafana / Explore, select Tempo data source and search for query traces. You should see something like this:
+
+[![Tempo search](tempo-search.png)](tempo-search.png)
+
+Click on one specific trace to get details. You can go through HTTP requests, EF Core time response, and even underline SQL queries thanks to Npgsql instrumentation:
+
+[![Tempo traces](tempo-trace.png)](tempo-trace.png)
+
+### Deeper integration with Loki
+
+It would be nice to have traces directly in Loki, in order to correlate them with logs.
+
+```sh
+dotnet add src/KubeRocks.WebApi package Serilog.Enrichers.Span
+```
 
 ## 7th check ✅
 

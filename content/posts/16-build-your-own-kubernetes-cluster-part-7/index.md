@@ -311,6 +311,7 @@ mkdir kuberocks-demo
 cd kuberocks-demo
 dotnet new sln
 dotnet new gitignore
+dotnet new editorconfig
 dotnet new webapi -o src/KubeRocks.WebApi
 dotnet sln add src/KubeRocks.WebApi
 git init
