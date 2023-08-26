@@ -1,8 +1,8 @@
 ---
-title: "Setup a HA Kubernetes cluster Part VIII - QA & code metrics with SonarQube"
+title: "Setup a HA Kubernetes cluster Part VIII - Further development & OpenTelemetry"
 date: 2023-10-08
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
-tags: ["kubernetes", "testing", "sonarqube"]
+tags: ["kubernetes", "development", "opentelemetry", "tracing", "tempo"]
 draft: true
 ---
 
@@ -756,19 +756,129 @@ Be aware of difference between `liveness` and `readiness` probes. The first one 
 When **Rolling Update** strategy is used (the default), the old pod is not killed until the new one is ready (aka healthy).
 {{< /alert >}}
 
-## Unit & integration Testing
+## Telemetry
 
-### xUnit
+The last step but not least missing for a total integration with our monitored Kubernetes cluster is to add some telemetry to our app. We'll use `OpenTelemetry` for that, which becomes the standard library for metrics and tracing, by providing good integration to many languages.
 
-### CI configuration
+### Application metrics
 
-## Code Metrics
+Install minimal ASP.NET Core metrics is really a no-brainer:
 
-### SonarQube installation
+```sh
+dotnet add src/KubeRocks.WebApi package OpenTelemetry.AutoInstrumentation --prerelease
+dotnet add src/KubeRocks.WebApi package OpenTelemetry.Extensions.Hosting --prerelease
+dotnet add src/KubeRocks.WebApi package OpenTelemetry.Exporter.Prometheus.AspNetCore --prerelease
+```
 
-### Project configuration
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
 
-### Code Coverage
+```cs
+//...
+
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(b =>
+    {
+        b
+            .AddAspNetCoreInstrumentation()
+            .AddPrometheusExporter();
+    });
+
+var app = builder.Build();
+
+app.UseOpenTelemetryPrometheusScrapingEndpoint();
+
+//...
+```
+
+{{< /highlight >}}
+
+Relaunch app and go to `https://demo.kube.rocks/metrics` to confirm it's working. It should show metrics after each endpoint call, simply try `https://demo.kube.rocks/Articles`.
+
+{{< alert >}}
+.NET metrics are currently pretty basic, but the next .NET 8 version will provide far better metrics from internal components allowing some [useful dashboard](https://github.com/JamesNK/aspnetcore-grafana).
+{{< /alert >}}
+
+### Hide internal endpoints
+
+After push, you should see `/metrics` live. Let's step back and exclude this internal path from external public access. We have 2 options:
+
+* Force on the app side to listen only on private network on `/metrics` and `/healthz` endpoints
+* Push all the app logic under `/api` path and let Traefik to include only this path
+
+Let's do the option 2. Add the route prefix convention:
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Conventions/RoutePrefixConvention.cs" >}}
+
+```cs
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.Routing;
+
+namespace KubeRocks.WebApi.Conventions;
+
+public class RoutePrefixConvention : IApplicationModelConvention
+{
+    private readonly AttributeRouteModel _routePrefix;
+    public RoutePrefixConvention(IRouteTemplateProvider route)
+    {
+        _routePrefix = new AttributeRouteModel(route);
+    }
+    public void Apply(ApplicationModel application)
+    {
+        foreach (var selector in application.Controllers.SelectMany(c => c.Selectors))
+        {
+            selector.AttributeRouteModel = selector.AttributeRouteModel != null
+                ? AttributeRouteModel.CombineAttributeRouteModel(_routePrefix, selector.AttributeRouteModel)
+                : _routePrefix;
+        }
+    }
+}
+```
+
+{{< /highlight >}}
+
+Add this convention to controllers:
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
+
+```cs
+//...
+
+builder.Services.AddControllers(opt =>
+{
+    opt.Conventions.Add(
+      new RoutePrefixConvention(new RouteAttribute("/api"))
+    );
+});
+
+//...
+```
+
+{{< /highlight >}}
+
+Now all MVC controllers, and ONLY the MVC controllers, will be under `/api` path. All is left is to add a path prefix to include only the API endpoints:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/deploy-demo.yaml" >}}
+
+```yaml
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+#...
+spec:
+  #...
+  routes:
+    - match: Host(`demo.kube.rocks`) && PathPrefix(`/api`)
+      #...
+```
+
+{{< /highlight >}}
+
+Now the new URL is `https://demo.kube.rocks/api/Articles`. Now any path different than `api` will return a 404, and internal path as `https://demo.kube.rocks/metrics` is not accessible anymore. The other additional advantage simple to put a separated frontend project under `/` path, which can use the under API without any CORS problem natively.
+
+### Prometheus integration
+
+### Tracing with Tempo
+
+A more useful case for OpenTelemetry [Tempo](https://grafana.com/oss/tempo/) as tracing backend, which is a free open-source alternative to Jaeger. It's a bit more complex to setup than Jaeger, but it's worth it.
 
 ## 7th check ✅
 
