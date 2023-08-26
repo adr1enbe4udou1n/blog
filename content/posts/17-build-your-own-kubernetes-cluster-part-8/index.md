@@ -1106,4 +1106,4 @@ This will give us the nice link button as soon as you you click a log detail:
 
 ## 7th check ✅
 
-We have done for the basic functional telemetry ! There is infinite things to cover in this subject but it's enough for this endless guide. Go [next part]({{< ref "/posts/18-build-your-own-kubernetes-cluster-part-9" >}}) for the final part with testing, code metrics, code coverage, and load testing !
+We have done for the basic functional telemetry ! There is infinite things to cover in this subject, but it's enough for this endless guide. Go [next part]({{< ref "/posts/18-build-your-own-kubernetes-cluster-part-9" >}}) for the final part with testing, code metrics, code coverage, and load testing !
