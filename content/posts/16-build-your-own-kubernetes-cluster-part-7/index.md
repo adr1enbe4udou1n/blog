@@ -978,6 +978,8 @@ kind: Service
 metadata:
   name: demo
   namespace: kuberocks
+  labels:
+    app: demo
 spec:
   selector:
     app: demo

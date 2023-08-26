@@ -798,7 +798,7 @@ Relaunch app and go to `https://demo.kube.rocks/metrics` to confirm it's working
 .NET metrics are currently pretty basic, but the next .NET 8 version will provide far better metrics from internal components allowing some [useful dashboard](https://github.com/JamesNK/aspnetcore-grafana).
 {{< /alert >}}
 
-### Hide internal endpoints
+#### Hide internal endpoints
 
 After push, you should see `/metrics` live. Let's step back and exclude this internal path from external public access. We have 2 options:
 
@@ -843,11 +843,125 @@ spec:
 
 Now the new URL is `https://demo.kube.rocks/api/Articles`. Any path different from `api` will return the Traefik 404 page, and internal paths as `https://demo.kube.rocks/metrics` is not accessible anymore. An other additional advantage of this config, it's simple to put a separated frontend project under `/` path, which can use the under API without any CORS problem natively.
 
-### Prometheus integration
+#### Prometheus integration
 
-### Tracing with Tempo
+It's only a matter of new ServiceMonitor config:
 
-A more useful case for OpenTelemetry [Tempo](https://grafana.com/oss/tempo/) as tracing backend, which is a free open-source alternative to Jaeger. It's a bit more complex to setup than Jaeger, but it's worth it.
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/deploy-demo.yaml" >}}
+
+```yaml
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: demo
+  namespace: kuberocks
+spec:
+  endpoints:
+    - targetPort: 80
+  selector:
+    matchLabels:
+      app: demo
+```
+
+{{< /highlight >}}
+
+After some time, You can finally use the Prometheus dashboard to query your app metrics. Use `{namespace="kuberocks",job="demo"}` PromQL query to list all available metrics:
+
+[![Prometheus metrics](prometheus-graph.png)](prometheus-graph.png)
+
+### Application tracing
+
+A more useful case for OpenTelemetry is to integrate it to a tracing backend. [Tempo](https://grafana.com/oss/tempo/) is a good candidate, which is a free open-source alternative to Jaeger, simpler to install by requiring a simple s3 as storage.
+
+#### Installing Tempo
+
+It's another Helm Chart to install as well as the related grafana datasource:
+
+{{< highlight host="demo-kube-k3s" file="tracing.tf" >}}
+
+```tf
+resource "kubernetes_namespace_v1" "tracing" {
+  metadata {
+    name = "tracing"
+  }
+}
+
+resource "helm_release" "tempo" {
+  chart      = "tempo"
+  version    = "1.5.1"
+  repository = "https://grafana.github.io/helm-charts"
+
+  name      = "tempo"
+  namespace = kubernetes_namespace_v1.tracing.metadata[0].name
+
+  set {
+    name  = "tempo.storage.trace.backend"
+    value = "s3"
+  }
+
+  set {
+    name  = "tempo.storage.trace.s3.bucket"
+    value = var.s3_bucket
+  }
+
+  set {
+    name  = "tempo.storage.trace.s3.endpoint"
+    value = var.s3_endpoint
+  }
+
+  set {
+    name  = "tempo.storage.trace.s3.region"
+    value = var.s3_region
+  }
+
+  set {
+    name  = "tempo.storage.trace.s3.access_key"
+    value = var.s3_access_key
+  }
+
+  set {
+    name  = "tempo.storage.trace.s3.secret_key"
+    value = var.s3_secret_key
+  }
+
+  set {
+    name  = "tempo.receivers.zipkin.endpoint"
+    value = "0.0.0.0:9411"
+  }
+
+  set {
+    name  = "serviceMonitor.enabled"
+    value = "true"
+  }
+}
+
+resource "kubernetes_config_map_v1" "tempo_grafana_datasource" {
+  metadata {
+    name      = "tempo-grafana-datasource"
+    namespace = kubernetes_namespace_v1.monitoring.metadata[0].name
+    labels = {
+      grafana_datasource = "1"
+    }
+  }
+
+  data = {
+    "datasource.yaml" = <<EOF
+apiVersion: 1
+datasources:
+- name: Tempo
+  type: tempo
+  uid: tempo
+  url: http://tempo.tracing:3100/
+  access: proxy
+EOF
+  }
+}
+```
+
+{{< /highlight >}}
+
+#### OpenTelemetry
 
 ## 7th check ✅
 
