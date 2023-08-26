@@ -805,57 +805,26 @@ After push, you should see `/metrics` live. Let's step back and exclude this int
 * Force on the app side to listen only on private network on `/metrics` and `/healthz` endpoints
 * Push all the app logic under `/api` path and let Traefik to include only this path
 
-Let's do the option 2. Add the route prefix convention:
+Let's do the option 2. Add the `api/` prefix to controllers to expose:
 
-{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Conventions/RoutePrefixConvention.cs" >}}
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Controllers/ArticlesController.cs" >}}
 
 ```cs
-using Microsoft.AspNetCore.Mvc.ApplicationModels;
-using Microsoft.AspNetCore.Mvc.Routing;
-
-namespace KubeRocks.WebApi.Conventions;
-
-public class RoutePrefixConvention : IApplicationModelConvention
-{
-    private readonly AttributeRouteModel _routePrefix;
-    public RoutePrefixConvention(IRouteTemplateProvider route)
-    {
-        _routePrefix = new AttributeRouteModel(route);
-    }
-    public void Apply(ApplicationModel application)
-    {
-        foreach (var selector in application.Controllers.SelectMany(c => c.Selectors))
-        {
-            selector.AttributeRouteModel = selector.AttributeRouteModel != null
-                ? AttributeRouteModel.CombineAttributeRouteModel(_routePrefix, selector.AttributeRouteModel)
-                : _routePrefix;
-        }
-    }
+//...
+[ApiController]
+[Route("api/[controller]")]
+public class ArticlesController {
+    //...
 }
 ```
 
 {{< /highlight >}}
 
-Add this convention to controllers:
+{{< alert >}}
+You may use ASP.NET API versioning, which work the same way with [versioning URL path](https://github.com/dotnet/aspnet-api-versioning/wiki/Versioning-via-the-URL-Path).
+{{< /alert >}}
 
-{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
-
-```cs
-//...
-
-builder.Services.AddControllers(opt =>
-{
-    opt.Conventions.Add(
-      new RoutePrefixConvention(new RouteAttribute("/api"))
-    );
-});
-
-//...
-```
-
-{{< /highlight >}}
-
-Now all MVC controllers, and ONLY the MVC controllers, will be under `/api` path. All is left is to add a path prefix to include only the API endpoints:
+All is left is to include only the endpoints under `/api` prefix on Traefik IngressRoute:
 
 {{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/deploy-demo.yaml" >}}
 
@@ -872,7 +841,7 @@ spec:
 
 {{< /highlight >}}
 
-Now the new URL is `https://demo.kube.rocks/api/Articles`. Now any path different than `api` will return a 404, and internal path as `https://demo.kube.rocks/metrics` is not accessible anymore. The other additional advantage simple to put a separated frontend project under `/` path, which can use the under API without any CORS problem natively.
+Now the new URL is `https://demo.kube.rocks/api/Articles`. Any path different from `api` will return the Traefik 404 page, and internal paths as `https://demo.kube.rocks/metrics` is not accessible anymore. An other additional advantage of this config, it's simple to put a separated frontend project under `/` path, which can use the under API without any CORS problem natively.
 
 ### Prometheus integration
 
