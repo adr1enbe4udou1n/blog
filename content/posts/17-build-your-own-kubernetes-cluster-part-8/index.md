@@ -964,11 +964,13 @@ Let's firstly add another instrumentation package specialized for Npgsql driver 
 dotnet add src/KubeRocks.WebApi package Npgsql.OpenTelemetry
 ```
 
-{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
-
 Then bridge all needed instrumentation as well as the OTLP exporter:
 
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
+
 ```cs
+//...
+
 builder.Services.AddOpenTelemetry()
     //...
     .WithTracing(b =>
@@ -990,6 +992,8 @@ builder.Services.AddOpenTelemetry()
             .AddNpgsql()
             .AddOtlpExporter();
     });
+
+//...
 ```
 
 {{< /highlight >}}
@@ -1025,14 +1029,81 @@ Click on one specific trace to get details. You can go through HTTP requests, EF
 
 [![Tempo traces](tempo-trace.png)](tempo-trace.png)
 
-### Deeper integration with Loki
+#### Correlation with Loki
 
-It would be nice to have traces directly in Loki, in order to correlate them with logs.
+It would be nice to have directly access to trace from logs through Loki search, as it's clearly a more seamless way than searching inside Tempo.
+
+For that we need to do 2 things :
+
+* Add the `TraceId` to logs in order to correlate trace with log. In ASP.NET Core, a `TraceId` correspond to a unique request, allowing isolation analyze for each request.
+* Create a link in Grafana from the generated `TraceId` inside log and the detail Tempo view trace.
+
+So firstly, let's take care of the app part by attaching the OpenTelemetry TraceId to Serilog:
 
 ```sh
 dotnet add src/KubeRocks.WebApi package Serilog.Enrichers.Span
 ```
 
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
+
+```cs
+//...
+
+builder.Host.UseSerilog((ctx, cfg) => cfg
+    .ReadFrom.Configuration(ctx.Configuration)
+    .Enrich.WithSpan()
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] |{TraceId}| {Message:lj}{NewLine}{Exception}"
+    )
+);
+
+//...
+```
+
+{{< /highlight >}}
+
+It should now generate that kind of logs:
+
+```txt
+[23:22:57 INF] |aa51c7254aaa10a3f679a511444a5da5| HTTP GET /api/Articles responded 200 in 301.7052 ms
+```
+
+Now Let's adapt the Loki datasource by creating a derived field inside `jsonData` property:
+
+{{< highlight host="demo-kube-k3s" file="logging.tf" >}}
+
+```tf
+resource "kubernetes_config_map_v1" "loki_grafana_datasource" {
+  #...
+
+  data = {
+    "datasource.yaml" = <<EOF
+apiVersion: 1
+datasources:
+- name: Loki
+  #...
+  jsonData:
+    derivedFields:
+      - datasourceName: Tempo
+        matcherRegex: "\\|(\\w+)\\|"
+        name: TraceID
+        url: "$$${__value.raw}"
+        datasourceUid: tempo
+EOF
+  }
+}
+```
+
+{{< /highlight >}}
+
+This where the magic happens. The `\|(\w+)\|` regex will match and extract the `TraceId` inside the log, which is inside pipes, and create a link to Tempo trace detail view.
+
+[![Derived fields](loki-derived-fields.png)](loki-derived-fields.png)
+
+This will give us the nice link button as soon as you you click a log detail:
+
+[![Derived fields](loki-tempo-link.png)](loki-tempo-link.png)
+
 ## 7th check ✅
 
-We have everything we need for app building with automatic deployment ! Go [next part]({{< ref "/posts/18-build-your-own-kubernetes-cluster-part-9" >}}) for advanced tracing / load testing !
+We have done for the basic functional telemetry ! There is infinite things to cover in this subject but it's enough for this endless guide. Go [next part]({{< ref "/posts/18-build-your-own-kubernetes-cluster-part-9" >}}) for the final part with code metrics and load testing !
