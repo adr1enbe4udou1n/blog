@@ -944,6 +944,41 @@ If everything is ok, check in `https://gitea.kube.rocks/admin/packages`, you sho
 
 [![Concourse build](concourse-build.png)](concourse-build.png)
 
+#### Automatic pipeline update
+
+If you don't want to use fly CLI every time for any pipeline update, you maybe interested in `set_pipeline` feature. Create following file:
+
+{{< highlight host="demo-kube-flux" file="pipelines/main.yaml" >}}
+
+```tf
+resources:
+  - name: ci
+    type: git
+    icon: git
+    source:
+      uri: https://github.com/kuberocks/demo-kube-flux
+
+jobs:
+  - name: configure-pipelines
+    plan:
+      - get: ci
+        trigger: true
+      - set_pipeline: demo
+        file: ci/pipelines/demo.yaml
+```
+
+{{< /highlight >}}
+
+Then apply it:
+
+```sh
+fly -t kuberocks set-pipeline -p main -c pipelines/main.yaml
+```
+
+Now you can manually trigger the pipeline, or wait for the next check, and it will update the demo pipeline automatically. If you're using a private repo for your pipelines, you may need to add a new secret for the git credentials and set `username` and `password` accordingly.
+
+You almost no need of fly CLI anymore, except for adding new pipelines ! You can even go further with `set_pipeline: self` which is always an experimental feature.
+
 ### The deployment
 
 If you followed the previous parts of this tutorial, you should have clue about how to deploy your app. Let's create deploy it with Flux:
