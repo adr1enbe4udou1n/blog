@@ -350,7 +350,10 @@ Expose the startup service of minimal API:
 
 ```cs
 #...
-public partial class Program { }
+public partial class Program
+{
+    protected Program() { }
+}
 ```
 
 {{< /highlight >}}
@@ -423,16 +426,16 @@ namespace KubeRocks.FeatureTests;
 [Collection("Sequencial")]
 public class TestBase : IClassFixture<KubeRocksApiFactory>, IAsyncLifetime
 {
-    protected readonly KubeRocksApiFactory _factory;
+    protected KubeRocksApiFactory Factory { get; private set; }
 
     protected TestBase(KubeRocksApiFactory factory)
     {
-        _factory = factory;
+        Factory = factory;
     }
 
     public async Task RefreshDatabase()
     {
-        using var scope = _factory.Services.CreateScope();
+        using var scope = Factory.Services.CreateScope();
 
         using var conn = new NpgsqlConnection(
             scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.GetConnectionString()
@@ -491,7 +494,7 @@ public class ArticlesListTests : TestBase
     [Fact]
     public async Task Can_Paginate_Articles()
     {
-        using (var scope = _factory.Services.CreateScope())
+        using (var scope = Factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
@@ -513,7 +516,7 @@ public class ArticlesListTests : TestBase
             await db.SaveChangesAsync();
         }
 
-        var response = await _factory.CreateClient().GetAsync("/api/Articles?page=1&size=20");
+        var response = await Factory.CreateClient().GetAsync("/api/Articles?page=1&size=20");
 
         response.EnsureSuccessStatusCode();
 
@@ -537,7 +540,7 @@ public class ArticlesListTests : TestBase
     [Fact]
     public async Task Can_Get_Article()
     {
-        using (var scope = _factory.Services.CreateScope())
+        using (var scope = Factory.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
@@ -557,7 +560,7 @@ public class ArticlesListTests : TestBase
             await db.SaveChangesAsync();
         }
 
-        var response = await _factory.CreateClient().GetAsync($"/api/Articles/test-title");
+        var response = await Factory.CreateClient().GetAsync($"/api/Articles/test-title");
 
         response.EnsureSuccessStatusCode();
 
@@ -633,9 +636,114 @@ If all goes well, you should see the tests results on SonarQube with some covera
 
 Coverage detail:
 
-[![SonarQube](sonarqube-coverage.png)](sonarqube-coverage.png)
+[![SonarQube](sonarqube-cc.png)](sonarqube-cc.png)
 
-### Sonar Lint
+You may exclude some files from analysis by adding some project properties:
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.Application/KubeRocks.Application.csproj" >}}
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- ... -->
+
+  <ItemGroup>
+    <SonarQubeSetting Include="sonar.exclusions">
+      <Value>appsettings.Testing.json</Value>
+    </SonarQubeSetting>
+  </ItemGroup>
+</Project>
+```
+
+{{< /highlight >}}
+
+Same for coverage:
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.Application/KubeRocks.Application.csproj" >}}
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- ... -->
+
+  <ItemGroup>
+    <SonarQubeSetting Include="sonar.coverage.exclusions">
+      <Value>Migrations/**/*</Value>
+    </SonarQubeSetting>
+  </ItemGroup>
+</Project>
+```
+
+{{< /highlight >}}
+
+### Sonar Analyzer
+
+You can enforce many default sonar rules by using [Sonar Analyzer](https://github.com/SonarSource/sonar-dotnet) directly locally before any code push.
+
+Create this file at the root of your solution for enabling Sonar Analyzer globally:
+
+{{< highlight host="kuberocks-demo" file="Directory.Build.props" >}}
+
+```xml
+<Project>
+  <PropertyGroup>
+    <AnalysisLevel>latest-Recommended</AnalysisLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference
+      Include="SonarAnalyzer.CSharp"
+      Version="9.8.0.76515"
+      PrivateAssets="all"
+      Condition="$(MSBuildProjectExtension) == '.csproj'"
+    />
+  </ItemGroup>
+</Project>
+```
+
+{{< /highlight >}}
+
+Any rule violation is treated as error at project building, which block the CI before execution of tests. Use `latest-All` as `AnalysisLevel` for psychopath mode.
+
+At this stage as soon this file is added, you should see some errors at building. If you use VSCode with correct C# extension, these errors will be highlighted directly in the editor. Here are some fixes:
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
+
+```cs
+#...
+
+builder.Host.UseSerilog((ctx, cfg) => cfg
+    .ReadFrom.Configuration(ctx.Configuration)
+    .Enrich.WithSpan()
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] |{TraceId}| {Message:lj}{NewLine}{Exception}",
+        // Enforce culture
+        formatProvider: CultureInfo.InvariantCulture
+    )
+);
+
+#...
+```
+
+{{< /highlight >}}
+
+Delete `WeatherForecastController.cs`.
+
+{{< highlight host="kuberocks-demo" file="tests/KubeRocks.FeatureTests.csproj" >}}
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- ... -->
+
+    <NoWarn>CA1707</NoWarn>
+  </PropertyGroup>
+
+  <!-- ... -->
+</Project>
+```
+
+{{< /highlight >}}
 
 ## Load testing
 
