@@ -312,11 +312,22 @@ jobs:
 
 {{< /highlight >}}
 
-Note as we now use the `dotnet-qa` image and surround the build step by `dotnet sonarscanner begin` and `dotnet sonarscanner end` commands with appropriate credentials allowing Sonar CLI to send report to our SonarQube instance.
+Note as we now use the `dotnet-qa` image and surround the build step by `dotnet sonarscanner begin` and `dotnet sonarscanner end` commands with appropriate credentials allowing Sonar CLI to send report to our SonarQube instance. Trigger the pipeline manually, all should pass, and the result will be pushed to SonarQube.
 
-## Unit & integration Testing
+[![SonarQube](sonarqube-dashboard.png)](sonarqube-dashboard.png)
+
+## Feature testing
+
+Let's cover the feature testing by calling the API against a real database. This is the opportunity to cover the code coverage as well.
 
 ### xUnit
+
+```sh
+dotnet new xunit -o tests/KubeRocks.FeatureTests
+dotnet add tests/KubeRocks.FeatureTests reference src/KubeRocks.WebApi
+dotnet add tests/KubeRocks.FeatureTests package Respawn
+dotnet add tests/KubeRocks.FeatureTests package FluentAssertions
+```
 
 ### Code Coverage
 
