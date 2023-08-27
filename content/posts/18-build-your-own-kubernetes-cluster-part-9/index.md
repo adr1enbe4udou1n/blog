@@ -322,14 +322,320 @@ Let's cover the feature testing by calling the API against a real database. This
 
 ### xUnit
 
+First add a dedicated database for test in the docker compose file as we won't interfere with the development database:
+
+{{< highlight host="kuberocks-demo" file="docker-compose.yml" >}}
+
+```yaml
+version: "3"
+
+services:
+  #...
+
+  db_test:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: main
+      POSTGRES_PASSWORD: main
+      POSTGRES_DB: main
+    ports:
+      - 54320:5432
+```
+
+{{< /highlight >}}
+
+Expose the startup service of minimal API:
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
+
+```cs
+#...
+public partial class Program { }
+```
+
+{{< /highlight >}}
+
+Then add a testing JSON environment file for accessing our database `db_test` from the docker-compose.yml:
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/appsettings.Testing.json" >}}
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Port=54320;User Id=main;Password=main;Database=main;"
+  }
+}
+```
+
+{{< /highlight >}}
+
+Now the test project:
+
 ```sh
 dotnet new xunit -o tests/KubeRocks.FeatureTests
+dotnet sln add tests/KubeRocks.FeatureTests
 dotnet add tests/KubeRocks.FeatureTests reference src/KubeRocks.WebApi
+dotnet add tests/KubeRocks.FeatureTests package Microsoft.AspNetCore.Mvc.Testing
 dotnet add tests/KubeRocks.FeatureTests package Respawn
 dotnet add tests/KubeRocks.FeatureTests package FluentAssertions
 ```
 
-### Code Coverage
+The `WebApplicationFactory` that will use our testing environment:
+
+{{< highlight host="kuberocks-demo" file="tests/KubeRocks.FeatureTests/KubeRocksApiFactory.cs" >}}
+
+```cs
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Hosting;
+
+namespace KubeRocks.FeatureTests;
+
+public class KubeRocksApiFactory : WebApplicationFactory<Program>
+{
+    protected override IHost CreateHost(IHostBuilder builder)
+    {
+        builder.UseEnvironment("Testing");
+
+        return base.CreateHost(builder);
+    }
+}
+```
+
+{{< /highlight >}}
+
+The base test class for all test classes that manages database cleanup thanks to `Respawn`:
+
+{{< highlight host="kuberocks-demo" file="tests/KubeRocks.FeatureTests/TestBase.cs" >}}
+
+```cs
+using KubeRocks.Application.Contexts;
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
+using Npgsql;
+
+using Respawn;
+using Respawn.Graph;
+
+namespace KubeRocks.FeatureTests;
+
+[Collection("Sequencial")]
+public class TestBase : IClassFixture<KubeRocksApiFactory>, IAsyncLifetime
+{
+    protected readonly KubeRocksApiFactory _factory;
+
+    protected TestBase(KubeRocksApiFactory factory)
+    {
+        _factory = factory;
+    }
+
+    public async Task RefreshDatabase()
+    {
+        using var scope = _factory.Services.CreateScope();
+
+        using var conn = new NpgsqlConnection(
+            scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.GetConnectionString()
+        );
+
+        await conn.OpenAsync();
+
+        var respawner = await Respawner.CreateAsync(conn, new RespawnerOptions
+        {
+            TablesToIgnore = new Table[] { "__EFMigrationsHistory" },
+            DbAdapter = DbAdapter.Postgres
+        });
+
+        await respawner.ResetAsync(conn);
+    }
+
+    public Task InitializeAsync()
+    {
+        return RefreshDatabase();
+    }
+
+    public Task DisposeAsync()
+    {
+        return Task.CompletedTask;
+    }
+}
+```
+
+{{< /highlight >}}
+
+Note the `Collection` attribute that will force the test classes to run sequentially, required as we will use the same database for all tests.
+
+Finally, the tests for the 2 endpoints of our articles controller:
+
+{{< highlight host="kuberocks-demo" file="tests/KubeRocks.FeatureTests/Articles/ArticlesListTests.cs" >}}
+
+```cs
+using System.Net.Http.Json;
+
+using FluentAssertions;
+
+using KubeRocks.Application.Contexts;
+using KubeRocks.Application.Entities;
+using KubeRocks.WebApi.Models;
+
+using Microsoft.Extensions.DependencyInjection;
+
+using static KubeRocks.WebApi.Controllers.ArticlesController;
+
+namespace KubeRocks.FeatureTests.Articles;
+
+public class ArticlesListTests : TestBase
+{
+    public ArticlesListTests(KubeRocksApiFactory factory) : base(factory) { }
+
+    [Fact]
+    public async Task Can_Paginate_Articles()
+    {
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            var user = db.Users.Add(new User
+            {
+                Name = "John Doe",
+                Email = "john.doe@email.com"
+            });
+
+            db.Articles.AddRange(Enumerable.Range(1, 50).Select(i => new Article
+            {
+                Title = $"Test Title {i}",
+                Slug = $"test-title-{i}",
+                Description = "Test Description",
+                Body = "Test Body",
+                Author = user.Entity,
+            }));
+
+            await db.SaveChangesAsync();
+        }
+
+        var response = await _factory.CreateClient().GetAsync("/api/Articles?page=1&size=20");
+
+        response.EnsureSuccessStatusCode();
+
+        var body = (await response.Content.ReadFromJsonAsync<ArticlesResponse>())!;
+
+        body.Articles.Count().Should().Be(20);
+        body.ArticlesCount.Should().Be(50);
+
+        body.Articles.First().Should().BeEquivalentTo(new
+        {
+            Title = "Test Title 50",
+            Description = "Test Description",
+            Body = "Test Body",
+            Author = new
+            {
+                Name = "John Doe"
+            },
+        });
+    }
+
+    [Fact]
+    public async Task Can_Get_Article()
+    {
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            db.Articles.Add(new Article
+            {
+                Title = $"Test Title",
+                Slug = $"test-title",
+                Description = "Test Description",
+                Body = "Test Body",
+                Author = new User
+                {
+                    Name = "John Doe",
+                    Email = "john.doe@email.com"
+                }
+            });
+
+            await db.SaveChangesAsync();
+        }
+
+        var response = await _factory.CreateClient().GetAsync($"/api/Articles/test-title");
+
+        response.EnsureSuccessStatusCode();
+
+        var body = (await response.Content.ReadFromJsonAsync<ArticleDto>())!;
+
+        body.Should().BeEquivalentTo(new
+        {
+            Title = "Test Title",
+            Description = "Test Description",
+            Body = "Test Body",
+            Author = new
+            {
+                Name = "John Doe"
+            },
+        });
+    }
+}
+```
+
+{{< /highlight >}}
+
+Ensure all tests passes with `dotnet test`.
+
+### CI tests & code coverage
+
+Now we need to integrate the tests in our CI pipeline. As we testing with a real database, create a new `demo_test` database through pgAdmin with basic `test` / `test` credentials.
+
+{{< alert >}}
+In real world scenario, you should use a dedicated database for testing, and not the same as production.
+{{< /alert >}}
+
+Let's edit the pipeline accordingly for tests:
+
+{{< highlight host="demo-kube-flux" file="pipelines/demo.yaml" >}}
+
+```yml
+#...
+
+jobs:
+  - name: build
+    plan:
+      #...
+
+      - task: build-source
+        config:
+          #...
+          params:
+            ConnectionStrings__DefaultConnection: "Server=postgres-primary.postgres; Port=5432; User Id=test; Password=test; Database=demo_test"
+          run:
+            path: /bin/sh
+            args:
+              - -ec
+              - |
+                dotnet format --verify-no-changes
+
+                dotnet sonarscanner begin /k:"KubeRocks-Demo" /d:sonar.host.url="((sonarqube.url))"  /d:sonar.token="((sonarqube.analysis-token))" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+                dotnet build -c Release
+                dotnet-coverage collect 'dotnet test -c Release --no-restore --no-build --verbosity=normal' -f xml -o 'coverage.xml'
+                dotnet sonarscanner end /d:sonar.token="((sonarqube.analysis-token))"
+
+                dotnet publish src/KubeRocks.WebApi -c Release -o publish --no-restore --no-build
+
+#...
+```
+
+{{< /highlight >}}
+
+Note as we already include code coverage by using `dotnet-coverage` tool. Don't forget to precise the path of `coverage.xml` to `sonarscanner` CLI too. It's time to push our code with tests or trigger the pipeline manually to test our integration tests.
+
+If all goes well, you should see the tests results on SonarQube with some coverage done:
+
+[![SonarQube](sonarqube-tests.png)](sonarqube-tests.png)
+
+Coverage detail:
+
+[![SonarQube](sonarqube-coverage.png)](sonarqube-coverage.png)
+
+### Sonar Lint
 
 ## Load testing
 

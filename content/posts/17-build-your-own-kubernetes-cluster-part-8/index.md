@@ -30,20 +30,11 @@ services:
       POSTGRES_DB: main
     ports:
       - 5432:5432
-
-  db_test:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: main
-      POSTGRES_PASSWORD: main
-      POSTGRES_DB: main
-    ports:
-      - 54320:5432
 ```
 
 {{< /highlight >}}
 
-Here we create 2 PostgreSQL instances, one for local development and one for integration testing. Launch them with `docker compose up -d` and check they are both running with `docker ps`.
+Launch it with `docker compose up -d` and check database running with `docker ps`.
 
 Time to create basic code that list plenty of articles from an API endpoint. Go back to `kuberocks-demo` and create a new separate project dedicated to app logic:
 
@@ -83,8 +74,8 @@ public class Article
     public required string Description { get; set; }
     public required string Body { get; set; }
 
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     public ICollection<Comment> Comments { get; } = new List<Comment>();
 }
@@ -106,7 +97,7 @@ public class Comment
 
     public required string Body { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 ```
 
@@ -506,7 +497,7 @@ public class ArticlesController
     public ArticlesResponse Get([FromQuery] int page = 1, [FromQuery] int size = 10)
     {
         var articles = _context.Articles
-            .OrderByDescending(a => a.CreatedAt)
+            .OrderByDescending(a => a.Id)
             .Skip((page - 1) * size)
             .Take(size)
             .ProjectToType<ArticleListDto>();
@@ -521,7 +512,7 @@ public class ArticlesController
     {
         var article = _context.Articles
             .Include(a => a.Author)
-            .Include(a => a.Comments.OrderByDescending(c => c.CreatedAt))
+            .Include(a => a.Comments.OrderByDescending(c => c.Id))
             .ThenInclude(c => c.Author)
             .FirstOrDefault(a => a.Slug == slug);
 
