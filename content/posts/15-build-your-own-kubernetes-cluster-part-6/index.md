@@ -70,7 +70,7 @@ resource "kubernetes_namespace_v1" "monitoring" {
 
 resource "helm_release" "kube_prometheus_stack" {
   chart      = "kube-prometheus-stack"
-  version    = "48.3.3"
+  version    = "49.0.0"
   repository = "https://prometheus-community.github.io/helm-charts"
 
   name      = "kube-prometheus-stack"
@@ -94,6 +94,11 @@ resource "helm_release" "kube_prometheus_stack" {
   set {
     name  = "prometheus.prometheusSpec.podMonitorSelectorNilUsesHelmValues"
     value = "false"
+  }
+
+  set {
+    name  = "prometheus.prometheusSpec.enableRemoteWriteReceiver"
+    value = "true"
   }
 
   set {
@@ -150,6 +155,8 @@ The application is deployed in `monitoring` namespace. It can takes a few minute
 Important notes :
 
 * We set a retention of **15 days** and **5GB** of storage for Prometheus. Set this according to your needs.
+* We allow `serviceMonitorSelector` and `podMonitorSelector` for scrapping monitor CRDs from all namespaces.
+* We set `enableRemoteWriteReceiver` to allow remote write to databases for advanced specific usage, as by default Prometheus works with pull model on its own.
 * As we don't set any storage class, the default one will be used, which is `local-path` when using K3s. If you want to use longhorn instead and benefit of automatic monitoring backup, you can set it with `...volumeClaimTemplate.spec.storageClassName`. But don't forget to deploy Longhorn manager by adding monitor toleration.
 * As it's a huge chart, I want to minimize dependencies by disabling Grafana, as I prefer manage it separately. However, in this case we must set `grafana.forceDeployDatasources` and `grafana.forceDeployDashboards` to `true` in order to benefit of all included Kubernetes dashboards and automatic Prometheus datasource injection, and deploy them to config maps that can be used for next Grafana install by provisioning.
 

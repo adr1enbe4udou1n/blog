@@ -747,9 +747,189 @@ Delete `WeatherForecastController.cs`.
 
 ## Load testing
 
+When it comes load testing, k6 is a perfect tool for this job and integrate with many real time series database integration like Prometheus or InfluxDB. As we already have Prometheus, let's use it and avoid us a separate InfluxDB installation. First be sure to allow remote write by enable `enableRemoteWriteReceiver` in the Prometheus Helm chart. It should be already done if you follow this tutorial.
+
 ### K6
 
+We'll reuse our flux repo and add some manifests for defining the load testing scenario. Firstly describe the scenario inside `ConfigMap` that scrape all articles and then each article:
+
+{{< highlight host="demo-kube-flux" file="jobs/demo-k6.yaml" >}}
+
+```yml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scenario
+  namespace: kuberocks
+data:
+  script.js: |
+    import http from "k6/http";
+    import { check } from "k6";
+
+    export default function () {
+      const size = 10;
+      let page = 1;
+
+      let articles = []
+
+      do {
+        const res = http.get(`${__ENV.API_URL}/Articles?page=${page}&size=${size}`);
+        check(res, {
+          "status is 200": (r) => r.status == 200,
+        });
+
+        articles = res.json().articles;
+        page++;
+
+        articles.forEach((article) => {
+          const res = http.get(`${__ENV.API_URL}/Articles/${article.slug}`);
+          check(res, {
+            "status is 200": (r) => r.status == 200,
+          });
+        });
+      }
+      while (articles.length > 0);
+    }
+```
+
+{{< /highlight >}}
+
+And add the k6 `Job` in the same file and configure it for Prometheus usage and mounting above scenario:
+
+{{< highlight host="demo-kube-flux" file="jobs/demo-k6.yaml" >}}
+
+```yml
+#...
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6
+  namespace: kuberocks
+spec:
+  ttlSecondsAfterFinished: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: run
+          image: grafana/k6
+          env:
+            - name: API_URL
+              value: https://demo.kube.rocks/api
+            - name: K6_VUS
+              value: "30"
+            - name: K6_DURATION
+              value: 1m
+            - name: K6_PROMETHEUS_RW_SERVER_URL
+              value: http://prometheus-operated.monitoring:9090/api/v1/write
+          command:
+            ["k6", "run", "-o", "experimental-prometheus-rw", "script.js"]
+          volumeMounts:
+            - name: scenario
+              mountPath: /home/k6
+      tolerations:
+        - key: node-role.kubernetes.io/runner
+          operator: Exists
+          effect: NoSchedule
+      nodeSelector:
+        node-role.kubernetes.io/runner: "true"
+      volumes:
+        - name: scenario
+          configMap:
+            name: scenario
+```
+
+{{< /highlight >}}
+
+Use appropriate `tolerations` and `nodeSelector` for running the load testing in a node which have free CPU resource. You can play with `K6_VUS` and `K6_DURATION` environment variables in order to change the level of load testing.
+
+Then you can launch the job with `ka jobs/demo-k6.yaml`. Check quickly that the job is running via `klo -n kuberocks job/k6`:
+
+```txt
+
+        /\      |‾‾| /‾‾/   /‾‾/
+   /\  /  \     |  |/  /   /  /
+  /  \/    \    |     (   /   ‾‾\
+ /          \   |  |\  \ |  (‾)  |
+/ __________ \  |__| \__\ \_____/ .io
+
+execution: local
+   script: script.js
+   output: Prometheus remote write (http://prometheus-operated.monitoring:9090/api/v1/write)
+
+scenarios: (100.00%) 1 scenario, 30 max VUs, 1m30s max duration (incl. graceful stop):
+         * default: 30 looping VUs for 1m0s (gracefulStop: 30s)
+```
+
+After 1 minute of run, job should finish and show some raw result:
+
+```txt
+✓ status is 200
+
+checks.........................: 100.00% ✓ 17748     ✗ 0
+data_received..................: 404 MB  6.3 MB/s
+data_sent......................: 1.7 MB  26 kB/s
+http_req_blocked...............: avg=242.43µs min=223ns   med=728ns   max=191.27ms p(90)=1.39µs   p(95)=1.62µs
+http_req_connecting............: avg=13.13µs  min=0s      med=0s      max=9.48ms   p(90)=0s       p(95)=0s
+http_req_duration..............: avg=104.22ms min=28.9ms  med=93.45ms max=609.86ms p(90)=162.04ms p(95)=198.93ms
+  { expected_response:true }...: avg=104.22ms min=28.9ms  med=93.45ms max=609.86ms p(90)=162.04ms p(95)=198.93ms
+http_req_failed................: 0.00%   ✓ 0         ✗ 17748
+http_req_receiving.............: avg=13.76ms  min=32.71µs med=6.49ms  max=353.13ms p(90)=36.04ms  p(95)=51.36ms
+http_req_sending...............: avg=230.04µs min=29.79µs med=93.16µs max=25.75ms  p(90)=201.92µs p(95)=353.61µs
+http_req_tls_handshaking.......: avg=200.57µs min=0s      med=0s      max=166.91ms p(90)=0s       p(95)=0s
+http_req_waiting...............: avg=90.22ms  min=14.91ms med=80.76ms max=609.39ms p(90)=138.3ms  p(95)=169.24ms
+http_reqs......................: 17748   276.81409/s
+iteration_duration.............: avg=5.39s    min=3.97s   med=5.35s   max=7.44s    p(90)=5.94s    p(95)=6.84s
+iterations.....................: 348     5.427727/s
+vus............................: 7       min=7       max=30
+vus_max........................: 30      min=30      max=30
+```
+
+As we use Prometheus for outputting the result, we can visualize it easily with Grafana. You just have to import [this dashboard](https://grafana.com/grafana/dashboards/18030-official-k6-test-result/):
+
+[![Grafana](grafana-k6.png)](grafana-k6.png)
+
+As we use Kubernetes, increase the loading performance horizontally is dead easy. Go to the deployment configuration of demo app for increasing replicas count, as well as Traefik, and compare the results.
+
 ### Load balancing database
+
+So far, we only load balanced the stateless API, but what about the database part ? We have set up a replicated PostgreSQL cluster, however we have no use of the replica that stay sadly idle. But for that we have to distinguish write queries from scalable read queries.
+
+We can make use of the Bitnami [PostgreSQL HA](https://artifacthub.io/packages/helm/bitnami/postgresql-ha) instead of simple one. It adds the new component [Pgpool-II](https://pgpool.net/mediawiki/index.php/Main_Page) as main load balancer and detect failover. It's able to separate in real time write queries from read queries and send them to the master or the replica. The advantage: works natively for all apps without any changes. The cons: it consumes far more resources and add a new component to maintain.
+
+A 2nd solution is to separate RW queries from where it counts: from the app. It requires some code changes, but it's clearly a far more efficient solution. Let's do this way.
+
+#### PostgreSQL RO SVC
+
+We have firstly to set up a service that will be dedicated for read queries. There is already `postgresql-read`, but it uses only replica, so no advantage for a simple 1 primary + 1 replica setup. So create a new one by going back to terraform project and let's apply following resource:
+
+{{< highlight host="demo-kube-k3s" file="postgresql.tf" >}}
+
+```tf
+resource "kubernetes_service_v1" "postgresql_lb" {
+  metadata {
+    name      = "postgresql-lb"
+    namespace = kubernetes_namespace_v1.postgres.metadata[0].name
+  }
+  spec {
+    selector = {
+      "app.kubernetes.io/instance" = "postgresql"
+      "app.kubernetes.io/name"     = "postgresql"
+    }
+    port {
+      name        = "tcp-postgresql"
+      port        = 5432
+      protocol    = "TCP"
+      target_port = "tcp-postgresql"
+    }
+  }
+}
+```
+
+{{< /highlight >}}
+
+#### On the app side
 
 ## Final check 🎊🏁🎊
 
