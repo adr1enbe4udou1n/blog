@@ -207,7 +207,7 @@ builder.Services.AddKubeRocksServices(builder.Configuration);
 {
   //...
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Port=5432;User Id=main;Password=main;Database=main;"
+    "DefaultConnection": "Host=localhost;Username=main;Password=main;Database=main;"
   }
 }
 ```
@@ -242,7 +242,7 @@ dotnet add src/KubeRocks.Console package Respawn
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Port=5432;User Id=main;Password=main;Database=main;"
+    "DefaultConnection": "Host=localhost;Username=main;Password=main;Database=main;"
   }
 }
 ```
@@ -579,7 +579,8 @@ spec:
                   name: demo-db
                   key: password
             - name: ConnectionStrings__DefaultConnection
-              value: Server=postgresql-primary.postgres;Port=5432;User Id=demo;Password='$(DB_PASSWORD)';Database=demo;
+              value: Host=postgresql-primary.postgres;Username=demo;Password='$(DB_PASSWORD)';Database=demo;
+#...
 ```
 
 {{< /highlight >}}
@@ -625,7 +626,7 @@ We'll try to seed the database directly from local. Change temporarily the conne
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Port=54321;User Id=demo;Password='xxx';Database=demo;"
+    "DefaultConnection": "Host=localhost:54321;Username=demo;Password='xxx';Database=demo;"
   }
 }
 ```

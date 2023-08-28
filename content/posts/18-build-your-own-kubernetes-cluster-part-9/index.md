@@ -365,7 +365,7 @@ Then add a testing JSON environment file for accessing our database `db_test` fr
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Port=54320;User Id=main;Password=main;Database=main;"
+    "DefaultConnection": "Host=localhost:54320;Username=main;Password=main;Database=main;"
   }
 }
 ```
@@ -608,7 +608,7 @@ jobs:
         config:
           #...
           params:
-            ConnectionStrings__DefaultConnection: "Server=postgres-primary.postgres; Port=5432; User Id=test; Password=test; Database=demo_test"
+            ConnectionStrings__DefaultConnection: "Host=postgres-primary.postgres;Username=test;Password=test;Database=demo_test"
           run:
             path: /bin/sh
             args:
@@ -898,41 +898,120 @@ So far, we only load balanced the stateless API, but what about the database par
 
 We can make use of the Bitnami [PostgreSQL HA](https://artifacthub.io/packages/helm/bitnami/postgresql-ha) instead of simple one. It adds the new component [Pgpool-II](https://pgpool.net/mediawiki/index.php/Main_Page) as main load balancer and detect failover. It's able to separate in real time write queries from read queries and send them to the master or the replica. The advantage: works natively for all apps without any changes. The cons: it consumes far more resources and add a new component to maintain.
 
-A 2nd solution is to separate RW queries from where it counts: from the app. It requires some code changes, but it's clearly a far more efficient solution. Let's do this way.
+A 2nd solution is to separate query typologies from where it counts: the application. It requires some code changes, but it's clearly a far more efficient solution. Let's do this way.
 
-#### PostgreSQL RO SVC
+As Npgsql support load balancing [natively](https://www.npgsql.org/doc/failover-and-load-balancing.html), we don't need to add any Kubernetes service. We just have to create a clear distinction between read and write queries. One simple way is to create a separate RO `DbContext`.
 
-We have firstly to set up a service that will be dedicated for read queries. There is already `postgresql-read`, but it uses only replica, so no advantage for a simple 1 primary + 1 replica setup. So create a new one by going back to terraform project and let's apply following resource:
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.Application/Contexts/AppRoDbContext.cs" >}}
 
-{{< highlight host="demo-kube-k3s" file="postgresql.tf" >}}
+```cs
+namespace KubeRocks.Application.Contexts;
 
-```tf
-resource "kubernetes_service_v1" "postgresql_lb" {
-  metadata {
-    name      = "postgresql-lb"
-    namespace = kubernetes_namespace_v1.postgres.metadata[0].name
-  }
-  spec {
-    selector = {
-      "app.kubernetes.io/instance" = "postgresql"
-      "app.kubernetes.io/name"     = "postgresql"
+using KubeRocks.Application.Entities;
+
+using Microsoft.EntityFrameworkCore;
+
+public class AppRoDbContext : DbContext
+{
+    public DbSet<User> Users => Set<User>();
+    public DbSet<Article> Articles => Set<Article>();
+    public DbSet<Comment> Comments => Set<Comment>();
+
+    public AppRoDbContext(DbContextOptions<AppRoDbContext> options) : base(options)
+    {
     }
-    port {
-      name        = "tcp-postgresql"
-      port        = 5432
-      protocol    = "TCP"
-      target_port = "tcp-postgresql"
-    }
-  }
 }
 ```
 
 {{< /highlight >}}
 
-#### On the app side
+Register it in DI:
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.Application/Extensions/ServiceExtensions.cs" >}}
+
+```cs
+public static class ServiceExtensions
+{
+    public static IServiceCollection AddKubeRocksServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        return services
+            //...
+            .AddDbContext<AppRoDbContext>((options) =>
+            {
+                options.UseNpgsql(
+                    configuration.GetConnectionString("DefaultRoConnection")
+                    ??
+                    configuration.GetConnectionString("DefaultConnection")
+                );
+            });
+    }
+}
+```
+
+{{< /highlight >}}
+
+We fall back to the RW connection string if the RO one is not defined. Then use it in the `ArticlesController` which as only read endpoints:
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Controllers/ArticlesController.cs" >}}
+
+```cs
+//...
+
+public class ArticlesController
+{
+    private readonly AppRoDbContext _context;
+
+    //...
+
+    public ArticlesController(AppRoDbContext context)
+    {
+        _context = context;
+    }
+
+    //...
+}
+```
+
+{{< /highlight >}}
+
+Push and let it pass the CI. In the meantime, add the new RO connection:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/deploy-demo.yaml" >}}
+
+```yaml
+# ...
+spec:
+  # ...
+  template:
+    # ...
+    spec:
+      # ...
+      containers:
+        - name: api
+          # ...
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: demo-db
+                  key: password
+            - name: ConnectionStrings__DefaultConnection
+              value: Host=postgresql-primary.postgres;Username=demo;Password='$(DB_PASSWORD)';Database=demo;
+            - name: ConnectionStrings__DefaultRoConnection
+              value: Host=postgresql-primary.postgres,postgresql-read.postgres;Username=demo;Password='$(DB_PASSWORD)';Database=demo;Load Balance Hosts=true;
+#...
+```
+
+{{< /highlight >}}
+
+We simply have to add multiple host like `postgresql-primary.postgres,postgresql-read.postgres` for the RO connection string and enable LB mode with `Load Balance Hosts=true`.
+
+Once deployed, relaunch a load test with K6 and admire the DB load balancing in action on both storage servers with `htop` or directly compute pods by namespace in Grafana.
+
+[![Gafana DB load balancing](grafana-db-lb.png)](grafana-db-lb.png)
 
 ## Final check 🎊🏁🎊
 
 Congratulation if you're getting that far !!!
 
-You have a complete CI/CD flexible solution, HA ready and not that expensive.
+We have made an enough complete tour of Kubernetes cluster building on full GitOps mode.
