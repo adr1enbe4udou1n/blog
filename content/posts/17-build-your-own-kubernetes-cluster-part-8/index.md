@@ -494,27 +494,28 @@ public class ArticlesController
     }
 
     [HttpGet(Name = "GetArticles")]
-    public ArticlesResponse Get([FromQuery] int page = 1, [FromQuery] int size = 10)
+    public async Task<ArticlesResponse> Get([FromQuery] int page = 1, [FromQuery] int size = 10)
     {
-        var articles = _context.Articles
+        var articles = await _context.Articles
             .OrderByDescending(a => a.Id)
             .Skip((page - 1) * size)
             .Take(size)
-            .ProjectToType<ArticleListDto>();
+            .ProjectToType<ArticleListDto>()
+            .ToListAsync();
 
-        var articlesCount = _context.Articles.Count();
+        var articlesCount = await _context.Articles.CountAsync();
 
         return new ArticlesResponse(articles, articlesCount);
     }
 
     [HttpGet("{slug}", Name = "GetArticleBySlug")]
-    public ActionResult<ArticleDto> GetBySlug(string slug)
+    public async Task<ActionResult<ArticleDto>> GetBySlug(string slug)
     {
-        var article = _context.Articles
+        var article = await _context.Articles
             .Include(a => a.Author)
             .Include(a => a.Comments.OrderByDescending(c => c.Id))
             .ThenInclude(c => c.Author)
-            .FirstOrDefault(a => a.Slug == slug);
+            .FirstOrDefaultAsync(a => a.Slug == slug);
 
         if (article is null)
         {
@@ -812,6 +813,31 @@ public class ArticlesController {
 
 {{< /highlight >}}
 
+Let's move Swagger UI under `/api` path too:
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
+
+```cs
+//...
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger(c =>
+    {
+        c.RouteTemplate = "/api/{documentName}/swagger.json";
+    });
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("v1/swagger.json", "KubeRocks v1");
+        c.RoutePrefix = "api";
+    });
+}
+
+//...
+```
+
+{{< /highlight >}}
+
 {{< alert >}}
 You may use ASP.NET API versioning, which work the same way with [versioning URL path](https://github.com/dotnet/aspnet-api-versioning/wiki/Versioning-via-the-URL-Path).
 {{< /alert >}}
@@ -821,6 +847,7 @@ All is left is to include only the endpoints under `/api` prefix on Traefik Ingr
 {{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/deploy-demo.yaml" >}}
 
 ```yaml
+#...
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 #...

@@ -349,7 +349,8 @@ Expose the startup service of minimal API:
 {{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
 
 ```cs
-#...
+//...
+
 public partial class Program
 {
     protected Program() { }
@@ -1009,6 +1010,523 @@ We simply have to add multiple host like `postgresql-primary.postgres,postgresql
 Once deployed, relaunch a load test with K6 and admire the DB load balancing in action on both storage servers with `htop` or directly compute pods by namespace in Grafana.
 
 [![Gafana DB load balancing](grafana-db-lb.png)](grafana-db-lb.png)
+
+## Frontend
+
+Let's finish this guide by a quick view of SPA frontend development as a separate project from backend.
+
+### Vue TS
+
+Create a new Vue.js project:
+
+```sh
+npx degit antfu/vitesse-lite kuberocks-demo-ui
+cd kuberocks-demo-ui
+git init
+git add .
+git commit -m "Initial commit"
+# using pnpm, scoop install pnpm
+pnpm i
+pnpm dev
+```
+
+Should launch app in `http://localhost:3333/`. Create a new `kuberocks-demo-ui` Gitea repo and push this code into it. Now lets quick and done for API calls.
+
+### Get around CORS and HTTPS with YARP
+
+As always when frontend is separated from backend, we have to deal with CORS. But I prefer to have one single URL for frontend + backend and get rid of CORS problem by simply call under `/api` path. Moreover, it'll be production ready without need to manage any `Vite` variable for API URL and we'll get HTTPS provided by dotnet. Back to API project.
+
+```sh
+dotnet add src/KubeRocks.WebApi package Yarp.ReverseProxy
+```
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
+
+```cs
+//...
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddReverseProxy()
+    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
+
+//...
+
+var app = builder.Build();
+
+app.MapReverseProxy();
+
+//...
+
+app.UseRouting();
+
+//...
+```
+
+{{< /highlight >}}
+
+Note as we must add `app.UseRouting();` too in order to get Swagger UI working.
+
+The proxy configuration (only for development):
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/appsettings.Development.json" >}}
+
+```json
+{
+  //...
+  "ReverseProxy": {
+    "Routes": {
+      "ServerRouteApi": {
+        "ClusterId": "Server",
+        "Match": {
+          "Path": "/api/{**catch-all}"
+        },
+        "Transforms": [
+          {
+            "PathRemovePrefix": "/api"
+          }
+        ]
+      },
+      "ClientRoute": {
+        "ClusterId": "Client",
+        "Match": {
+          "Path": "{**catch-all}"
+        }
+      }
+    },
+    "Clusters": {
+      "Client": {
+        "Destinations": {
+          "Client1": {
+            "Address": "http://localhost:3333"
+          }
+        }
+      },
+      "Server": {
+        "Destinations": {
+          "Server1": {
+            "Address": "https://localhost:7159"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+{{< /highlight >}}
+
+Now your frontend app should appear under `https://localhost:7159`, and API calls under `https://localhost:7159/api`. We now benefit from HTTPS for all app. Push API code.
+
+### Typescript API generator
+
+As we use OpenAPI, it's possible to generate typescript client for API calls. Add this package:
+
+```sh
+pnpm add openapi-typescript -D
+pnpm add openapi-typescript-fetch
+```
+
+Before generate the client model, go back to backend for fixing default nullable reference from `Swashbuckle.AspNetCore`:
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Filters/RequiredNotNullableSchemaFilter.cs" >}}
+
+```cs
+using Microsoft.OpenApi.Models;
+
+using Swashbuckle.AspNetCore.SwaggerGen;
+
+namespace KubeRocks.WebApi.Filters;
+
+public class RequiredNotNullableSchemaFilter : ISchemaFilter
+{
+    public void Apply(OpenApiSchema schema, SchemaFilterContext context)
+    {
+        if (schema.Properties is null)
+        {
+            return;
+        }
+
+        var notNullableProperties = schema
+            .Properties
+            .Where(x => !x.Value.Nullable && !schema.Required.Contains(x.Key))
+            .ToList();
+
+        foreach (var property in notNullableProperties)
+        {
+            schema.Required.Add(property.Key);
+        }
+    }
+}
+```
+
+{{< /highlight >}}
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
+
+```cs
+//...
+
+builder.Services.AddSwaggerGen(o =>
+{
+    o.SupportNonNullableReferenceTypes();
+    o.SchemaFilter<RequiredNotNullableSchemaFilter>();
+});
+
+//...
+```
+
+{{< /highlight >}}
+
+Sadly, without this boring step, many attributes will be nullable in the generated model, which must not be the case. Now generate the model:
+
+{{< highlight host="kuberocks-demo-ui" file="package.json" >}}
+
+```json
+{
+  //...
+  "scripts": {
+    //...
+    "openapi": "openapi-typescript http://localhost:5123/api/v1/swagger.json --output src/api/openapi.ts"
+  },
+  //...
+}
+```
+
+{{< /highlight >}}
+
+Use the HTTP version of swagger as you'll get a self certificate error. The use `pnpm openapi` to generate full TS model. Finally, describe API fetchers like so:
+
+{{< highlight host="kuberocks-demo-ui" file="src/api/index.ts" >}}
+
+```ts
+import { Fetcher } from 'openapi-typescript-fetch'
+
+import type { components, paths } from './openapi'
+
+const fetcher = Fetcher.for<paths>()
+
+type ArticleList = components['schemas']['ArticleListDto']
+type Article = components['schemas']['ArticleDto']
+
+const getArticles = fetcher.path('/api/Articles').method('get').create()
+const getArticleBySlug = fetcher.path('/api/Articles/{slug}').method('get').create()
+
+export type { Article, ArticleList }
+export {
+  getArticles,
+  getArticleBySlug,
+}
+```
+
+{{< /highlight >}}
+
+We are now fully typed compliant with the API.
+
+### Call the API
+
+Let's create a pretty basic list + detail vue pages:
+
+{{< highlight host="kuberocks-demo-ui" file="src/pages/articles/index.vue" >}}
+
+```vue
+<script lang="ts" setup>
+import { getArticles } from '~/api'
+import type { ArticleList } from '~/api'
+
+const articles = ref<ArticleList[]>([])
+
+async function loadArticles() {
+  const { data } = await getArticles({
+    page: 1,
+    size: 10,
+  })
+
+  articles.value = data.articles
+}
+
+loadArticles()
+</script>
+
+<template>
+  <RouterLink
+    v-for="(article, i) in articles"
+    :key="i"
+    :to="`/articles/${article.slug}`"
+  >
+    <h3>{{ article.title }}</h3>
+  </RouterLink>
+</template>
+```
+
+{{< /highlight >}}
+
+{{< highlight host="kuberocks-demo-ui" file="src/pages/articles/[slug].vue" >}}
+
+```vue
+<script lang="ts" setup>
+import { getArticleBySlug } from '~/api'
+import type { Article } from '~/api'
+
+const props = defineProps<{ slug: string }>()
+
+const article = ref<Article>()
+
+const router = useRouter()
+
+async function getArticle() {
+  const { data } = await getArticleBySlug({ slug: props.slug })
+
+  article.value = data
+}
+
+getArticle()
+</script>
+
+<template>
+  <div v-if="article">
+    <h1>{{ article.title }}</h1>
+    <p>{{ article.description }}</p>
+    <div>{{ article.body }}</div>
+    <div>
+      <button m-3 mt-8 text-sm btn @click="router.back()">
+        Back
+      </button>
+    </div>
+  </div>
+</template>
+```
+
+{{< /highlight >}}
+
+It should work flawlessly.
+
+### Frontend CI/CD
+
+The CI frontend is far simpler than backend. Create a new `demo-ui` pipeline:
+
+{{< highlight host="demo-kube-flux" file="pipelines/demo-ui.yaml" >}}
+
+```yml
+resources:
+  - name: version
+    type: semver
+    source:
+      driver: git
+      uri: ((git.url))/kuberocks/demo-ui
+      branch: main
+      file: version
+      username: ((git.username))
+      password: ((git.password))
+      git_user: ((git.git-user))
+      commit_message: ((git.commit-message))
+  - name: source-code
+    type: git
+    icon: coffee
+    source:
+      uri: ((git.url))/kuberocks/demo-ui
+      branch: main
+      username: ((git.username))
+      password: ((git.password))
+  - name: docker-image
+    type: registry-image
+    icon: docker
+    source:
+      repository: ((registry.name))/kuberocks/demo-ui
+      tag: latest
+      username: ((registry.username))
+      password: ((registry.password))
+
+jobs:
+  - name: build
+    plan:
+      - get: source-code
+        trigger: true
+
+      - task: build-source
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: node
+              tag: 18-buster
+          inputs:
+            - name: source-code
+              path: .
+          outputs:
+            - name: dist
+              path: dist
+          caches:
+            - path: .pnpm-store
+          run:
+            path: /bin/sh
+            args:
+              - -ec
+              - |
+                corepack enable
+                corepack prepare pnpm@latest-8 --activate
+                pnpm config set store-dir .pnpm-store
+                pnpm i
+                pnpm lint
+                pnpm build
+
+      - task: build-image
+        privileged: true
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: concourse/oci-build-task
+          inputs:
+            - name: source-code
+              path: .
+            - name: dist
+              path: dist
+          outputs:
+            - name: image
+          run:
+            path: build
+      - put: version
+        params: { bump: patch }
+      - put: docker-image
+        params:
+          additional_tags: version/number
+          image: image/image.tar
+```
+
+{{< /highlight >}}
+
+{{< highlight host="demo-kube-flux" file="pipelines/demo-ui.yaml" >}}
+
+```tf
+#...
+
+jobs:
+  - name: configure-pipelines
+    plan:
+      #...
+      - set_pipeline: demo-ui
+        file: ci/pipelines/demo-ui.yaml
+```
+
+{{< /highlight >}}
+
+Apply it and put this nginx `Dockerfile` on frontend root project:
+
+{{< highlight host="kuberocks-demo-ui" file="Dockerfile" >}}
+
+```Dockerfile
+FROM nginx:alpine
+
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY dist /usr/share/nginx/html
+```
+
+{{< /highlight >}}
+
+After push all CI should build correctly. Then the image policy for auto update:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/images-demo-ui.yaml" >}}
+
+```yml
+apiVersion: image.toolkit.fluxcd.io/v1beta1
+kind: ImageRepository
+metadata:
+  name: demo-ui
+  namespace: flux-system
+spec:
+  image: gitea.kube.rocks/kuberocks/demo-ui
+  interval: 1m0s
+  secretRef:
+    name: dockerconfigjson
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta1
+kind: ImagePolicy
+metadata:
+  name: demo-ui
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: demo-ui
+    namespace: flux-system
+  policy:
+    semver:
+      range: 0.0.x
+```
+
+{{< /highlight >}}
+
+The deployment:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/deploy-demo-ui.yaml" >}}
+
+```yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-ui
+  namespace: kuberocks
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: demo-ui
+  template:
+    metadata:
+      labels:
+        app: demo-ui
+    spec:
+      imagePullSecrets:
+        - name: dockerconfigjson
+      containers:
+        - name: front
+          image: gitea.okami101.io/kuberocks/demo-ui:latest # {"$imagepolicy": "flux-system:image-demo-ui"}
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-ui
+  namespace: kuberocks
+spec:
+  selector:
+    app: demo-ui
+  ports:
+    - name: http
+      port: 80
+```
+
+{{< /highlight >}}
+
+After push, the demo UI container should be deployed. The very last step is to add a new route to existing `IngressRoute` for frontend:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/deploy-demo.yaml" >}}
+
+```yaml
+#...
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+#...
+spec:
+  #...
+  routes:
+    - match: Host(`demo.kube.rocks`)
+      kind: Rule
+      services:
+        - name: demo-ui
+          port: http
+    - match: Host(`demo.kube.rocks`) && PathPrefix(`/api`)
+      #....
+```
+
+{{< /highlight >}}
+
+Go to `https://demo.kube.rocks` to confirm if both app front & back are correctly connected !
+
+[![Frontend](frontend.png)](frontend.png)
 
 ## Final check 🎊🏁🎊
 
