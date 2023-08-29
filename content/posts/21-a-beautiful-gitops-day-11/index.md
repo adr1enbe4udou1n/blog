@@ -533,27 +533,152 @@ import { getArticles } from '~/api'
 import type { ArticleList } from '~/api'
 
 const articles = ref<ArticleList[]>([])
+const articlesCount = ref<number>(0)
+
+const page = ref<number>(1)
+const size = ref<number>(10)
 
 async function loadArticles() {
   const { data } = await getArticles({
-    page: 1,
-    size: 10,
+    page: page.value,
+    size: size.value,
   })
 
   articles.value = data.articles
+  articlesCount.value = data.articlesCount
+}
+
+function fetchDataOnPage({ currentPage }: { currentPage: number }) {
+  page.value = currentPage
+  loadArticles()
 }
 
 loadArticles()
 </script>
 
 <template>
-  <RouterLink
-    v-for="(article, i) in articles"
-    :key="i"
-    :to="`/articles/${article.slug}`"
-  >
-    <h3>{{ article.title }}</h3>
-  </RouterLink>
+  <div inline-flex flex-col gap-4>
+    <RouterLink
+      v-for="(article, i) in articles"
+      :key="i"
+      :to="`/articles/${article.slug}`"
+      inline-block border-1 border-purple-500 rounded p-4
+    >
+      <h3>{{ article.title }}</h3>
+    </RouterLink>
+  </div>
+
+  <div mt-4 flex justify-center>
+    <OffsetPagination
+      :page="page"
+      :size="size"
+      :total="articlesCount"
+      :fetch-data="fetchDataOnPage"
+    />
+  </div>
+</template>
+```
+
+{{< /highlight >}}
+
+The reusable pagination component that use `useOffsetPagination` from VueUse:
+
+{{< highlight host="kuberocks-demo-ui" file="src/components/OffsetPagination.vue" >}}
+
+```vue
+<script lang="ts" setup>
+const props = defineProps<{
+  total: number
+  size: number
+  page: number
+  fetchData: ({ currentPage }: { currentPage: number }) => Promise<void> | void
+}>()
+
+const pagination = computed(() =>
+  useOffsetPagination({
+    total: props.total,
+    page: props.page,
+    pageSize: props.size,
+    onPageChange: props.fetchData,
+    onPageSizeChange: props.fetchData,
+  }),
+)
+
+function usePagesBuilder(currentPage: number, pageCount: number) {
+  const pages = []
+  const maxPages = 5
+  const half = Math.floor(maxPages / 2)
+  const start = Math.max(currentPage - half, 1)
+  const end = Math.min(start + maxPages, pageCount)
+
+  for (let i = start; i <= end; i++)
+    pages.push(i)
+
+  if (start > 1) {
+    pages.unshift('...')
+    pages.unshift(1)
+  }
+
+  if (end < pageCount) {
+    pages.push('...')
+    pages.push(pageCount)
+  }
+
+  return pages
+}
+
+const classes
+  = 'flex items-center justify-center border rounded-1 text-sm font-sans text-gray-300 border-gray-500 w-8 h-8'
+</script>
+
+<template>
+  <div flex flex-wrap gap-1>
+    <button
+      :disabled="pagination.isFirstPage.value"
+      :class="[
+        classes,
+        {
+          'opacity-50': pagination.isFirstPage.value,
+        },
+      ]"
+      @click="pagination.prev"
+    >
+      &lt;
+    </button>
+    <button
+      v-for="item in usePagesBuilder(
+        pagination.currentPage.value,
+        pagination.pageCount.value,
+      )"
+      :key="item"
+      :disabled="
+        pagination.currentPage.value === item || !Number.isInteger(item)
+      "
+      :class="[
+        classes,
+        {
+          'opacity-50': !Number.isInteger(item),
+          'text-white border-purple-500 bg-purple-500':
+            pagination.currentPage.value === item,
+        },
+      ]"
+      @click="pagination.currentPage.value = Number(item)"
+    >
+      {{ item }}
+    </button>
+    <button
+      :disabled="pagination.isLastPage.value"
+      :class="[
+        classes,
+        {
+          'opacity-50': pagination.isLastPage.value,
+        },
+      ]"
+      @click="pagination.next"
+    >
+      &gt;
+    </button>
+  </div>
 </template>
 ```
 
@@ -583,9 +708,13 @@ getArticle()
 
 <template>
   <div v-if="article">
-    <h1>{{ article.title }}</h1>
-    <p>{{ article.description }}</p>
-    <div>{{ article.body }}</div>
+    <h1 mb-6 text-2xl font-bold>
+      {{ article.title }}
+    </h1>
+    <p mb-4 italic>
+      {{ article.description }}
+    </p>
+    <div prose v-html="article.body" />
     <div>
       <button m-3 mt-8 text-sm btn @click="router.back()">
         Back
