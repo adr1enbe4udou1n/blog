@@ -1,6 +1,6 @@
 ---
 title: "A beautiful GitOps day VII - Create a CI+CD workflow"
-date: 2023-10-08
+date: 2023-08-25
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "ci", "cd", "concourse", "flux"]
 draft: true

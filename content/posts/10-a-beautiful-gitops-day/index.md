@@ -1,6 +1,6 @@
 ---
 title: "A beautiful GitOps day - Build your self-hosted Kubernetes cluster"
-date: 2023-10-01
+date: 2023-08-18
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes"]
 draft: true

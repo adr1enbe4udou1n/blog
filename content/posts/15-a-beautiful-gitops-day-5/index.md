@@ -1,6 +1,6 @@
 ---
 title: "A beautiful GitOps day V - Monitoring and Logging Stack"
-date: 2023-10-06
+date: 2023-08-23
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "monitoring", "logging", "prometheus", "loki", "grafana"]
 draft: true

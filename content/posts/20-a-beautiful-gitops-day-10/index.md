@@ -1,6 +1,6 @@
 ---
 title: "A beautiful GitOps day X - QA with testing & code metrics"
-date: 2023-10-11
+date: 2023-08-28
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "testing", "sonarqube", "xunit", "coverage"]
 draft: true
