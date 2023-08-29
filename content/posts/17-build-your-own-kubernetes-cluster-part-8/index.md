@@ -2,7 +2,7 @@
 title: "Setup a HA Kubernetes cluster Part VIII - Create a CI+CD workflow"
 date: 2023-10-08
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
-tags: ["kubernetes", "development", "opentelemetry", "tracing", "tempo"]
+tags: ["kubernetes", "ci", "cd", "concourse", "flux"]
 draft: true
 ---
 

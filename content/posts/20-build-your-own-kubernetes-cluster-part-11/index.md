@@ -2,7 +2,7 @@
 title: "Setup a HA Kubernetes cluster Part XI - Load testing & Frontend"
 date: 2023-10-10
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
-tags: ["kubernetes", "testing", "sonarqube", "load-testing", "k6"]
+tags: ["kubernetes", "load-testing", "k6", "frontend", "vue", "typescript", "openapi"]
 draft: true
 ---
 

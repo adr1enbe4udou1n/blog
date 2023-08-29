@@ -2,7 +2,7 @@
 title: "Setup a HA Kubernetes cluster Part X - QA with testing & code metrics"
 date: 2023-10-09
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
-tags: ["kubernetes", "testing", "sonarqube", "xunit"]
+tags: ["kubernetes", "testing", "sonarqube", "xunit", "coverage"]
 draft: true
 ---
 

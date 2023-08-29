@@ -2,7 +2,7 @@
 title: "Setup a HA Kubernetes cluster Part IX - DB usage & Tracing with OpenTelemetry"
 date: 2023-10-08
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
-tags: ["kubernetes", "development", "opentelemetry", "tracing", "tempo"]
+tags: ["kubernetes", "efcore", "serilog", "metrics", "opentelemetry", "tracing", "tempo"]
 draft: true
 ---
 
