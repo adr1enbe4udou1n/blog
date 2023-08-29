@@ -568,4 +568,4 @@ Wait the pod to be updated, then check the new endpoint `https://demo.kube.rocks
 
 ## 7th check ✅
 
-We have done for the set-up of our automated CI/CD workflow process. Go [next part]({{< ref "/posts/18-build-your-own-kubernetes-cluster-part-9" >}}) for going further with a real DB app that handle automatic migrations & monitoring integration with OpenTelemetry !
+We have done for the set-up of our automated CI/CD workflow process. Go [next part]({{< ref "/posts/18-build-your-own-kubernetes-cluster-part-9" >}}) for going further with a real DB app that handle automatic migrations.
