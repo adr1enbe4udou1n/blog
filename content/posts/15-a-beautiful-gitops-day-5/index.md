@@ -1,5 +1,5 @@
 ---
-title: "Setup a HA Kubernetes cluster Part VI - Monitoring and Logging Stack"
+title: "A beautiful GitOps day V - Monitoring and Logging Stack"
 date: 2023-10-06
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "monitoring", "logging", "prometheus", "loki", "grafana"]
@@ -10,7 +10,7 @@ draft: true
 Be free from AWS/Azure/GCP by building a production grade On-Premise Kubernetes cluster on cheap VPS provider, fully GitOps managed, and with complete CI/CD tools 🎉
 {{< /lead >}}
 
-This is the **Part VI** of more global topic tutorial. [Back to first part]({{< ref "/posts/10-build-your-own-kubernetes-cluster" >}}) for intro.
+This is the **Part V** of more global topic tutorial. [Back to guide summary]({{< ref "/posts/10-a-beautiful-gitops-day" >}}) for intro.
 
 ## Monitoring
 
@@ -820,4 +820,4 @@ You can easily start from provisioned dashboard and customize it for using `helm
 
 ## 5th check ✅
 
-We now have a full monitoring suite with performant logging collector ! What a pretty massive subject done. At this stage, you have a good starting point to run many apps on your cluster with high scalability and observability. We are done for the pure **operational** part. It's finally time to tackle the **building** part for a complete development stack. Go [next part]({{< ref "/posts/16-build-your-own-kubernetes-cluster-part-7" >}}) to begin with continuous integration.
+We now have a full monitoring suite with performant logging collector ! What a pretty massive subject done. At this stage, you have a good starting point to run many apps on your cluster with high scalability and observability. We are done for the pure **operational** part. It's finally time to tackle the **building** part for a complete development stack. Go [next part]({{< ref "/posts/16-a-beautiful-gitops-day-6" >}}) to begin with continuous integration.

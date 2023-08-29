@@ -1,5 +1,5 @@
 ---
-title: "Setup a HA Kubernetes cluster Part X - Monitoring & Tracing with OpenTelemetry"
+title: "A beautiful GitOps day IX - Monitoring & Tracing with OpenTelemetry"
 date: 2023-10-10
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "serilog", "metrics", "opentelemetry", "tracing", "tempo"]
@@ -10,7 +10,7 @@ draft: true
 Be free from AWS/Azure/GCP by building a production grade On-Premise Kubernetes cluster on cheap VPS provider, fully GitOps managed, and with complete CI/CD tools 🎉
 {{< /lead >}}
 
-This is the **Part X** of more global topic tutorial. [Back to first part]({{< ref "/posts/10-build-your-own-kubernetes-cluster" >}}) for intro.
+This is the **Part IX** of more global topic tutorial. [Back to guide summary]({{< ref "/posts/10-a-beautiful-gitops-day" >}}) for intro.
 
 ## Better logging
 
@@ -488,4 +488,4 @@ This will give us the nice link button as soon as you you click a log detail:
 
 ## 9th check ✅
 
-We have done for the basic functional telemetry ! There are infinite things to cover in this subject, but it's enough for this endless guide. Go [next part]({{< ref "/posts/20-build-your-own-kubernetes-cluster-part-11" >}}), we'll talk about feature testing, code metrics and code coverage.
+We have done for the basic functional telemetry ! There are infinite things to cover in this subject, but it's enough for this endless guide. Go [next part]({{< ref "/posts/20-a-beautiful-gitops-day-10" >}}), we'll talk about feature testing, code metrics and code coverage.

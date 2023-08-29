@@ -1,5 +1,5 @@
 ---
-title: "Setup a HA Kubernetes cluster Part V - CD with Flux"
+title: "A beautiful GitOps day IV - CD with Flux"
 date: 2023-10-05
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "cd", "flux", "nocode", "n8n", "nocodb"]
@@ -10,7 +10,7 @@ draft: true
 Be free from AWS/Azure/GCP by building a production grade On-Premise Kubernetes cluster on cheap VPS provider, fully GitOps managed, and with complete CI/CD tools 🎉
 {{< /lead >}}
 
-This is the **Part V** of more global topic tutorial. [Back to first part]({{< ref "/posts/10-build-your-own-kubernetes-cluster" >}}) for intro.
+This is the **Part IV** of more global topic tutorial. [Back to guide summary]({{< ref "/posts/10-a-beautiful-gitops-day" >}}) for intro.
 
 ## Flux
 
@@ -674,4 +674,4 @@ The final process is identical to n8n.
 
 ## 4th check ✅
 
-We now have a functional continuous delivery with some nice no-code tools to play with ! The final missing stack for a production grade cluster is to install a complete monitoring stack, this is the [next part]({{< ref "/posts/15-build-your-own-kubernetes-cluster-part-6" >}}).
+We now have a functional continuous delivery with some nice no-code tools to play with ! The final missing stack for a production grade cluster is to install a complete monitoring stack, this is the [next part]({{< ref "/posts/15-a-beautiful-gitops-day-5" >}}).

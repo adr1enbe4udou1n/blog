@@ -1,5 +1,5 @@
 ---
-title: "Setup a HA Kubernetes cluster Part IX - Further deployment with DB"
+title: "A beautiful GitOps day VIII - Further deployment with DB"
 date: 2023-10-09
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "postgresql", "efcore"]
@@ -10,7 +10,7 @@ draft: true
 Be free from AWS/Azure/GCP by building a production grade On-Premise Kubernetes cluster on cheap VPS provider, fully GitOps managed, and with complete CI/CD tools 🎉
 {{< /lead >}}
 
-This is the **Part IX** of more global topic tutorial. [Back to first part]({{< ref "/posts/10-build-your-own-kubernetes-cluster" >}}) for intro.
+This is the **Part VIII** of more global topic tutorial. [Back to guide summary]({{< ref "/posts/10-a-beautiful-gitops-day" >}}) for intro.
 
 ## Real DB App sample
 
@@ -651,4 +651,4 @@ Return to `https://demo.kube.rocks/Articles` to confirm articles are correctly r
 
 ## 8th check ✅
 
-We now have a little more realistic app. Go [next part]({{< ref "/posts/19-build-your-own-kubernetes-cluster-part-10" >}}), we'll talk about further monitoring integration and tracing with OpenTelemetry.
+We now have a little more realistic app. Go [next part]({{< ref "/posts/19-a-beautiful-gitops-day-9" >}}), we'll talk about further monitoring integration and tracing with OpenTelemetry.

@@ -1,5 +1,5 @@
 ---
-title: "Setup a HA Kubernetes cluster for less than $60 by month"
+title: "A beautiful GitOps day - Build your self-hosted Kubernetes cluster"
 date: 2023-10-01
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes"]
@@ -153,4 +153,4 @@ For an HA cluster, you'll need to put 2 more cx21 controllers, so **€72.78** (
 
 ## Let’s party 🎉
 
-Enough talk, [let's go Charles !]({{< ref "/posts/11-build-your-own-kubernetes-cluster-part-2" >}}).
+Enough talk, [let's go Charles !]({{< ref "/posts/11-a-beautiful-gitops-day-1" >}}).

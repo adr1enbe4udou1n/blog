@@ -1,5 +1,5 @@
 ---
-title: "Setup a HA Kubernetes cluster Part IV - HA storage & DB"
+title: "A beautiful GitOps day III - HA storage & DB"
 date: 2023-10-04
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "longhorn", "bitnami", "postgresql", "redis"]
@@ -10,7 +10,7 @@ draft: true
 Be free from AWS/Azure/GCP by building a production grade On-Premise Kubernetes cluster on cheap VPS provider, fully GitOps managed, and with complete CI/CD tools 🎉
 {{< /lead >}}
 
-This is the **Part IV** of more global topic tutorial. [Back to first part]({{< ref "/posts/10-build-your-own-kubernetes-cluster" >}}) for intro.
+This is the **Part III** of more global topic tutorial. [Back to guide summary]({{< ref "/posts/10-a-beautiful-gitops-day" >}}) for intro.
 
 ## Resilient storage with Longhorn
 
@@ -807,4 +807,4 @@ It will generate 3 daily dumps, one every 8 hours, on the same primary db volume
 
 ## 3th check ✅
 
-Persistence is now insured by Longhorn as main resilient storage. And we have production grade DB replicated cluster. It's finally now time to play with all of this by testing some [real world apps]({{< ref "/posts/13-build-your-own-kubernetes-cluster-part-4" >}}) with a proper CD solution.
+Persistence is now insured by Longhorn as main resilient storage. And we have production grade DB replicated cluster. It's finally now time to play with all of this by testing some [real world apps]({{< ref "/posts/14-a-beautiful-gitops-day-4" >}}) with a proper CD solution.

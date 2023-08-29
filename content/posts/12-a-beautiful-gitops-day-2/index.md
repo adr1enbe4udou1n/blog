@@ -1,5 +1,5 @@
 ---
-title: "Setup a HA Kubernetes cluster Part III - Load Balancer & Ingress with SSL"
+title: "A beautiful GitOps day II - Load Balancer & Ingress with SSL"
 date: 2023-10-03
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "traefik", "cert-manager"]
@@ -10,7 +10,7 @@ draft: true
 Be free from AWS/Azure/GCP by building a production grade On-Premise Kubernetes cluster on cheap VPS provider, fully GitOps managed, and with complete CI/CD tools 🎉
 {{< /lead >}}
 
-This is the **Part III** of more global topic tutorial. [Back to first part]({{< ref "/posts/10-build-your-own-kubernetes-cluster" >}}) for intro.
+This is the **Part II** of more global topic tutorial. [Back to guide summary]({{< ref "/posts/10-a-beautiful-gitops-day" >}}) for intro.
 
 ## 2nd Terraform project
 
@@ -686,4 +686,4 @@ Or for testing purpose set `ports.websecure.forwardedHeaders.insecure` and `port
 
 ## 2nd check ✅
 
-Our cluster is now perfectly securely accessible from outside with automatic routing. The next important part is now to have a [resilient storage and database]({{< ref "/posts/13-build-your-own-kubernetes-cluster-part-4" >}}).
+Our cluster is now perfectly securely accessible from outside with automatic routing. The next important part is now to have a [resilient storage and database]({{< ref "/posts/13-a-beautiful-gitops-day-3" >}}).

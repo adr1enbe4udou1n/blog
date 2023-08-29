@@ -1,5 +1,5 @@
 ---
-title: "Setup a HA Kubernetes cluster Part VIII - Create a CI+CD workflow"
+title: "A beautiful GitOps day VII - Create a CI+CD workflow"
 date: 2023-10-08
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "ci", "cd", "concourse", "flux"]
@@ -10,7 +10,7 @@ draft: true
 Be free from AWS/Azure/GCP by building a production grade On-Premise Kubernetes cluster on cheap VPS provider, fully GitOps managed, and with complete CI/CD tools 🎉
 {{< /lead >}}
 
-This is the **Part VIII** of more global topic tutorial. [Back to first part]({{< ref "/posts/10-build-your-own-kubernetes-cluster" >}}) for intro.
+This is the **Part VII** of more global topic tutorial. [Back to guide summary]({{< ref "/posts/10-a-beautiful-gitops-day" >}}) for intro.
 
 ## Workflow
 
@@ -568,4 +568,4 @@ Wait the pod to be updated, then check the new endpoint `https://demo.kube.rocks
 
 ## 7th check ✅
 
-We have done for the set-up of our automated CI/CD workflow process. Go [next part]({{< ref "/posts/18-build-your-own-kubernetes-cluster-part-9" >}}) for going further with a real DB app that handle automatic migrations.
+We have done for the set-up of our automated CI/CD workflow process. Go [next part]({{< ref "/posts/18-a-beautiful-gitops-day-8" >}}) for going further with a real DB app that handle automatic migrations.

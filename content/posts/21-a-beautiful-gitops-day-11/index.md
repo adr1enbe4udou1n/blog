@@ -1,5 +1,5 @@
 ---
-title: "Setup a HA Kubernetes cluster Part XII - Load testing & Frontend"
+title: "A beautiful GitOps day XI - Load testing & Frontend"
 date: 2023-10-12
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "load-testing", "k6", "frontend", "vue", "typescript", "openapi"]
@@ -10,7 +10,7 @@ draft: true
 Be free from AWS/Azure/GCP by building a production grade On-Premise Kubernetes cluster on cheap VPS provider, fully GitOps managed, and with complete CI/CD tools 🎉
 {{< /lead >}}
 
-This is the **Part XII** of more global topic tutorial. [Back to first part]({{< ref "/posts/10-build-your-own-kubernetes-cluster" >}}) for intro.
+This is the **Part XI** of more global topic tutorial. [Back to guide summary]({{< ref "/posts/10-a-beautiful-gitops-day" >}}) for intro.
 
 ## Load testing
 

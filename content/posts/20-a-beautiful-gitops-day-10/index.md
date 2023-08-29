@@ -1,5 +1,5 @@
 ---
-title: "Setup a HA Kubernetes cluster Part XI - QA with testing & code metrics"
+title: "A beautiful GitOps day X - QA with testing & code metrics"
 date: 2023-10-11
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "testing", "sonarqube", "xunit", "coverage"]
@@ -10,7 +10,7 @@ draft: true
 Be free from AWS/Azure/GCP by building a production grade On-Premise Kubernetes cluster on cheap VPS provider, fully GitOps managed, and with complete CI/CD tools 🎉
 {{< /lead >}}
 
-This is the **Part XI** of more global topic tutorial. [Back to first part]({{< ref "/posts/10-build-your-own-kubernetes-cluster" >}}) for intro.
+This is the **Part X** of more global topic tutorial. [Back to guide summary]({{< ref "/posts/10-a-beautiful-gitops-day" >}}) for intro.
 
 ## Code Metrics
 
@@ -748,4 +748,4 @@ Delete `WeatherForecastController.cs`.
 
 ## 10th check ✅
 
-We have done for code quality process. Go to the [final part]({{< ref "/posts/21-build-your-own-kubernetes-cluster-part-12" >}}) with load testing, and some frontend !
+We have done for code quality process. Go to the [final part]({{< ref "/posts/21-a-beautiful-gitops-day-11" >}}) with load testing, and some frontend !

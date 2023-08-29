@@ -1,5 +1,5 @@
 ---
-title: "Setup a HA Kubernetes cluster Part VII - CI tools"
+title: "A beautiful GitOps day VI - CI tools"
 date: 2023-10-07
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "ci", "gitea", "concourse"]
@@ -10,7 +10,7 @@ draft: true
 Be free from AWS/Azure/GCP by building a production grade On-Premise Kubernetes cluster on cheap VPS provider, fully GitOps managed, and with complete CI/CD tools 🎉
 {{< /lead >}}
 
-This is the **Part VII** of more global topic tutorial. [Back to first part]({{< ref "/posts/10-build-your-own-kubernetes-cluster" >}}) for intro.
+This is the **Part VI** of more global topic tutorial. [Back to guide summary]({{< ref "/posts/10-a-beautiful-gitops-day" >}}) for intro.
 
 ## Self-hosted VCS
 
@@ -640,4 +640,4 @@ Then go to `https://concourse.kube.rocks` and log in with chosen credentials.
 
 ## 6th check ✅
 
-We have everything we need for app building with automatic deployment ! Go [next part]({{< ref "/posts/17-build-your-own-kubernetes-cluster-part-8" >}}) for creating a complete CI/CD workflow !
+We have everything we need for app building with automatic deployment ! Go [next part]({{< ref "/posts/17-a-beautiful-gitops-day-7" >}}) for creating a complete CI/CD workflow !

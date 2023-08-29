@@ -1,5 +1,5 @@
 ---
-title: "Setup a HA Kubernetes cluster Part II - Cluster initialization with Terraform and K3s"
+title: "A beautiful GitOps day I - Cluster initialization with Terraform and K3s"
 date: 2023-10-02
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "terraform", "hetzner", "k3s", "gitops"]
@@ -10,7 +10,7 @@ draft: true
 Be free from AWS/Azure/GCP by building a production grade On-Premise Kubernetes cluster on cheap VPS provider, fully GitOps managed, and with complete CI/CD tools 🎉
 {{< /lead >}}
 
-This is the **Part II** of more global topic tutorial. [Back to first part]({{< ref "/posts/10-build-your-own-kubernetes-cluster" >}}) for intro.
+This is the **Part I** of more global topic tutorial. [Back to guide summary]({{< ref "/posts/10-a-beautiful-gitops-day" >}}) for intro.
 
 ## The boring part (prerequisites)
 
@@ -519,4 +519,4 @@ If node have some workloads running, you'll have to consider a proper [draining]
 
 ## 1st check ✅
 
-We now have a working cluster, fully GitOps managed, easy to scale up, let's install [a load balanced ingress controller for external access through SSL]({{< ref "/posts/12-build-your-own-kubernetes-cluster-part-3" >}}).
+We now have a working cluster, fully GitOps managed, easy to scale up, let's install [a load balanced ingress controller for external access through SSL]({{< ref "/posts/12-a-beautiful-gitops-day-2" >}}).
