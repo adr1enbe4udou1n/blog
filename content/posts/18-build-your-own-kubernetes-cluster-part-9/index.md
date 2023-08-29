@@ -1017,7 +1017,7 @@ Let's finish this guide by a quick view of SPA frontend development as a separat
 
 ### Vue TS
 
-Create a new Vue.js project:
+Create a new Vue.js project from [vitesse starter kit](https://github.com/antfu/vitesse-lite) (be sure to have pnpm, just a matter of `scoop/brew install pnpm`):
 
 ```sh
 npx degit antfu/vitesse-lite kuberocks-demo-ui
@@ -1025,7 +1025,6 @@ cd kuberocks-demo-ui
 git init
 git add .
 git commit -m "Initial commit"
-# using pnpm, scoop install pnpm
 pnpm i
 pnpm dev
 ```
@@ -1519,7 +1518,7 @@ spec:
         - name: demo-ui
           port: http
     - match: Host(`demo.kube.rocks`) && PathPrefix(`/api`)
-      #....
+      #...
 ```
 
 {{< /highlight >}}
