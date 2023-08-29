@@ -1,5 +1,5 @@
 ---
-title: "Setup a HA Kubernetes cluster for less than $60 / month"
+title: "Setup a HA Kubernetes cluster for less than $60 by month"
 date: 2023-10-01
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes"]

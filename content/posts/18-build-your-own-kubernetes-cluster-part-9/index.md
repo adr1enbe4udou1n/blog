@@ -1,8 +1,8 @@
 ---
-title: "Setup a HA Kubernetes cluster Part IX - Feature testing, code metrics & code coverage"
-date: 2023-10-09
+title: "Setup a HA Kubernetes cluster Part IX - DB usage & Tracing with OpenTelemetry"
+date: 2023-10-08
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
-tags: ["kubernetes", "testing", "sonarqube", "xunit"]
+tags: ["kubernetes", "development", "opentelemetry", "tracing", "tempo"]
 draft: true
 ---
 
@@ -10,319 +10,11 @@ draft: true
 Be free from AWS/Azure/GCP by building a production grade On-Premise Kubernetes cluster on cheap VPS provider, fully GitOps managed, and with complete CI/CD tools 🎉
 {{< /lead >}}
 
-This is the **Part IX** of more global topic tutorial. [Back to first part]({{< ref "/posts/10-build-your-own-kubernetes-cluster" >}}) for intro.
+This is the **Part VIII** of more global topic tutorial. [Back to first part]({{< ref "/posts/10-build-your-own-kubernetes-cluster" >}}) for intro.
 
-## Code Metrics
+## Real DB App sample
 
-SonarQube is leading the code metrics industry for a long time, embracing full Open Core model, and the community edition it's completely free of charge even for commercial use. It covers advanced code analysis, code coverage, code duplication, code smells, security vulnerabilities, etc. It ensures high quality code and help to keep it that way.
-
-### SonarQube installation
-
-SonarQube as its dedicated Helm chart which perfect for us. However, it's the most resource hungry component of our development stack so far (because Java project ? End of troll), so be sure to deploy it on almost empty free node, maybe a dedicated one. In fact, it's the last Helm chart for this tutorial, I promise!
-
-Create dedicated database for SonarQube same as usual.
-
-{{< highlight host="demo-kube-k3s" file="main.tf" >}}
-
-```tf
-variable "sonarqube_db_password" {
-  type      = string
-  sensitive = true
-}
-```
-
-{{< /highlight >}}
-
-{{< highlight host="demo-kube-k3s" file="terraform.tfvars" >}}
-
-```tf
-sonarqube_db_password = "xxx"
-```
-
-{{< /highlight >}}
-
-{{< highlight host="demo-kube-k3s" file="sonarqube.tf" >}}
-
-```tf
-resource "kubernetes_namespace_v1" "sonarqube" {
-  metadata {
-    name = "sonarqube"
-  }
-}
-
-resource "helm_release" "sonarqube" {
-  chart      = "sonarqube"
-  version    = "10.1.0+628"
-  repository = "https://SonarSource.github.io/helm-chart-sonarqube"
-
-  name      = "sonarqube"
-  namespace = kubernetes_namespace_v1.sonarqube.metadata[0].name
-
-  set {
-    name  = "prometheusMonitoring.podMonitor.enabled"
-    value = "true"
-  }
-
-  set {
-    name  = "postgresql.enabled"
-    value = "false"
-  }
-
-  set {
-    name  = "jdbcOverwrite.enabled"
-    value = "true"
-  }
-
-  set {
-    name  = "jdbcOverwrite.jdbcUrl"
-    value = "jdbc:postgresql://postgresql-primary.postgres/sonarqube"
-  }
-
-  set {
-    name  = "jdbcOverwrite.jdbcUsername"
-    value = "sonarqube"
-  }
-
-  set {
-    name  = "jdbcOverwrite.jdbcPassword"
-    value = var.sonarqube_db_password
-  }
-}
-
-resource "kubernetes_manifest" "sonarqube_ingress" {
-  manifest = {
-    apiVersion = "traefik.io/v1alpha1"
-    kind       = "IngressRoute"
-    metadata = {
-      name      = "sonarqube"
-      namespace = kubernetes_namespace_v1.sonarqube.metadata[0].name
-    }
-    spec = {
-      entryPoints = ["websecure"]
-      routes = [
-        {
-          match = "Host(`sonarqube.${var.domain}`)"
-          kind  = "Rule"
-          services = [
-            {
-              name = "sonarqube-sonarqube"
-              port = "http"
-            }
-          ]
-        }
-      ]
-    }
-  }
-}
-```
-
-{{< /highlight >}}
-
-Be sure to disable the PostgreSQL sub chart and use our self-hosted cluster with both `postgresql.enabled` and `jdbcOverwrite.enabled`. If needed, set proper `tolerations` and `nodeSelector` for deploying on a dedicated node.
-
-The installation take many minutes, be patient. Once done, you can access SonarQube on `https://sonarqube.kube.rocks` and login with `admin` / `admin`.
-
-### Project configuration
-
-Firstly create a new project and retain the project key which is his identifier. Then create a **global analysis token** named `Concourse CI` that will be used for CI integration from your user account under `/account/security`.
-
-Now we need to create a Kubernetes secret which contains this token value for Concourse CI, for usage inside the pipeline. The token is the one generated above.
-
-Add a new concourse terraform variable for the token:
-
-{{< highlight host="demo-kube-k3s" file="main.tf" >}}
-
-```tf
-variable "concourse_analysis_token" {
-  type      = string
-  sensitive = true
-}
-```
-
-{{< /highlight >}}
-
-{{< highlight host="demo-kube-k3s" file="terraform.tfvars" >}}
-
-```tf
-concourse_analysis_token = "xxx"
-```
-
-{{< /highlight >}}
-
-The secret:
-
-{{< highlight host="demo-kube-k3s" file="concourse.tf" >}}
-
-```tf
-resource "kubernetes_secret_v1" "concourse_sonarqube" {
-  metadata {
-    name      = "sonarqube"
-    namespace = "concourse-main"
-  }
-
-  data = {
-    url            = "https://sonarqube.${var.domain}"
-    analysis-token = var.concourse_analysis_token
-  }
-
-  depends_on = [
-    helm_release.concourse
-  ]
-}
-```
-
-{{< /highlight >}}
-
-We are ready to tackle the pipeline for integration.
-
-### SonarScanner for .NET
-
-As we use a dotnet project, we will use the official SonarQube scanner for .net. But sadly, as it's only a .NET CLI wrapper, it requires a java runtime to run and there is no official SonarQube docker image which contains both .NET SDK and Java runtime. But we have a CI now, so we can build our own QA image on our own private registry.
-
-Create a new Gitea repo dedicated for any custom docker images with this one single Dockerfile:
-
-{{< highlight host="demo-kube-images" file="dotnet-qa.dockerfile" >}}
-
-```Dockerfile
-FROM mcr.microsoft.com/dotnet/sdk:7.0
-
-RUN apt-get update && apt-get install -y ca-certificates-java && apt-get install -y \
-    openjdk-17-jre-headless \
-    unzip \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN dotnet tool install --global dotnet-sonarscanner
-RUN dotnet tool install --global dotnet-coverage
-
-ENV PATH="${PATH}:/root/.dotnet/tools"
-```
-
-{{< /highlight >}}
-
-Note as we add the `dotnet-sonarscanner` tool to the path, we can use it directly in the pipeline without any extra step. I'll also add `dotnet-coverage` global tool for code coverage generation that we'll use later.
-
-Then the pipeline:
-
-{{< highlight host="demo-kube-flux" file="pipelines/images.yaml" >}}
-
-```yml
-resources:
-  - name: docker-images-git
-    type: git
-    icon: coffee
-    source:
-      uri: https://gitea.kube.rocks/kuberocks/docker-images
-      branch: main
-  - name: dotnet-qa-image
-    type: registry-image
-    icon: docker
-    source:
-      repository: ((registry.name))/kuberocks/dotnet-qa
-      tag: "7.0"
-      username: ((registry.username))
-      password: ((registry.password))
-
-jobs:
-  - name: dotnet-qa
-    plan:
-      - get: docker-images-git
-      - task: build-image
-        privileged: true
-        config:
-          platform: linux
-          image_resource:
-            type: registry-image
-            source:
-              repository: concourse/oci-build-task
-          inputs:
-            - name: docker-images-git
-          outputs:
-            - name: image
-          params:
-            DOCKERFILE: docker-images-git/dotnet-qa.dockerfile
-          run:
-            path: build
-      - put: dotnet-qa-image
-        params:
-          image: image/image.tar
-```
-
-{{< /highlight >}}
-
-Update the `main.yaml` pipeline to add the new job, then trigger it manually from Concourse UI to add the new above pipeline:
-
-{{< highlight host="demo-kube-flux" file="pipelines/main.yaml" >}}
-
-```tf
-#...
-
-jobs:
-  - name: configure-pipelines
-    plan:
-      #...
-      - set_pipeline: images
-        file: ci/pipelines/images.yaml
-```
-
-{{< /highlight >}}
-
-The pipeline should now start and build the image, trigger it manually if needed on Concourse UI. Once done, you can check it on your Gitea container packages that the new image `gitea.kube.rocks/kuberocks/dotnet-qa` is here.
-
-### Concourse pipeline integration
-
-It's finally time to reuse this QA image in our Concourse demo project pipeline. Update it accordingly:
-
-{{< highlight host="demo-kube-flux" file="pipelines/demo.yaml" >}}
-
-```yml
-#...
-
-jobs:
-  - name: build
-    plan:
-      - get: source-code
-        trigger: true
-
-      - task: build-source
-        config:
-          platform: linux
-          image_resource:
-            type: registry-image
-            source:
-              repository: ((registry.name))/kuberocks/dotnet-qa
-              tag: "7.0"
-              username: ((registry.username))
-              password: ((registry.password))
-          #...
-          run:
-            path: /bin/sh
-            args:
-              - -ec
-              - |
-                dotnet format --verify-no-changes
-
-                dotnet sonarscanner begin /k:"KubeRocks-Demo" /d:sonar.host.url="((sonarqube.url))"  /d:sonar.token="((sonarqube.analysis-token))"
-                dotnet build -c Release
-                dotnet sonarscanner end /d:sonar.token="((sonarqube.analysis-token))"
-
-                dotnet publish src/KubeRocks.WebApi -c Release -o publish --no-restore --no-build
-
-      #...
-```
-
-{{< /highlight >}}
-
-Note as we now use the `dotnet-qa` image and surround the build step by `dotnet sonarscanner begin` and `dotnet sonarscanner end` commands with appropriate credentials allowing Sonar CLI to send report to our SonarQube instance. Trigger the pipeline manually, all should pass, and the result will be pushed to SonarQube.
-
-[![SonarQube](sonarqube-dashboard.png)](sonarqube-dashboard.png)
-
-## Feature testing
-
-Let's cover the feature testing by calling the API against a real database. This is the opportunity to cover the code coverage as well.
-
-### xUnit
-
-First add a dedicated database for test in the docker compose file as we won't interfere with the development database:
+Before go any further, let's add some DB usage to our sample app. We'll use the classical `Articles<->Authors<->Comments` relationships. First create `docker-compose.yml` file in root of demo project:
 
 {{< highlight host="kuberocks-demo" file="docker-compose.yml" >}}
 
@@ -330,117 +22,291 @@ First add a dedicated database for test in the docker compose file as we won't i
 version: "3"
 
 services:
-  #...
-
-  db_test:
+  db:
     image: postgres:15
     environment:
       POSTGRES_USER: main
       POSTGRES_PASSWORD: main
       POSTGRES_DB: main
     ports:
-      - 54320:5432
+      - 5432:5432
 ```
 
 {{< /highlight >}}
 
-Expose the startup service of minimal API:
+Launch it with `docker compose up -d` and check database running with `docker ps`.
 
-{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
+Time to create basic code that list plenty of articles from an API endpoint. Go back to `kuberocks-demo` and create a new separate project dedicated to app logic:
+
+```sh
+dotnet new classlib -o src/KubeRocks.Application
+dotnet sln add src/KubeRocks.Application
+dotnet add src/KubeRocks.WebApi reference src/KubeRocks.Application
+
+dotnet add src/KubeRocks.Application package Microsoft.EntityFrameworkCore
+dotnet add src/KubeRocks.Application package Npgsql.EntityFrameworkCore.PostgreSQL
+dotnet add src/KubeRocks.WebApi package Microsoft.EntityFrameworkCore.Design
+```
+
+{{< alert >}}
+This is not a DDD course ! We will keep it simple and focus on Kubernetes part.
+{{< /alert >}}
+
+### Define the entities
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.Application/Entities/Article.cs" >}}
 
 ```cs
-//...
+using System.ComponentModel.DataAnnotations;
 
-public partial class Program
+namespace KubeRocks.Application.Entities;
+
+public class Article
 {
-    protected Program() { }
+    public int Id { get; set; }
+
+    public required User Author { get; set; }
+
+    [MaxLength(255)]
+    public required string Title { get; set; }
+    [MaxLength(255)]
+    public required string Slug { get; set; }
+    public required string Description { get; set; }
+    public required string Body { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    public ICollection<Comment> Comments { get; } = new List<Comment>();
 }
 ```
 
 {{< /highlight >}}
 
-Then add a testing JSON environment file for accessing our database `db_test` from the docker-compose.yml:
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.Application/Entities/Comment.cs" >}}
 
-{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/appsettings.Testing.json" >}}
+```cs
+namespace KubeRocks.Application.Entities;
+
+public class Comment
+{
+    public int Id { get; set; }
+
+    public required Article Article { get; set; }
+    public required User Author { get; set; }
+
+    public required string Body { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+```
+
+{{< /highlight >}}
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.Application/Entities/User.cs" >}}
+
+```cs
+using System.ComponentModel.DataAnnotations;
+
+namespace KubeRocks.Application.Entities;
+
+public class User
+{
+    public int Id { get; set; }
+
+    [MaxLength(255)]
+    public required string Name { get; set; }
+
+    [MaxLength(255)]
+    public required string Email { get; set; }
+
+    public ICollection<Article> Articles { get; } = new List<Article>();
+    public ICollection<Comment> Comments { get; } = new List<Comment>();
+}
+```
+
+{{< /highlight >}}
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.Application/Contexts/AppDbContext.cs" >}}
+
+```cs
+namespace KubeRocks.Application.Contexts;
+
+using KubeRocks.Application.Entities;
+using Microsoft.EntityFrameworkCore;
+
+public class AppDbContext : DbContext
+{
+    public DbSet<User> Users => Set<User>();
+    public DbSet<Article> Articles => Set<Article>();
+    public DbSet<Comment> Comments => Set<Comment>();
+
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    {
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Email).IsUnique()
+        ;
+
+        modelBuilder.Entity<Article>()
+            .HasIndex(u => u.Slug).IsUnique()
+        ;
+    }
+}
+```
+
+{{< /highlight >}}
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.Application/Extensions/ServiceExtensions.cs" >}}
+
+```cs
+using KubeRocks.Application.Contexts;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace KubeRocks.Application.Extensions;
+
+public static class ServiceExtensions
+{
+    public static IServiceCollection AddKubeRocksServices(this IServiceCollection services, IConfiguration configuration)
+    {
+        return services.AddDbContext<AppDbContext>((options) =>
+        {
+            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
+        });
+    }
+}
+```
+
+{{< /highlight >}}
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
+
+```cs
+using KubeRocks.Application.Extensions;
+
+//...
+
+// Add services to the container.
+builder.Services.AddKubeRocksServices(builder.Configuration);
+
+//...
+```
+
+{{< /highlight >}}
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/appsettings.Development.json" >}}
 
 ```json
 {
+  //...
   "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost:54320;Username=main;Password=main;Database=main;"
+    "DefaultConnection": "Host=localhost;Username=main;Password=main;Database=main;"
   }
 }
 ```
 
 {{< /highlight >}}
 
-Now the test project:
+Now as all models are created, we can generate migrations and update database accordingly:
 
 ```sh
-dotnet new xunit -o tests/KubeRocks.FeatureTests
-dotnet sln add tests/KubeRocks.FeatureTests
-dotnet add tests/KubeRocks.FeatureTests reference src/KubeRocks.WebApi
-dotnet add tests/KubeRocks.FeatureTests package Microsoft.AspNetCore.Mvc.Testing
-dotnet add tests/KubeRocks.FeatureTests package Respawn
-dotnet add tests/KubeRocks.FeatureTests package FluentAssertions
+dotnet new tool-manifest
+dotnet tool install dotnet-ef
+
+dotnet dotnet-ef -p src/KubeRocks.Application -s src/KubeRocks.WebApi migrations add InitialCreate
+dotnet dotnet-ef -p src/KubeRocks.Application -s src/KubeRocks.WebApi database update
 ```
 
-The `WebApplicationFactory` that will use our testing environment:
+### Inject some dummy data
 
-{{< highlight host="kuberocks-demo" file="tests/KubeRocks.FeatureTests/KubeRocksApiFactory.cs" >}}
+We'll use Bogus on a separate console project:
 
-```cs
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.Hosting;
+```sh
+dotnet new console -o src/KubeRocks.Console
+dotnet sln add src/KubeRocks.Console
+dotnet add src/KubeRocks.WebApi reference src/KubeRocks.Application
+dotnet add src/KubeRocks.Console package Bogus
+dotnet add src/KubeRocks.Console package ConsoleAppFramework
+dotnet add src/KubeRocks.Console package Respawn
+```
 
-namespace KubeRocks.FeatureTests;
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.Console/appsettings.json" >}}
 
-public class KubeRocksApiFactory : WebApplicationFactory<Program>
+```json
 {
-    protected override IHost CreateHost(IHostBuilder builder)
-    {
-        builder.UseEnvironment("Testing");
-
-        return base.CreateHost(builder);
-    }
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Username=main;Password=main;Database=main;"
+  }
 }
 ```
 
 {{< /highlight >}}
 
-The base test class for all test classes that manages database cleanup thanks to `Respawn`:
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.Console/KubeRocks.Console.csproj" >}}
 
-{{< highlight host="kuberocks-demo" file="tests/KubeRocks.FeatureTests/TestBase.cs" >}}
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <!-- ... -->
+
+  <PropertyGroup>
+    <!-- ... -->
+    <RunWorkingDirectory>$(MSBuildProjectDirectory)</RunWorkingDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
+```
+
+{{< /highlight >}}
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.Console/Commands/DbCommand.cs" >}}
 
 ```cs
+using Bogus;
 using KubeRocks.Application.Contexts;
-
+using KubeRocks.Application.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-
 using Npgsql;
-
 using Respawn;
 using Respawn.Graph;
 
-namespace KubeRocks.FeatureTests;
+namespace KubeRocks.Console.Commands;
 
-[Collection("Sequencial")]
-public class TestBase : IClassFixture<KubeRocksApiFactory>, IAsyncLifetime
+[Command("db")]
+public class DbCommand : ConsoleAppBase
 {
-    protected KubeRocksApiFactory Factory { get; private set; }
+    private readonly AppDbContext _context;
 
-    protected TestBase(KubeRocksApiFactory factory)
+    public DbCommand(AppDbContext context)
     {
-        Factory = factory;
+        _context = context;
     }
 
-    public async Task RefreshDatabase()
+    [Command("migrate", "Migrate database")]
+    public async Task Migrate()
     {
-        using var scope = Factory.Services.CreateScope();
+        await _context.Database.MigrateAsync();
+    }
 
-        using var conn = new NpgsqlConnection(
-            scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.GetConnectionString()
-        );
+    [Command("fresh", "Wipe data")]
+    public async Task FreshData()
+    {
+        await Migrate();
+
+        using var conn = new NpgsqlConnection(_context.Database.GetConnectionString());
 
         await conn.OpenAsync();
 
@@ -453,299 +319,810 @@ public class TestBase : IClassFixture<KubeRocksApiFactory>, IAsyncLifetime
         await respawner.ResetAsync(conn);
     }
 
-    public Task InitializeAsync()
+    [Command("seed", "Fake data")]
+    public async Task SeedData()
     {
-        return RefreshDatabase();
-    }
+        await Migrate();
+        await FreshData();
 
-    public Task DisposeAsync()
-    {
-        return Task.CompletedTask;
+        var users = new Faker<User>()
+            .RuleFor(m => m.Name, f => f.Person.FullName)
+            .RuleFor(m => m.Email, f => f.Person.Email)
+            .Generate(50);
+
+        await _context.Users.AddRangeAsync(users);
+        await _context.SaveChangesAsync();
+
+        var articles = new Faker<Article>()
+            .RuleFor(a => a.Title, f => f.Lorem.Sentence().TrimEnd('.'))
+            .RuleFor(a => a.Description, f => f.Lorem.Paragraphs(1))
+            .RuleFor(a => a.Body, f => f.Lorem.Paragraphs(5))
+            .RuleFor(a => a.Author, f => f.PickRandom(users))
+            .RuleFor(a => a.CreatedAt, f => f.Date.Recent(90).ToUniversalTime())
+            .RuleFor(a => a.Slug, (f, a) => a.Title.Replace(" ", "-").ToLowerInvariant())
+            .Generate(500)
+            .Select(a =>
+            {
+                new Faker<Comment>()
+                    .RuleFor(a => a.Body, f => f.Lorem.Paragraphs(2))
+                    .RuleFor(a => a.Author, f => f.PickRandom(users))
+                    .RuleFor(a => a.CreatedAt, f => f.Date.Recent(7).ToUniversalTime())
+                    .Generate(new Faker().Random.Number(10))
+                    .ForEach(c => a.Comments.Add(c));
+
+                return a;
+            });
+
+        await _context.Articles.AddRangeAsync(articles);
+        await _context.SaveChangesAsync();
     }
 }
 ```
 
 {{< /highlight >}}
 
-Note the `Collection` attribute that will force the test classes to run sequentially, required as we will use the same database for all tests.
-
-Finally, the tests for the 2 endpoints of our articles controller:
-
-{{< highlight host="kuberocks-demo" file="tests/KubeRocks.FeatureTests/Articles/ArticlesListTests.cs" >}}
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.Console/Program.cs" >}}
 
 ```cs
-using System.Net.Http.Json;
+using KubeRocks.Application.Extensions;
+using KubeRocks.Console.Commands;
 
-using FluentAssertions;
+var builder = ConsoleApp.CreateBuilder(args);
 
-using KubeRocks.Application.Contexts;
-using KubeRocks.Application.Entities;
-using KubeRocks.WebApi.Models;
-
-using Microsoft.Extensions.DependencyInjection;
-
-using static KubeRocks.WebApi.Controllers.ArticlesController;
-
-namespace KubeRocks.FeatureTests.Articles;
-
-public class ArticlesListTests : TestBase
+builder.ConfigureServices((ctx, services) =>
 {
-    public ArticlesListTests(KubeRocksApiFactory factory) : base(factory) { }
+    services.AddKubeRocksServices(ctx.Configuration);
+});
 
-    [Fact]
-    public async Task Can_Paginate_Articles()
+var app = builder.Build();
+
+app.AddSubCommands<DbCommand>();
+
+app.Run();
+```
+
+{{< /highlight >}}
+
+Then launch the command:
+
+```sh
+dotnet run --project src/KubeRocks.Console db seed
+```
+
+Ensure with your favorite DB client that data is correctly inserted.
+
+### Define endpoint access
+
+All that's left is to create the endpoint. Let's define all DTO first:
+
+```sh
+dotnet add src/KubeRocks.WebApi package Mapster
+```
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Models/ArticleListDto.cs" >}}
+
+```cs
+namespace KubeRocks.WebApi.Models;
+
+public class ArticleListDto
+{
+    public required string Title { get; set; }
+
+    public required string Slug { get; set; }
+
+    public required string Description { get; set; }
+
+    public required string Body { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public DateTime UpdatedAt { get; set; }
+
+    public required AuthorDto Author { get; set; }
+}
+```
+
+{{< /highlight >}}
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Models/ArticleDto.cs" >}}
+
+```cs
+namespace KubeRocks.WebApi.Models;
+
+public class ArticleDto : ArticleListDto
+{
+    public List<CommentDto> Comments { get; set; } = new();
+}
+```
+
+{{< /highlight >}}
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Models/AuthorDto.cs" >}}
+
+```cs
+namespace KubeRocks.WebApi.Models;
+
+public class AuthorDto
+{
+    public required string Name { get; set; }
+}
+```
+
+{{< /highlight >}}
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Models/CommentDto.cs" >}}
+
+```cs
+namespace KubeRocks.WebApi.Models;
+
+public class CommentDto
+{
+    public required string Body { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+
+    public required AuthorDto Author { get; set; }
+}
+```
+
+{{< /highlight >}}
+
+And finally the controller:
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Controllers/ArticlesController.cs" >}}
+
+```cs
+using KubeRocks.Application.Contexts;
+using KubeRocks.WebApi.Models;
+using Mapster;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace KubeRocks.WebApi.Controllers;
+
+[ApiController]
+[Route("[controller]")]
+public class ArticlesController
+{
+    private readonly AppDbContext _context;
+
+    public record ArticlesResponse(IEnumerable<ArticleListDto> Articles, int ArticlesCount);
+
+    public ArticlesController(AppDbContext context)
     {
-        using (var scope = Factory.Services.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-            var user = db.Users.Add(new User
-            {
-                Name = "John Doe",
-                Email = "john.doe@email.com"
-            });
-
-            db.Articles.AddRange(Enumerable.Range(1, 50).Select(i => new Article
-            {
-                Title = $"Test Title {i}",
-                Slug = $"test-title-{i}",
-                Description = "Test Description",
-                Body = "Test Body",
-                Author = user.Entity,
-            }));
-
-            await db.SaveChangesAsync();
-        }
-
-        var response = await Factory.CreateClient().GetAsync("/api/Articles?page=1&size=20");
-
-        response.EnsureSuccessStatusCode();
-
-        var body = (await response.Content.ReadFromJsonAsync<ArticlesResponse>())!;
-
-        body.Articles.Count().Should().Be(20);
-        body.ArticlesCount.Should().Be(50);
-
-        body.Articles.First().Should().BeEquivalentTo(new
-        {
-            Title = "Test Title 50",
-            Description = "Test Description",
-            Body = "Test Body",
-            Author = new
-            {
-                Name = "John Doe"
-            },
-        });
+        _context = context;
     }
 
-    [Fact]
-    public async Task Can_Get_Article()
+    [HttpGet(Name = "GetArticles")]
+    public async Task<ArticlesResponse> Get([FromQuery] int page = 1, [FromQuery] int size = 10)
     {
-        using (var scope = Factory.Services.CreateScope())
+        var articles = await _context.Articles
+            .OrderByDescending(a => a.Id)
+            .Skip((page - 1) * size)
+            .Take(size)
+            .ProjectToType<ArticleListDto>()
+            .ToListAsync();
+
+        var articlesCount = await _context.Articles.CountAsync();
+
+        return new ArticlesResponse(articles, articlesCount);
+    }
+
+    [HttpGet("{slug}", Name = "GetArticleBySlug")]
+    public async Task<ActionResult<ArticleDto>> GetBySlug(string slug)
+    {
+        var article = await _context.Articles
+            .Include(a => a.Author)
+            .Include(a => a.Comments.OrderByDescending(c => c.Id))
+            .ThenInclude(c => c.Author)
+            .FirstOrDefaultAsync(a => a.Slug == slug);
+
+        if (article is null)
         {
-            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-            db.Articles.Add(new Article
-            {
-                Title = $"Test Title",
-                Slug = $"test-title",
-                Description = "Test Description",
-                Body = "Test Body",
-                Author = new User
-                {
-                    Name = "John Doe",
-                    Email = "john.doe@email.com"
-                }
-            });
-
-            await db.SaveChangesAsync();
+            return new NotFoundResult();
         }
 
-        var response = await Factory.CreateClient().GetAsync($"/api/Articles/test-title");
-
-        response.EnsureSuccessStatusCode();
-
-        var body = (await response.Content.ReadFromJsonAsync<ArticleDto>())!;
-
-        body.Should().BeEquivalentTo(new
-        {
-            Title = "Test Title",
-            Description = "Test Description",
-            Body = "Test Body",
-            Author = new
-            {
-                Name = "John Doe"
-            },
-        });
+        return article.Adapt<ArticleDto>();
     }
 }
 ```
 
 {{< /highlight >}}
 
-Ensure all tests passes with `dotnet test`.
+Launch the app and check that `/Articles` and `/Articles/{slug}` endpoints are working as expected.
 
-### CI tests & code coverage
+## Production grade deployment
 
-Now we need to integrate the tests in our CI pipeline. As we testing with a real database, create a new `demo_test` database through pgAdmin with basic `test` / `test` credentials.
+### Database connection
 
-{{< alert >}}
-In real world scenario, you should use a dedicated database for testing, and not the same as production.
-{{< /alert >}}
+It's time to connect our app to the production database. Create a demo DB & user through pgAdmin and create the appropriate secret:
 
-Let's edit the pipeline accordingly for tests:
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/secrets-demo-db.yaml" >}}
 
-{{< highlight host="demo-kube-flux" file="pipelines/demo.yaml" >}}
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: demo-db
+type: Opaque
+data:
+  password: ZGVtbw==
+```
 
-```yml
+{{< /highlight >}}
+
+Generate the according sealed secret like previously chapters with `kubeseal` under `sealed-secret-demo-db.yaml` file and delete `secret-demo-db.yaml`.
+
+```sh
+cat clusters/demo/kuberocks/secret-demo.yaml | kubeseal --format=yaml --cert=pub-sealed-secrets.pem > clusters/demo/kuberocks/sealed-secret-demo.yaml
+rm clusters/demo/kuberocks/secret-demo.yaml
+```
+
+Let's inject the appropriate connection string as environment variable:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/deploy-demo.yaml" >}}
+
+```yaml
+# ...
+spec:
+  # ...
+  template:
+    # ...
+    spec:
+      # ...
+      containers:
+        - name: api
+          # ...
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: demo-db
+                  key: password
+            - name: ConnectionStrings__DefaultConnection
+              value: Host=postgresql-primary.postgres;Username=demo;Password='$(DB_PASSWORD)';Database=demo;
 #...
-
-jobs:
-  - name: build
-    plan:
-      #...
-
-      - task: build-source
-        config:
-          #...
-          params:
-            ConnectionStrings__DefaultConnection: "Host=postgres-primary.postgres;Username=test;Password=test;Database=demo_test"
-          run:
-            path: /bin/sh
-            args:
-              - -ec
-              - |
-                dotnet format --verify-no-changes
-
-                dotnet sonarscanner begin /k:"KubeRocks-Demo" /d:sonar.host.url="((sonarqube.url))"  /d:sonar.token="((sonarqube.analysis-token))" /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
-                dotnet build -c Release
-                dotnet-coverage collect 'dotnet test -c Release --no-restore --no-build --verbosity=normal' -f xml -o 'coverage.xml'
-                dotnet sonarscanner end /d:sonar.token="((sonarqube.analysis-token))"
-
-                dotnet publish src/KubeRocks.WebApi -c Release -o publish --no-restore --no-build
-
-#...
 ```
 
 {{< /highlight >}}
 
-Note as we already include code coverage by using `dotnet-coverage` tool. Don't forget to precise the path of `coverage.xml` to `sonarscanner` CLI too. It's time to push our code with tests or trigger the pipeline manually to test our integration tests.
+### Database migration
 
-If all goes well, you should see the tests results on SonarQube with some coverage done:
-
-[![SonarQube](sonarqube-tests.png)](sonarqube-tests.png)
-
-Coverage detail:
-
-[![SonarQube](sonarqube-cc.png)](sonarqube-cc.png)
-
-You may exclude some files from analysis by adding some project properties:
-
-{{< highlight host="kuberocks-demo" file="src/KubeRocks.Application/KubeRocks.Application.csproj" >}}
-
-```xml
-<Project Sdk="Microsoft.NET.Sdk">
-  <!-- ... -->
-
-  <ItemGroup>
-    <SonarQubeSetting Include="sonar.exclusions">
-      <Value>appsettings.Testing.json</Value>
-    </SonarQubeSetting>
-  </ItemGroup>
-</Project>
-```
-
-{{< /highlight >}}
-
-Same for coverage:
-
-{{< highlight host="kuberocks-demo" file="src/KubeRocks.Application/KubeRocks.Application.csproj" >}}
-
-```xml
-<Project Sdk="Microsoft.NET.Sdk">
-  <!-- ... -->
-
-  <ItemGroup>
-    <SonarQubeSetting Include="sonar.coverage.exclusions">
-      <Value>Migrations/**/*</Value>
-    </SonarQubeSetting>
-  </ItemGroup>
-</Project>
-```
-
-{{< /highlight >}}
-
-### Sonar Analyzer
-
-You can enforce many default sonar rules by using [Sonar Analyzer](https://github.com/SonarSource/sonar-dotnet) directly locally before any code push.
-
-Create this file at the root of your solution for enabling Sonar Analyzer globally:
-
-{{< highlight host="kuberocks-demo" file="Directory.Build.props" >}}
-
-```xml
-<Project>
-  <PropertyGroup>
-    <AnalysisLevel>latest-Recommended</AnalysisLevel>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference
-      Include="SonarAnalyzer.CSharp"
-      Version="9.8.0.76515"
-      PrivateAssets="all"
-      Condition="$(MSBuildProjectExtension) == '.csproj'"
-    />
-  </ItemGroup>
-</Project>
-```
-
-{{< /highlight >}}
-
-Any rule violation is treated as error at project building, which block the CI before execution of tests. Use `latest-All` as `AnalysisLevel` for psychopath mode.
-
-At this stage as soon this file is added, you should see some errors at building. If you use VSCode with correct C# extension, these errors will be highlighted directly in the editor. Here are some fixes:
+The DB connection should be done, but the database isn't migrated yet, the easiest is to add a migration step directly in startup app:
 
 {{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
 
 ```cs
+// ...
+var app = builder.Build();
+
+using var scope = app.Services.CreateScope();
+await using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+await dbContext.Database.MigrateAsync();
+
+// ...
+```
+
+{{< /highlight >}}
+
+The database should be migrated on first app launch on next deploy. Go to `https://demo.kube.rocks/Articles` to confirm all is ok. It should return next empty response:
+
+```json
+{
+  articles: []
+  articlesCount: 0
+}
+```
+
+{{< alert >}}
+Don't hesitate to abuse of `klo -n kuberocks deploy/demo` to debug any troubleshooting when pod is on error state.
+{{< /alert >}}
+
+### Database seeding
+
+We'll try to seed the database directly from local. Change temporarily the connection string in `appsettings.json` to point to the production database:
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.Console/appsettings.json" >}}
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost:54321;Username=demo;Password='xxx';Database=demo;"
+  }
+}
+```
+
+{{< /highlight >}}
+
+Then:
+
+```sh
+# forward the production database port to local
+kpf svc/postgresql -n postgres 54321:tcp-postgresql
+# launch the seeding command
+dotnet run --project src/KubeRocks.Console db seed
+```
+
+{{< alert >}}
+We may obviously never do this on real production database, but as it's only for seeding, it will never concern them.
+{{< /alert >}}
+
+Return to `https://demo.kube.rocks/Articles` to confirm articles are correctly returned.
+
+### Better logging with Serilog
+
+Default ASP.NET logging are not very standard, let's add Serilog for real requests logging with duration and status code:
+
+```sh
+dotnet add src/KubeRocks.WebApi package Serilog.AspNetCore
+```
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
+
+```cs
+// ...
+
+builder.Host.UseSerilog((ctx, cfg) => cfg
+    .ReadFrom.Configuration(ctx.Configuration)
+    .WriteTo.Console()
+);
+
+var app = builder.Build();
+
+app.UseSerilogRequestLogging();
+
+// ...
+```
+
+{{< /highlight >}}
+
+Then filtering through Loki stack should by far better.
+
+### Liveness & readiness
+
+All real production app should have liveness & readiness probes. It generally consists on particular URL which return the current health app status. We'll also include the DB access health. Let's add the standard `/healthz` endpoint, which is dead simple in ASP.NET Core:
+
+```sh
+dotnet add src/KubeRocks.WebApi package Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore
+```
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
+
+```cs
+// ...
+
+builder.Services
+    .AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>();
+
+var app = builder.Build();
+
+// ...
+
+app.MapControllers();
+app.MapHealthChecks("/healthz");
+
+app.Run();
+```
+
+{{< /highlight >}}
+
+And you're done ! Go to `https://demo.kube.rocks/healthz` to confirm it's working. Try to stop the database with `docker compose stop` and check the healthz endpoint again, it should return `503` status code.
+
+{{< alert >}}
+The `Microsoft.Extensions.Diagnostics.HealthChecks` package is very extensible and you can add any custom check to enrich the health app status.
+{{< /alert >}}
+
+And finally the probes:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/deploy-demo.yaml" >}}
+
+```yaml
+# ...
+spec:
+  # ...
+  template:
+    # ...
+    spec:
+      # ...
+      containers:
+        - name: api
+          # ...
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+```
+
+{{< /highlight >}}
+
+{{< alert >}}
+Be aware of difference between `liveness` and `readiness` probes. The first one is used to restart the pod if it's not responding, the second one is used to tell the pod is not ready to receive traffic, which is vital for preventing any downtime.  
+When **Rolling Update** strategy is used (the default), the old pod is not killed until the new one is ready (aka healthy).
+{{< /alert >}}
+
+## Telemetry
+
+The last step but not least missing for a total integration with our monitored Kubernetes cluster is to add some telemetry to our app. We'll use `OpenTelemetry` for that, which becomes the standard library for metrics and tracing, by providing good integration to many languages.
+
+### Application metrics
+
+Install minimal ASP.NET Core metrics is really a no-brainer:
+
+```sh
+dotnet add src/KubeRocks.WebApi package OpenTelemetry.AutoInstrumentation --prerelease
+dotnet add src/KubeRocks.WebApi package OpenTelemetry.Extensions.Hosting --prerelease
+dotnet add src/KubeRocks.WebApi package OpenTelemetry.Exporter.Prometheus.AspNetCore --prerelease
+```
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
+
+```cs
+//...
+
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(b =>
+    {
+        b
+            .AddAspNetCoreInstrumentation()
+            .AddPrometheusExporter();
+    });
+
+var app = builder.Build();
+
+app.UseOpenTelemetryPrometheusScrapingEndpoint();
+
+//...
+```
+
+{{< /highlight >}}
+
+Relaunch app and go to `https://demo.kube.rocks/metrics` to confirm it's working. It should show metrics after each endpoint call, simply try `https://demo.kube.rocks/Articles`.
+
+{{< alert >}}
+.NET metrics are currently pretty basic, but the next .NET 8 version will provide far better metrics from internal components allowing some [useful dashboard](https://github.com/JamesNK/aspnetcore-grafana).
+{{< /alert >}}
+
+#### Hide internal endpoints
+
+After push, you should see `/metrics` live. Let's step back and exclude this internal path from external public access. We have 2 options:
+
+* Force on the app side to listen only on private network on `/metrics` and `/healthz` endpoints
+* Push all the app logic under `/api` path and let Traefik to include only this path
+
+Let's do the option 2. Add the `api/` prefix to controllers to expose:
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Controllers/ArticlesController.cs" >}}
+
+```cs
+//...
+[ApiController]
+[Route("api/[controller]")]
+public class ArticlesController {
+    //...
+}
+```
+
+{{< /highlight >}}
+
+Let's move Swagger UI under `/api` path too:
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
+
+```cs
+//...
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger(c =>
+    {
+        c.RouteTemplate = "/api/{documentName}/swagger.json";
+    });
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("v1/swagger.json", "KubeRocks v1");
+        c.RoutePrefix = "api";
+    });
+}
+
+//...
+```
+
+{{< /highlight >}}
+
+{{< alert >}}
+You may use ASP.NET API versioning, which work the same way with [versioning URL path](https://github.com/dotnet/aspnet-api-versioning/wiki/Versioning-via-the-URL-Path).
+{{< /alert >}}
+
+All is left is to include only the endpoints under `/api` prefix on Traefik IngressRoute:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/deploy-demo.yaml" >}}
+
+```yaml
 #...
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+#...
+spec:
+  #...
+  routes:
+    - match: Host(`demo.kube.rocks`) && PathPrefix(`/api`)
+      #...
+```
+
+{{< /highlight >}}
+
+Now the new URL is `https://demo.kube.rocks/api/Articles`. Any path different from `api` will return the Traefik 404 page, and internal paths as `https://demo.kube.rocks/metrics` is not accessible anymore. An other additional advantage of this config, it's simple to put a separated frontend project under `/` path, which can use the under API without any CORS problem natively.
+
+#### Prometheus integration
+
+It's only a matter of new ServiceMonitor config:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/deploy-demo.yaml" >}}
+
+```yaml
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: demo
+  namespace: kuberocks
+spec:
+  endpoints:
+    - targetPort: 80
+  selector:
+    matchLabels:
+      app: demo
+```
+
+{{< /highlight >}}
+
+After some time, You can finally use the Prometheus dashboard to query your app metrics. Use `{namespace="kuberocks",job="demo"}` PromQL query to list all available metrics:
+
+[![Prometheus metrics](prometheus-graph.png)](prometheus-graph.png)
+
+### Application tracing
+
+A more useful case for OpenTelemetry is to integrate it to a tracing backend. [Tempo](https://grafana.com/oss/tempo/) is a good candidate, which is a free open-source alternative to Jaeger, simpler to install by requiring a simple s3 as storage, and compatible to many protocols as Jaeger, OTLP, Zipkin.
+
+#### Installing Tempo
+
+It's another Helm Chart to install as well as the related grafana datasource:
+
+{{< highlight host="demo-kube-k3s" file="tracing.tf" >}}
+
+```tf
+resource "kubernetes_namespace_v1" "tracing" {
+  metadata {
+    name = "tracing"
+  }
+}
+
+resource "helm_release" "tempo" {
+  chart      = "tempo"
+  version    = "1.5.1"
+  repository = "https://grafana.github.io/helm-charts"
+
+  name      = "tempo"
+  namespace = kubernetes_namespace_v1.tracing.metadata[0].name
+
+  set {
+    name  = "tempo.storage.trace.backend"
+    value = "s3"
+  }
+
+  set {
+    name  = "tempo.storage.trace.s3.bucket"
+    value = var.s3_bucket
+  }
+
+  set {
+    name  = "tempo.storage.trace.s3.endpoint"
+    value = var.s3_endpoint
+  }
+
+  set {
+    name  = "tempo.storage.trace.s3.region"
+    value = var.s3_region
+  }
+
+  set {
+    name  = "tempo.storage.trace.s3.access_key"
+    value = var.s3_access_key
+  }
+
+  set {
+    name  = "tempo.storage.trace.s3.secret_key"
+    value = var.s3_secret_key
+  }
+
+  set {
+    name  = "serviceMonitor.enabled"
+    value = "true"
+  }
+}
+
+resource "kubernetes_config_map_v1" "tempo_grafana_datasource" {
+  metadata {
+    name      = "tempo-grafana-datasource"
+    namespace = kubernetes_namespace_v1.monitoring.metadata[0].name
+    labels = {
+      grafana_datasource = "1"
+    }
+  }
+
+  data = {
+    "datasource.yaml" = <<EOF
+apiVersion: 1
+datasources:
+- name: Tempo
+  type: tempo
+  uid: tempo
+  url: http://tempo.tracing:3100/
+  access: proxy
+EOF
+  }
+}
+```
+
+{{< /highlight >}}
+
+#### OpenTelemetry
+
+Let's firstly add another instrumentation package specialized for Npgsql driver used by EF Core to translate queries to PostgreSQL:
+
+```sh
+dotnet add src/KubeRocks.WebApi package Npgsql.OpenTelemetry
+```
+
+Then bridge all needed instrumentation as well as the OTLP exporter:
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
+
+```cs
+//...
+
+builder.Services.AddOpenTelemetry()
+    //...
+    .WithTracing(b =>
+    {
+        b
+            .SetResourceBuilder(ResourceBuilder
+                .CreateDefault()
+                .AddService("KubeRocks.Demo")
+                .AddTelemetrySdk()
+            )
+            .AddAspNetCoreInstrumentation(b =>
+            {
+                b.Filter = ctx =>
+                {
+                    return ctx.Request.Path.StartsWithSegments("/api");
+                };
+            })
+            .AddEntityFrameworkCoreInstrumentation()
+            .AddNpgsql()
+            .AddOtlpExporter();
+    });
+
+//...
+```
+
+{{< /highlight >}}
+
+Then add the exporter endpoint config in order to push traces to Tempo:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/deploy-demo.yaml" >}}
+
+```yaml
+#...
+spec:
+  #...
+  template:
+    #...
+    spec:
+      #...
+      containers:
+        - name: api
+          #...
+          env:
+            #...
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://tempo.tracing:4317
+```
+
+{{< /highlight >}}
+
+Call some API URLs and get back to Grafana / Explore, select Tempo data source and search for query traces. You should see something like this:
+
+[![Tempo search](tempo-search.png)](tempo-search.png)
+
+Click on one specific trace to get details. You can go through HTTP requests, EF Core time response, and even underline SQL queries thanks to Npgsql instrumentation:
+
+[![Tempo traces](tempo-trace.png)](tempo-trace.png)
+
+#### Correlation with Loki
+
+It would be nice to have directly access to trace from logs through Loki search, as it's clearly a more seamless way than searching inside Tempo.
+
+For that we need to do 2 things :
+
+* Add the `TraceId` to logs in order to correlate trace with log. In ASP.NET Core, a `TraceId` correspond to a unique request, allowing isolation analyze for each request.
+* Create a link in Grafana from the generated `TraceId` inside log and the detail Tempo view trace.
+
+So firstly, let's take care of the app part by attaching the OpenTelemetry TraceId to Serilog:
+
+```sh
+dotnet add src/KubeRocks.WebApi package Serilog.Enrichers.Span
+```
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Program.cs" >}}
+
+```cs
+//...
 
 builder.Host.UseSerilog((ctx, cfg) => cfg
     .ReadFrom.Configuration(ctx.Configuration)
     .Enrich.WithSpan()
     .WriteTo.Console(
-        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] |{TraceId}| {Message:lj}{NewLine}{Exception}",
-        // Enforce culture
-        formatProvider: CultureInfo.InvariantCulture
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] |{TraceId}| {Message:lj}{NewLine}{Exception}"
     )
 );
 
-#...
+//...
 ```
 
 {{< /highlight >}}
 
-Delete `WeatherForecastController.cs`.
+It should now generate that kind of logs:
 
-{{< highlight host="kuberocks-demo" file="tests/KubeRocks.FeatureTests.csproj" >}}
+```txt
+[23:22:57 INF] |aa51c7254aaa10a3f679a511444a5da5| HTTP GET /api/Articles responded 200 in 301.7052 ms
+```
 
-```xml
-<Project Sdk="Microsoft.NET.Sdk">
+Now Let's adapt the Loki datasource by creating a derived field inside `jsonData` property:
 
-  <PropertyGroup>
-    <!-- ... -->
+{{< highlight host="demo-kube-k3s" file="logging.tf" >}}
 
-    <NoWarn>CA1707</NoWarn>
-  </PropertyGroup>
+```tf
+resource "kubernetes_config_map_v1" "loki_grafana_datasource" {
+  #...
 
-  <!-- ... -->
-</Project>
+  data = {
+    "datasource.yaml" = <<EOF
+apiVersion: 1
+datasources:
+- name: Loki
+  #...
+  jsonData:
+    derivedFields:
+      - datasourceName: Tempo
+        matcherRegex: "\\|(\\w+)\\|"
+        name: TraceID
+        url: "$$${__value.raw}"
+        datasourceUid: tempo
+EOF
+  }
+}
 ```
 
 {{< /highlight >}}
+
+This where the magic happens. The `\|(\w+)\|` regex will match and extract the `TraceId` inside the log, which is inside pipes, and create a link to Tempo trace detail view.
+
+[![Derived fields](loki-derived-fields.png)](loki-derived-fields.png)
+
+This will give us the nice link button as soon as you you click a log detail:
+
+[![Derived fields](loki-tempo-link.png)](loki-tempo-link.png)
 
 ## 8th check ✅
 
-We have done for the basic functional telemetry ! There are infinite things to cover in this subject, but it's enough for this endless guide. Go [next part]({{< ref "/posts/18-build-your-own-kubernetes-cluster-part-9" >}}) for the final part with load testing, and some frontend !
+We have done for the basic functional telemetry ! There are infinite things to cover in this subject, but it's enough for this endless guide. Go [next part]({{< ref "/posts/19-build-your-own-kubernetes-cluster-part-10" >}}), we'll talk about feature testing, code metrics and code coverage.
