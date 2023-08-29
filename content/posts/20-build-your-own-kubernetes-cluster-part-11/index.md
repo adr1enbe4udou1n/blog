@@ -301,6 +301,31 @@ Should launch app in `http://localhost:3333/`. Create a new `kuberocks-demo-ui` 
 
 As always when frontend is separated from backend, we have to deal with CORS. But I prefer to have one single URL for frontend + backend and get rid of CORS problem by simply call under `/api` path. Moreover, it'll be production ready without need to manage any `Vite` variable for API URL and we'll get HTTPS provided by dotnet. Back to API project.
 
+For convenience, let's change the randomly generated ASP.NET ports by predefined ones:
+
+{{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Properties/launchSettings.json" >}}
+
+```json
+{
+  //...
+  "profiles": {
+    "http": {
+      //...
+      "applicationUrl": "http://localhost:5000",
+      //...
+    },
+    "https": {
+      //...
+      "applicationUrl": "https://localhost:5001;http://localhost:5000",
+      //...
+    },
+    //...
+  }
+}
+```
+
+{{< /highlight >}}
+
 ```sh
 dotnet add src/KubeRocks.WebApi package Yarp.ReverseProxy
 ```
@@ -370,7 +395,7 @@ The proxy configuration (only for development):
       "Server": {
         "Destinations": {
           "Server1": {
-            "Address": "https://localhost:7159"
+            "Address": "https://localhost:5001"
           }
         }
       }
@@ -381,7 +406,7 @@ The proxy configuration (only for development):
 
 {{< /highlight >}}
 
-Now your frontend app should appear under `https://localhost:7159`, and API calls under `https://localhost:7159/api`. We now benefit from HTTPS for all app. Push API code.
+Now your frontend app should appear under `https://localhost:5001`, and API calls under `https://localhost:5001/api`. We now benefit from HTTPS for all app. Push API code.
 
 ### Typescript API generator
 
@@ -460,7 +485,7 @@ Now generate the models:
   //...
   "scripts": {
     //...
-    "openapi": "openapi-typescript http://localhost:5123/api/v1/swagger.json --output src/api/openapi.ts"
+    "openapi": "openapi-typescript http://localhost:5000/api/v1/swagger.json --output src/api/openapi.ts"
   },
   //...
 }
