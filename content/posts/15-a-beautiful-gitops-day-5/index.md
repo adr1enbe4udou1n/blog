@@ -51,7 +51,7 @@ module "hcloud_kube" {
 
 ### Prometheus Stack
 
-When using k8s, the standard de facto is to install [Prometheus stack](https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack). It includes all necessary CRDs and element for a proper monitoring stack.
+When using k8s, the standard de facto is to install [Prometheus stack](https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack). It includes all necessary CRDs and components for a proper monitoring stack.
 
 You have 2 choices to install it, are we using Flux or Terraform ? Flux include a full documentation of [how to install it with](https://fluxcd.io/flux/guides/monitoring/).
 
@@ -150,15 +150,15 @@ resource "helm_release" "kube_prometheus_stack" {
 
 {{< /highlight >}}
 
-The application is deployed in `monitoring` namespace. It can takes a few minutes to be fully up and running. You can check the status with `kgpo -n monitoring`.
+The application is deployed under `monitoring` namespace. It takes few minutes to be fully up and running. You can check the status with `kgpo -n monitoring`.
 
 Important notes:
 
-* We set a retention of **15 days** and **5GB** of storage for Prometheus. Set this according to your needs.
+* We set a retention of **15 days** and **5 GB** of storage for Prometheus. Set this according to your needs.
 * We allow `serviceMonitorSelector` and `podMonitorSelector` for scrapping monitor CRDs from all namespaces.
 * We set `enableRemoteWriteReceiver` to allow remote write to databases for advanced specific usage, as by default Prometheus works with pull model on its own.
 * As we don't set any storage class, the default one will be used, which is `local-path` when using K3s. If you want to use longhorn instead and benefit of automatic monitoring backup, you can set it with `...volumeClaimTemplate.spec.storageClassName`. But don't forget to deploy Longhorn manager by adding monitor toleration.
-* As it's a huge chart, I want to minimize dependencies by disabling Grafana, as I prefer manage it separately. However, in this case we must set `grafana.forceDeployDatasources` and `grafana.forceDeployDashboards` to `true` in order to benefit of all included Kubernetes dashboards and automatic Prometheus datasource injection, and deploy them to config maps that can be used for next Grafana install by provisioning.
+* As it's a huge chart, I want to minimize dependencies by disabling Grafana, as I prefer manage it separately. However, in this case we may set `grafana.forceDeployDatasources` and `grafana.forceDeployDashboards` to `true` in order to benefit of all included Kubernetes dashboards and automatic Prometheus datasource injection, and deploy them to config maps that can be used for next Grafana install by provisioning.
 
 And finally the ingress for external access:
 
@@ -211,7 +211,6 @@ No go to `prometheus.kube.rocks`, after login you should access the Prometheus U
 * 1 instance of each PostgreSQL primary and read
 * 2 instances of Redis
 * 5 instances of Longhorn manager
-* 1 instance of n8n
 
 This is exactly how it works, the `ServiceMonitor` custom resource is responsible to discover and centralize all metrics for prometheus, allowing automatic discovery without touch the Prometheus config. Use `kg smon -A` to list them all.
 
@@ -250,7 +249,7 @@ spec:
 
 {{< /highlight >}}
 
-The `spec.path` under `Kustomization` tells Flux to scrape [remote monitoring manifests](https://github.com/fluxcd/flux2/tree/main/manifests/monitoring/monitoring-config), avoiding us to write all of them manually. It includes the `PodMonitor` as well as Grafana dashboards.
+The `spec.path` under `Kustomization` tells Flux to scrape [remote monitoring manifests](https://github.com/fluxcd/flux2-monitoring-example/tree/main/monitoring/configs), avoiding us to write all of them manually. It includes the `PodMonitor` as well as Grafana dashboards.
 
 After some minutes, flux should be appearing in Prometheus targets.
 
@@ -498,7 +497,7 @@ You can easily import some additional dashboards by importing them from Grafana 
 
 ## Logging
 
-Last but not least, we need to add a logging stack. The most popular one is [Elastic Stack](https://www.elastic.co/elastic-stack), but it's very resource intensive. A better option is to use [Loki](https://grafana.com/oss/loki/) which is a more lightweight solution, and also part of Grafana Labs.
+Last but not least, we need to add a logging stack. The most popular one is [Elastic Stack](https://www.elastic.co/elastic-stack), but it's very resource intensive. A more lightweight option is to use [Loki](https://grafana.com/oss/loki/), also part of Grafana Labs.
 
 In order to work on scalable mode, we need to have a S3 storage backend. We will reuse same S3 compatible storage as longhorn backup here, but it's recommended to use a separate bucket and credentials.
 
@@ -748,7 +747,7 @@ resource "helm_release" "helm_exporter" {
   }
 
   values = [
-    file("${path.module}/values/helm-exporter-values.yaml")
+    file("values/helm-exporter-values.yaml")
   ]
 }
 ```
