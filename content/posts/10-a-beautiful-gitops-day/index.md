@@ -160,4 +160,4 @@ For an HA cluster, you'll need to put 2 more cx21 controllers, so **€72.78** (
 
 ## Let’s party 🎉
 
-Enough talk, [let's go Charles !]({{< ref "/posts/11-a-beautiful-gitops-day-1" >}}).
+Enough talk, [let's go Charles !]({{< ref "/posts/11-a-beautiful-gitops-day-1" >}})
