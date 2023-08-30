@@ -16,12 +16,13 @@ This is the **Part VII** of more global topic tutorial. [Back to guide summary](
 
 It's now time to step back and think about how we'll use our CI. Our goal is to build our above dotnet Web API with Concourse CI as a container image, ready to deploy to our cluster through Flux. So we finish the complete CI/CD pipeline. To resume the scenario:
 
-1. Concourse CI check the repo periodically (pull model) for new code pushed and trigger a build if applicable
-2. When container image build passed, Concourse CI push the new image to our private registry, which is already take care by Gitea
-3. Flux, which can perfectly be in a different cluster, check the registry periodically (pull model), if new image tag detected, it will deploy it automatically to our cluster
+1. Concourse CI check the Gitea repo periodically (pull model) for any new code and trigger a build if applicable
+2. When container image build passed, Concourse CI push the new image to our private registry, which is already included into Gitea
+3. Image Automation, which is a component as part of Flux, check the registry periodically (pull model), if new image tag detected, it will write the last tag into Flux repository
+4. Flux check the flux GitHub registry periodically (pull model), if any new or updated manifest detected, it will deploy it automatically to our cluster
 
 {{< alert >}}
-Although it's the most secured way and configuration less, instead of default pull model, which is generally a check every minute, it's possible secured WebHook instead in order to reduce time between code push and deployment.
+Although it's the most secured way and configuration less, instead of default pull model, which is generally a check every minute, it's possible to use WebHook instead in order to reduce time between code push and deployment.
 {{< /alert >}}
 
 The flow pipeline is pretty straightforward:
@@ -53,7 +54,7 @@ graph RL
 
 We need to:
 
-1. Give read/write access to our Gitea and registry for Concourse. Note as we need write access in code repository for concourse because we need to store the new image tag. We'll using [semver resource](https://github.com/concourse/semver-resource) for that.
+1. Give read/write access to our Gitea repo and container registry for Concourse. Note as we need write access in code repository for concourse because we need to store the new image tag. We'll using [semver resource](https://github.com/concourse/semver-resource) for that.
 2. Give read registry credentials to Flux for regular image tag checking as well as Kubernetes in order to allow image pulling from the private registry.
 
 Let's create 2 new user `concourse` with admin acces and `container` as standard user on Gitea. Store these credentials on new variables:
@@ -140,7 +141,7 @@ resource "kubernetes_secret_v1" "concourse_git" {
 Note as we use `concourse-main` namespace, already created by Concourse Helm installer, which is a dedicated namespace for the default team `main`. Because of that, we should keep `depends_on` to ensure the namespace is created before the secrets.
 
 {{< alert >}}
-Don't forget the `[ci skip]` in commit message, which is the commit for version bumping, otherwise you'll have an infinite loop of builds !
+Don't forget the `[ci skip]` in commit message, which is the commit for version bumping, otherwise you'll have an infinite build loop !
 {{< /alert >}}
 
 Then same for Flux and the namespace that will receive the app:
@@ -199,7 +200,7 @@ WORKDIR /publish
 COPY /publish .
 
 EXPOSE 80
-ENTRYPOINT ["dotnet", "KubeRocksDemo.dll"]
+ENTRYPOINT ["dotnet", "KubeRocks.WebApi.dll"]
 ```
 
 {{< /highlight >}}
@@ -314,7 +315,7 @@ A build will be trigger immediately. You can follow it on Concourse UI.
 
 [![Concourse pipeline](concourse-pipeline.png)](concourse-pipeline.png)
 
-If everything is ok, check in `https://gitea.kube.rocks/admin/packages`, you should see a new image tag on your registry ! A new file `version` is automatically pushed in code repo in order to keep tracking of the image tag version.
+If everything is ok, check in `https://gitea.kube.rocks/admin/packages`, you should see a new image appear on the list ! A new file `version` is automatically pushed in code repo in order to keep tracking of the image tag version.
 
 [![Concourse build](concourse-build.png)](concourse-build.png)
 
@@ -425,7 +426,7 @@ However, one last thing is missing: the automatic deployment.
 
 If you checked the above flowchart, you'll note that Image automation is a separate process from Flux that only scan the registry for new image tags and push any new tag to Flux repository. Then Flux will detect the new commit in Git repository, including the new tag, and automatically deploy it to K8s.
 
-By default, if not any strategy is set, K8s will do a **rolling deployment**, i.e. creating new replica firstly be terminating the old one. This will prevent any downtime on the condition of you set as well **readiness probe** in your pod spec, which is a later topic.
+By default, if not any strategy is set, K8s will do a **rolling deployment**, i.e. creating new replica firstly before terminating the old one. This will prevent any downtime on the condition of you set as well **readiness probe** in your pod spec, which is a later topic.
 
 Let's define the image update automation task for main Flux repository:
 
@@ -460,7 +461,7 @@ spec:
 
 {{< /highlight >}}
 
-Now we need to Image Reflector how to scan the repository, as well as the attached policy for tag update:
+Now we need to tell Image Reflector how to scan the repository, as well as the attached policy for tag update:
 
 {{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/images-demo.yaml" >}}
 

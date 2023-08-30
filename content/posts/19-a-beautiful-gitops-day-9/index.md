@@ -70,10 +70,10 @@ app.Run();
 
 {{< /highlight >}}
 
-And you're done ! Go to `https://demo.kube.rocks/healthz` to confirm it's working. Try to stop the database with `docker compose stop` and check the healthz endpoint again, it should return `503` status code.
+And you're done ! Go to `https://localhost:xxxx/healthz` to confirm it's working. Try to stop the database with `docker compose stop` and check the healthz endpoint again, it should return `503` status code. Then push the code.
 
 {{< alert >}}
-The `Microsoft.Extensions.Diagnostics.HealthChecks` package is very extensible and you can add any custom check to enrich the health app status.
+The `Microsoft.Extensions.Diagnostics.HealthChecks` package is very extensible, you can add any custom check to enrich the health app status.
 {{< /alert >}}
 
 And finally the probes:
@@ -114,7 +114,7 @@ When **Rolling Update** strategy is used (the default), the old pod is not kille
 
 ## Telemetry
 
-The last step but not least missing for a total integration with our monitored Kubernetes cluster is to add some telemetry to our app. We'll use `OpenTelemetry` for that, which becomes the standard library for metrics and tracing, by providing good integration to many languages.
+The last step but not least for a total integration with our monitored Kubernetes cluster is to add some telemetry to our app. We'll use `OpenTelemetry` for that, which becomes the standard library for metrics and tracing, by providing good integration to many languages.
 
 ### Application metrics
 
@@ -223,7 +223,7 @@ spec:
 
 {{< /highlight >}}
 
-Now the new URL is `https://demo.kube.rocks/api/Articles`. Any path different from `api` will return the Traefik 404 page, and internal paths as `https://demo.kube.rocks/metrics` is not accessible anymore. An other additional advantage of this config, it's simple to put a separated frontend project under `/` path, which can use the under API without any CORS problem natively.
+Now the new URL is `https://demo.kube.rocks/api/Articles`. Any path different from `api` will return the Traefik 404 page, and internal paths as `https://demo.kube.rocks/metrics` is not accessible anymore. An other additional advantage of this config, it's simple to put a separated frontend project under `/` path (covered later), which can use the under API without any CORS problem natively.
 
 #### Prometheus integration
 
@@ -337,6 +337,8 @@ EOF
 ```
 
 {{< /highlight >}}
+
+Use the *Test* button on `https://grafana.kube.rocks/connections/datasources/edit/tempo` to confirm it's working.
 
 #### OpenTelemetry
 

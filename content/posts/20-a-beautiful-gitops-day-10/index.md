@@ -18,7 +18,7 @@ SonarQube is leading the code metrics industry for a long time, embracing full O
 
 ### SonarQube installation
 
-SonarQube as its dedicated Helm chart which perfect for us. However, it's the most resource hungry component of our development stack so far (because Java project ? End of troll), so be sure to deploy it on almost empty free node, maybe a dedicated one. In fact, it's the last Helm chart for this tutorial, I promise!
+SonarQube has its dedicated Helm chart which is perfect for us. However, it's the most resource hungry component of our development stack so far (because built with Java ? End of troll), so be sure to deploy it on almost empty free node (which should be ok with 3 workers), maybe a dedicated one. In fact, it's the last Helm chart for this tutorial, I promise!
 
 Create dedicated database for SonarQube same as usual.
 
@@ -124,7 +124,7 @@ The installation take many minutes, be patient. Once done, you can access SonarQ
 
 ### Project configuration
 
-Firstly create a new project and retain the project key which is his identifier. Then create a **global analysis token** named `Concourse CI` that will be used for CI integration from your user account under `/account/security`.
+Firstly create a new project through SonarQube UI and retain the project key which is his identifier. Then create a **global analysis token** named `Concourse CI` that will be used for CI integration from your user account under `/account/security`.
 
 Now we need to create a Kubernetes secret which contains this token value for Concourse CI, for usage inside the pipeline. The token is the one generated above.
 
@@ -318,7 +318,7 @@ Note as we now use the `dotnet-qa` image and surround the build step by `dotnet 
 
 ## Feature testing
 
-Let's cover the feature testing by calling the API against a real database. This is the opportunity to cover the code coverage as well.
+Let's cover the feature testing by calling the API against a real database. This is the opportunity to tackle the code coverage as well.
 
 ### xUnit
 

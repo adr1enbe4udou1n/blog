@@ -61,7 +61,7 @@ data:
 
 {{< /highlight >}}
 
-And add the k6 `Job` in the same file and configure it for Prometheus usage and mounting above scenario:
+Finally, add the k6 `Job` in the same file and configure it for Prometheus usage and mounting above scenario:
 
 {{< highlight host="demo-kube-flux" file="jobs/demo-k6.yaml" >}}
 
@@ -163,7 +163,7 @@ As we use Kubernetes, increase the loading performance horizontally is dead easy
 
 So far, we only load balanced the stateless API, but what about the database part ? We have set up a replicated PostgreSQL cluster, however we have no use of the replica that stay sadly idle. But for that we have to distinguish write queries from scalable read queries.
 
-We can make use of the Bitnami [PostgreSQL HA](https://artifacthub.io/packages/helm/bitnami/postgresql-ha) instead of simple one. It adds the new component [Pgpool-II](https://pgpool.net/mediawiki/index.php/Main_Page) as main load balancer and detect failover. It's able to separate in real time write queries from read queries and send them to the master or the replica. The advantage: works natively for all apps without any changes. The cons: it consumes far more resources and add a new component to maintain.
+We can make use of the Bitnami [PostgreSQL HA](https://artifacthub.io/packages/helm/bitnami/postgresql-ha) instead of simple one. It adds the new component [Pgpool-II](https://pgpool.net/mediawiki/index.php/Main_Page) as main load balancer and detect failover. It's able to separate in real time write queries from read queries and send them to the master or the replica. The pros: works natively for all apps without any changes. The cons: it consumes far more resources and add a new component to maintain.
 
 A 2nd solution is to separate query typologies from where it counts: the application. It requires some code changes, but it's clearly a far more efficient solution. Let's do this way.
 
@@ -217,7 +217,7 @@ public static class ServiceExtensions
 
 {{< /highlight >}}
 
-We fall back to the RW connection string if the RO one is not defined. Then use it in the `ArticlesController` which as only read endpoints:
+We fall back to the RW connection string if the RO one is not defined. Then use it in the `ArticlesController` which has only read endpoints:
 
 {{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Controllers/ArticlesController.cs" >}}
 
@@ -271,9 +271,9 @@ spec:
 
 {{< /highlight >}}
 
-We simply have to add multiple host like `postgresql-primary.postgres,postgresql-read.postgres` for the RO connection string and enable LB mode with `Load Balance Hosts=true`.
+We simply have to add multiple hosts like `postgresql-primary.postgres,postgresql-read.postgres` for the RO connection string and enable LB mode with `Load Balance Hosts=true`.
 
-Once deployed, relaunch a load test with K6 and admire the DB load balancing in action on both storage servers with `htop` or directly compute pods by namespace in Grafana.
+Once deployed, relaunch a load test with K6 and admire the DB load balancing in action on both storage servers with `htop` or directly on compute pods by namespace dashboard in Grafana.
 
 [![Gafana DB load balancing](grafana-db-lb.png)](grafana-db-lb.png)
 
@@ -410,14 +410,7 @@ Now your frontend app should appear under `https://localhost:5001`, and API call
 
 ### Typescript API generator
 
-As we use OpenAPI, it's possible to generate typescript client for API calls. Add this package:
-
-```sh
-pnpm add openapi-typescript -D
-pnpm add openapi-typescript-fetch
-```
-
-Before generate the client model, go back to backend for forcing required by default for attributes when not nullable when using `Swashbuckle.AspNetCore`:
+As we use OpenAPI, it's possible to generate typescript client for API calls. Before tackle the generation of client models, go back to backend for forcing required by default for attributes when not nullable when using `Swashbuckle.AspNetCore`:
 
 {{< highlight host="kuberocks-demo" file="src/KubeRocks.WebApi/Filters/RequiredNotNullableSchemaFilter.cs" >}}
 
@@ -476,7 +469,14 @@ You should now have proper required attributes for models in swagger UI:
 Sadly, without this boring step, many attributes will be nullable when generating TypeScript models, and leads to headaches from client side by forcing us to manage nullable everywhere.
 {{< /alert >}}
 
-Now generate the models:
+Now back to the `kubrerocks-demo-ui` project and add the following dependencies:
+
+```sh
+pnpm add openapi-typescript -D
+pnpm add openapi-typescript-fetch
+```
+
+Now generate the models by adding this script:
 
 {{< highlight host="kuberocks-demo-ui" file="package.json" >}}
 
@@ -493,7 +493,7 @@ Now generate the models:
 
 {{< /highlight >}}
 
-Use the HTTP version of swagger as you'll get a self certificate error. The use `pnpm openapi` to generate full TS model. Finally, describe API fetchers like so:
+Use the HTTP version of swagger as you'll get a self certificate error. Then use `pnpm openapi` to generate full TS model. Finally, describe API fetchers like so:
 
 {{< highlight host="kuberocks-demo-ui" file="src/api/index.ts" >}}
 
@@ -523,7 +523,7 @@ We are now fully typed compliant with the API.
 
 ### Call the API
 
-Let's create a pretty basic list + detail vue pages:
+Let's create a pretty basic paginated list and detail vue pages:
 
 {{< highlight host="kuberocks-demo-ui" file="src/pages/articles/index.vue" >}}
 
@@ -684,6 +684,8 @@ const classes
 
 {{< /highlight >}}
 
+The view detail:
+
 {{< highlight host="kuberocks-demo-ui" file="src/pages/articles/[slug].vue" >}}
 
 ```vue
@@ -725,8 +727,6 @@ getArticle()
 ```
 
 {{< /highlight >}}
-
-It should work flawlessly.
 
 ### Frontend CI/CD
 
@@ -825,7 +825,9 @@ jobs:
 
 {{< /highlight >}}
 
-{{< highlight host="demo-kube-flux" file="pipelines/demo-ui.yaml" >}}
+`pnpm build` take care of TypeScript type-checks and assets building.
+
+{{< highlight host="demo-kube-flux" file="pipelines/main.yaml" >}}
 
 ```tf
 #...
