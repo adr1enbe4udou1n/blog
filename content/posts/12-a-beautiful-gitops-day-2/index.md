@@ -3,7 +3,6 @@ title: "A beautiful GitOps day II - Load Balancer & Ingress with SSL"
 date: 2023-08-20
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "traefik", "cert-manager"]
-draft: true
 ---
 
 {{< lead >}}

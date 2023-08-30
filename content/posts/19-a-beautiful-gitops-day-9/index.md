@@ -3,7 +3,6 @@ title: "A beautiful GitOps day IX - Monitoring & Tracing with OpenTelemetry"
 date: 2023-08-27
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "serilog", "metrics", "opentelemetry", "tracing", "tempo"]
-draft: true
 ---
 
 {{< lead >}}

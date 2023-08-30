@@ -3,7 +3,6 @@ title: "A beautiful GitOps day VI - CI tools"
 date: 2023-08-24
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "ci", "gitea", "concourse"]
-draft: true
 ---
 
 {{< lead >}}

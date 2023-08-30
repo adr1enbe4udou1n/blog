@@ -3,7 +3,6 @@ title: "A beautiful GitOps day IV - CD with Flux"
 date: 2023-08-22
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "cd", "flux", "nocode", "n8n", "nocodb"]
-draft: true
 ---
 
 {{< lead >}}

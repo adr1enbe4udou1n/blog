@@ -3,7 +3,6 @@ title: "A beautiful GitOps day III - HA storage & DB"
 date: 2023-08-21
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "longhorn", "bitnami", "postgresql", "redis"]
-draft: true
 ---
 
 {{< lead >}}

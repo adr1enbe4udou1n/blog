@@ -3,7 +3,6 @@ title: "A beautiful GitOps day VIII - Further deployment with DB"
 date: 2023-08-26
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "postgresql", "efcore"]
-draft: true
 ---
 
 {{< lead >}}

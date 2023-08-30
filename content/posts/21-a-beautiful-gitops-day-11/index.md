@@ -3,7 +3,6 @@ title: "A beautiful GitOps day XI - Load testing & Frontend"
 date: 2023-08-29
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "load-testing", "k6", "frontend", "vue", "typescript", "openapi"]
-draft: true
 ---
 
 {{< lead >}}

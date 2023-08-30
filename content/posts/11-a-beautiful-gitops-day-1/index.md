@@ -3,7 +3,6 @@ title: "A beautiful GitOps day I - Cluster initialization with Terraform and K3s
 date: 2023-08-19
 description: "Follow this opinionated guide as starter-kit for your own Kubernetes platform..."
 tags: ["kubernetes", "terraform", "hetzner", "k3s", "gitops"]
-draft: true
 ---
 
 {{< lead >}}
