@@ -974,12 +974,12 @@ spec:
 
 {{< /highlight >}}
 
-Go to `https://demo.kube.rocks` to confirm if both app front & back are correctly connected !
+Go to `https://demo.kube.rocks` to confirm that front app can call the API.
 
 [![Frontend](frontend.png)](frontend.png)
 
 ## Final check 🎊🏁🎊
 
-Congratulation if you're getting that far !!!
+You just made a vast tour of building an on-premise Kubernetes cluster following GitOps workflow from the ground up. Congratulation if you're getting that far !!!
 
-We have made an enough complete tour of Kubernetes cluster building on full GitOps mode.
+I highly encourage you to buy [this book](https://www.amazon.com/Understanding-Kubernetes-visual-way-sketchnotes/dp/B0BB619188) from [Aurélie Vache](https://twitter.com/aurelievache), it's the best cheat sheet for Kubernetes in the place.
