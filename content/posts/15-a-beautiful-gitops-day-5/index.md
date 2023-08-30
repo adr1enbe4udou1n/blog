@@ -70,7 +70,7 @@ resource "kubernetes_namespace_v1" "monitoring" {
 
 resource "helm_release" "kube_prometheus_stack" {
   chart      = "kube-prometheus-stack"
-  version    = "49.0.0"
+  version    = "49.2.0"
   repository = "https://prometheus-community.github.io/helm-charts"
 
   name      = "kube-prometheus-stack"

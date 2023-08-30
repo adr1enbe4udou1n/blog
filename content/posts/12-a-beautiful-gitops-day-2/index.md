@@ -12,9 +12,11 @@ Use GitOps workflow for building a production grade on-premise Kubernetes cluste
 
 This is the **Part II** of more global topic tutorial. [Back to guide summary]({{< ref "/posts/10-a-beautiful-gitops-day" >}}) for intro.
 
-## 2nd Terraform project
+## Cluster maintenance
 
-For this part let's create a new Terraform project (`demo-kube-k3s` here) that will be dedicated to Kubernetes infrastructure provisioning. Start from scratch with a new empty folder and the following `main.tf` file then `terraform init`.
+### 2nd Terraform project
+
+For this part let's create a new Terraform project (`demo-kube-k3s` here) that will be dedicated to Kubernetes infrastructure provisioning. Start from a new empty folder and create the following `main.tf` file then `terraform init`.
 
 {{< highlight host="demo-kube-k3s" file="main.tf" >}}
 
@@ -30,7 +32,7 @@ Let's begin with automatic upgrades management.
 
 ### CRD prerequisites
 
-Before we go next steps, we need to install critical monitoring CRDs that will be used by many components for monitoring.
+Before we go next steps, we need to install critical monitoring CRDs that will be used by many components for monitoring, a subject that will be covered later.
 
 ```sh
 kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.67.1/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
@@ -76,13 +78,20 @@ resource "helm_release" "kubereboot" {
 
 {{</ highlight >}}
 
+For all `helm_release` resource you'll see from this guide, you may check the last chart version available. Example for `kured`:
+
+```sh
+helm repo add kured https://kubereboot.github.io/charts
+helm search repo kured
+```
+
 After applying this with `terraform apply`, ensure that the `daemonset` is running on all nodes with `kg ds -n kube-system`.
 
 `tolerations` will ensure all tainted nodes will receive the daemonset.
 
-`metrics.create` will create a `servicemonitor` custom k8s resource that allow Prometheus to scrape all kured metrics. You can check it with `kg smon  -n kube-system -o yaml`. The monitoring subject will be covered in a future post, but let's be monitoring ready from the start.
+`metrics.create` will create a `ServiceMonitor` custom k8s resource that allow Prometheus to scrape all kured metrics. You can check it with `kg smon  -n kube-system -o yaml`. The monitoring subject will be covered in a future post, but let's be monitoring ready from the start.
 
-You can test it by exec `touch /var/run/reboot-required` to a specific node.
+You can test it by exec `touch /var/run/reboot-required` to a specific node to reboot. Use `klo ds/kured -n kube-system` to check the kured logs. After about 1 minute, a reboot should be triggered after node draining.
 
 ### Automatic K3s upgrade
 
@@ -95,7 +104,9 @@ Don't push yourself get fully 100% GitOps everywhere if the remedy give far more
 {{</ alert >}}
 
 ```sh
+# installing system-upgrade-controller
 ka https://github.com/rancher/system-upgrade-controller/releases/latest/download/system-upgrade-controller.yaml
+# checking system-upgrade-controller deployment status
 kg deploy -n system-upgrade
 ```
 
@@ -261,7 +272,7 @@ resource "helm_release" "traefik" {
 
 `metrics.prometheus.serviceMonitor.namespaceSelector` will allow Prometheus to scrape Traefik metrics from all namespaces.
 
-By default, it will deploy 1 single replica of Traefik. But don't worry, when upgrading, the default update strategy is `RollingUpdate`, so it will be upgraded one by one without downtime. Increment `deployment.replicas` if you need more performance.
+By default, it will deploy 1 single replica of Traefik. But don't worry, when upgrading, the default update strategy is `RollingUpdate`, so it will be upgraded without any downtime. Increment `deployment.replicas` if you need more performance.
 
 ### Load balancer
 
@@ -272,7 +283,7 @@ NAME      TYPE           CLUSTER-IP      EXTERNAL-IP                           P
 traefik   LoadBalancer   10.43.134.216   10.0.0.2,10.0.1.1,10.0.1.2,10.0.1.3   80:32180/TCP,443:30273/TCP   21m
 ```
 
-External IP are privates IPs of all nodes. In order to access them, we only need to put a load balancer in front of workers. It's time to get back to our 1st Terraform project.
+External IP are privates IPs of all nodes. In order to access them, we need to put a load balancer in front of workers. It's time to get back to our 1st Terraform project.
 
 {{< highlight host="demo-kube-hcloud" file="kube.tf" >}}
 
@@ -316,7 +327,7 @@ Don't forget to add `hcloud_load_balancer_service` resource for each service (ak
 We use `tcp` protocol as Traefik will handle SSL termination. Set `proxyprotocol` to true to allow Traefik to get real IP of clients.
 {{</ alert >}}
 
-One applied, use `hcloud load-balancer list` to get the public IP of the load balancer and try it. You should be properly redirected to HTTPS and have certificate error. It's time to get SSL certificates.
+One applied, use `hcloud load-balancer list` to get the public IP of the load balancer and try to curl it. You should be properly redirected to HTTPS and have certificate error. It's time to get SSL certificates.
 
 ### cert-manager
 
@@ -366,7 +377,7 @@ All should be ok with `kg deploy -n cert-manager`.
 We'll use [DNS01 challenge](https://cert-manager.io/docs/configuration/acme/dns01/) to get wildcard certificate for our domain. This is the most convenient way to get a certificate for a domain without having to expose the cluster.
 
 {{< alert >}}
-You may use a DNS provider that is supported by cert-manager. Check the [list of supported providers](https://cert-manager.io/docs/configuration/acme/dns01/#supported-dns01-providers). But cert-manager is highly extensible, and you can easily add your own provider if needed with some efforts. Check [available contrib webhooks](https://cert-manager.io/docs/configuration/acme/dns01/#webhook).
+You may use a DNS provider supported by cert-manager. Check the [list of supported providers](https://cert-manager.io/docs/configuration/acme/dns01/#supported-dns01-providers). As cert-manager is highly extensible, you can easily create your own provider with some efforts. Check [available contrib webhooks](https://cert-manager.io/docs/configuration/acme/dns01/#webhook).
 {{</ alert >}}
 
 First prepare variables and set them accordingly:
@@ -477,19 +488,17 @@ resource "kubernetes_manifest" "tls_certificate" {
 {{</ highlight >}}
 
 {{< alert >}}
-You can set `acme.privateKeySecretRef.name` to **letsencrypt-staging** for testing purpose and note waste limited LE quota.  
-Set `privateKey.rotationPolicy` to **Always** to ensure that the certificate will be [renewed automatically](https://cert-manager.io/docs/usage/certificate/) 30 days before expires without downtime.
+You can set `acme.privateKeySecretRef.name` to **letsencrypt-staging** for testing purpose and avoid wasting LE quota limit.  
+Set `privateKey.rotationPolicy` to `Always` to ensure that the certificate will be [renewed automatically](https://cert-manager.io/docs/usage/certificate/) 30 days before expires without downtime.
 {{</ alert >}}
 
 In the meantime, go to your DNS provider and add a new `*.kube.rocks` entry pointing to the load balancer IP.
 
-Try `test.kube.rocks` to check certificate validity. If not valid, check the certificate status with `kg cert -n traefik` and get challenge status `kg challenges -n traefik`. The certificate must be in `Ready` state after many minutes.
+Try `test.kube.rocks` to check certificate validity. If not valid, check the certificate status with `kg cert -n traefik` and get challenge status `kg challenges -n traefik`. The certificate must be in `Ready` state after few minutes.
 
 ### Access to Traefik dashboard
 
-Traefik dashboard is a nice tool to check all ingress and their status. Let's expose it with a simple ingress and protecting with IP whitelist and basic auth, which can be done with middlewares.
-
-First the auth variables:
+Traefik dashboard is useful for checking all active ingress and their status. Let's expose it with a simple ingress and protecting with IP whitelist and basic auth, which can be done with middlewares.
 
 First prepare variables and set them accordingly:
 
@@ -535,7 +544,7 @@ whitelisted_ips = ["82.82.82.82"]
 {{</ highlight >}}
 
 {{< alert >}}
-Note on encrypted_admin_password, we generate a bcrypt hash of the password compatible for HTTP basic auth and keep the original to avoid to regenerate it each time.
+Note on `encrypted_admin_password`, we generate a bcrypt hash of the password compatible for HTTP basic auth and keep the original to avoid to regenerate it each time.
 {{</ alert >}}
 
 Then apply the following Terraform code:
@@ -617,7 +626,7 @@ Now go to `https://traefik.kube.rocks` and you should be asked for credentials. 
 
 [![Traefik Dashboard](traefik-dashboard.png)](traefik-dashboard.png)
 
-This allow to validate that `auth` and `ip` middelwares are working properly.
+In the meantime, it allows us to validate that `auth` and `ip` middelwares are working properly.
 
 #### Forbidden troubleshooting
 
