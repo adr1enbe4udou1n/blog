@@ -466,7 +466,7 @@ You can easily import some additional dashboards by importing them from Grafana 
 
 #### Traefik
 
-[Link](https://grafana.com/grafana/17346)
+[Link](https://grafana.com/dashboards/17346)
 
 [![Traefik](dashboards-traefik.png)](dashboards-traefik.png)
 
@@ -478,19 +478,19 @@ You can easily import some additional dashboards by importing them from Grafana 
 
 #### Longhorn
 
-[Link](https://grafana.com/grafana/16888)
+[Link](https://grafana.com/dashboards/16888)
 
 [![Longhorn](dashboards-longhorn.png)](dashboards-longhorn.png)
 
 #### PostgreSQL
 
-[Link](https://grafana.com/grafana/9628)
+[Link](https://grafana.com/dashboards/9628)
 
 [![PostgreSQL](dashboards-postgresql.png)](dashboards-postgresql.png)
 
 #### Redis
 
-[Link](https://grafana.com/grafana/dashboards/763)
+[Link](https://grafana.com/dashboards/dashboards/763)
 
 [![Redis](dashboards-redis.png)](dashboards-redis.png)
 

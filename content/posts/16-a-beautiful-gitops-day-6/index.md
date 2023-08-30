@@ -414,7 +414,7 @@ Now retry pull again and it should work seamlessly !
 
 ### Gitea monitoring
 
-[Link](https://grafana.com/grafana/dashboards/17802)
+[Link](https://grafana.com/dashboards/17802)
 
 [![Gitea monitoring](gitea-monitoring.png)](gitea-monitoring.png)
 

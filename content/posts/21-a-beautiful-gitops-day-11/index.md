@@ -152,7 +152,7 @@ vus............................: 7       min=7       max=30
 vus_max........................: 30      min=30      max=30
 ```
 
-As we use Prometheus for outputting the result, we can visualize it easily with Grafana. You just have to import [this dashboard](https://grafana.com/grafana/dashboards/18030-official-k6-test-result/):
+As we use Prometheus for outputting the result, we can visualize it easily with Grafana. You just have to import [this dashboard](https://grafana.com/dashboards/18030):
 
 [![Grafana](grafana-k6.png)](grafana-k6.png)
 
