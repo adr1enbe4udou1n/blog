@@ -123,10 +123,10 @@ Filesystem      Size  Used Avail Use% Mounted on
 /dev/sdb         20G   24K 19,5G   1% /mnt/HC_Volume_XXXXXXXX
 ```
 
-The volume is of course automatically mounted on each node reboot, it's done via `fstab`.
+The volume is of course automatically mounted on each node reboot, it's done via `/etc/fstab`. Retain `/mnt/HC_Volume_XXXXXXXX` path on both storage as we'll use them later for Longhorn configuration.
 
 {{< alert >}}
-Note as if you set volume in same time as node pool creation, Hetzner doesn't seem to automatically mount the volume. So it's preferable to create the node pool first, then add the volume as soon as the node in ready state. You can always delete and recreate volume by commenting then uncommenting `volume_size` variable, which will force a remount properly.
+Note as if you set volume in same time as node pool creation, Hetzner doesn't seem to automatically mount the volume. So it's preferable to create the node pool first, then add the volume as soon as the node in ready state. You can always detach / re-attach volumes manually through UI, which will force a proper remount.
 {{</ alert >}}
 
 ### Longhorn variables
@@ -296,7 +296,7 @@ Monitoring will have dedicated post later.
 
 ### Ingress
 
-Now we only have to expose Longhorn UI to the world. We'll use `IngressRoute` provided by Traefik.
+Now we only have to expose Longhorn UI. We'll use `IngressRoute` provided by Traefik.
 
 {{< highlight host="demo-kube-k3s" file="longhorn.tf" >}}
 
@@ -347,24 +347,26 @@ Of course, you can skip this ingress and directly use `kpf svc/longhorn-frontend
 
 ### Nodes and volumes configuration
 
-Longhorn is now installed and accessible, but we still have to configure it. Let's disable volume scheduling on worker nodes, as we want to use only storage nodes for it. All can be done via Longhorn UI but let's do more automatable way.
+Longhorn is now installed and accessible, but we still have to configure it. Let's disable volume scheduling on worker nodes, as we want to use only storage nodes for it. All can be done via Longhorn UI but let's do CLI way.
 
 ```sh
 k patch nodes.longhorn.io kube-worker-01 kube-worker-02 kube-worker-03 -n longhorn-system --type=merge --patch '{"spec": {"allowScheduling": false}}'
 ```
 
-By default, Longhorn use local disk for storage, which is great for high IOPS critical workloads as databases, but we want also use our expandable dedicated block volume as default for large dataset.
+By default, Longhorn use local disk for storage, which is great for high IOPS critical workloads as databases, but we want also use our expandable dedicated block volume as default for larger dataset.
 
 Type this commands for both storage nodes or use Longhorn UI from **Node** tab:
 
 ```sh
-# patch main disk as fast storage, set default-disk-xxx accordingly
+# get the default-disk-xxx identifier
+kg nodes.longhorn.io okami-storage-01 -n longhorn-system -o yaml
+# patch main default-disk-xxx as fast storage
 k patch nodes.longhorn.io kube-storage-0x -n longhorn-system --type=merge --patch '{"spec": {"disks": {"default-disk-xxx": {"tags": ["fast"]}}}}'
-# add a new schedulable disk, set HC_Volume_XXXXXXXX accordingly to mounted volume
+# add a new schedulable disk by adding HC_Volume_XXXXXXXX path
 k patch nodes.longhorn.io kube-storage-0x -n longhorn-system --type=merge --patch '{"spec": {"disks": {"disk-mnt": {"allowScheduling": true, "evictionRequested": false, "path": "/mnt/HC_Volume_XXXXXXXX/", "storageReserved": 0}}}}'
 ```
 
-Now all that's left is to create a dedicated storage class for fast local volumes. We'll use it for IOPS critical statefulset workloads like PostgreSQL and Redis. Let's apply nest `StorageClass` configuration and check it with `kg sc`:
+Now all that's left is to create a dedicated storage class for fast local volumes. We'll use it for IOPS critical statefulset workloads like PostgreSQL and Redis. Let's apply next `StorageClass` configuration and check it with `kg sc`:
 
 {{< highlight host="demo-kube-k3s" file="longhorn.tf" >}}
 
@@ -391,13 +393,17 @@ resource "kubernetes_storage_class_v1" "longhorn_fast" {
 
 {{< /highlight >}}
 
-Longhorn is now ready for block and fast local volumes creation.
+Longhorn is now ready for volumes creation on both block and fast local disks.
+
+{{< alert >}}
+If you need automatic encrypted volumes, which highly recommended for critical data, add `encrypted: "true"` below `parameters` section. You'll need to [set up a proper encryption](https://longhorn.io/docs/latest/advanced-resources/security/volume-encryption/) passphrase inside k8s `Secret`. In the meantime, backups will be encrypted as well, so you haven't to worry about it.
+{{< /alert >}}
 
 [![Longhorn UI](longhorn-ui.png)](longhorn-ui.png)
 
 ## PostgreSQL with replication
 
-Now it's time to set up some critical statefulset persistence workloads, and firstly a PostgreSQL cluster with replication.
+Now it's time to set up some critical statefulset persistence workloads. Let's begin with a PostgreSQL cluster with replication.
 
 ### PostgreSQL variables
 
@@ -435,11 +441,11 @@ pgsql_admin_password       = "xxx"
 pgsql_replication_password = "xxx"
 ```
 
-{{< /highlight >}}}
+{{< /highlight >}}
 
 ### PostgreSQL installation
 
-Before continue it's important to identify which storage node will serve the primary database, and which one will serve the replica.
+Before continue it's important to identify which storage node will serve the primary database, and which one will serve the replica by adding these labels:
 
 ```sh
 k label nodes kube-storage-01 node-role.kubernetes.io/primary=true
@@ -585,11 +591,11 @@ postgresql-primary-0       2/2     Running   0          151m   10.42.5.253   oka
 postgresql-read-0          2/2     Running   0          152m   10.42.2.216   okami-storage-02   <none>           <none>
 ```
 
-And that it, we have replicated PostgreSQL cluster ready to use ! Go to longhorn UI and be sure that 2 volumes are created on fast disk under **Volume** menu.
+And that's it, we have replicated PostgreSQL cluster ready to use ! Go to longhorn UI and be sure that 2 volumes are created on fast disk under **Volume** menu.
 
 ## Redis cluster
 
-After PostgreSQL, set up a redis cluster is a piece of cake.
+After PostgreSQL, set up a master/slave redis is a piece of cake. You may prefer [redis cluster](https://redis.io/docs/management/scaling/) by using [Bitnami redis cluster](https://artifacthub.io/packages/helm/bitnami/redis-cluster), but it [doesn't work](https://github.com/bitnami/charts/issues/12901) at the time of writing this guide.
 
 ### Redis variables
 
@@ -610,7 +616,7 @@ variable "redis_password" {
 redis_password = "xxx"
 ```
 
-{{< /highlight >}}}
+{{< /highlight >}}
 
 ### Redis installation
 
@@ -731,7 +737,7 @@ And that's it, job done ! Always check that Redis pods are correctly running on 
 
 ## Backups
 
-Final essential steps is to set up s3 backup for volumes. We already configured S3 backup on [longhorn variables step](#longhorn-variables), so we only have to configure backup strategy. We can use UI for that, but don't we are GitOps ? So let's do it with Terraform.
+Final essential step is to set up s3 backup for volumes. We already configured S3 backup location on [longhorn variables step](#longhorn-variables), so we only have to configure backup strategy. We can use UI for that, but don't we are GitOps ? So let's do it with Terraform.
 
 {{< highlight host="demo-kube-k3s" file="longhorn.tf" >}}
 
@@ -789,15 +795,15 @@ Bam it's done ! After apply, check trough UI under **Recurring Job** menu if bac
 
 Thanks to GitOps, the default backup strategy described by `job_backups` is marbled and self-explanatory:
 
-* Daily backup until 7 days
-* Weekly backup until 4 weeks
-* Monthly backup until 3 months
+* Daily backup until **7 days**
+* Weekly backup until **4 weeks**
+* Monthly backup until **3 months**
 
 Configure this variable according to your needs.
 
 ### DB dumps
 
-If you need some regular dump of your database without requiring Kubernetes `CronJob`, you can simply use following crontab line on control plane node:
+If you need some regular dump of your database without requiring a dedicated Kubernetes `CronJob`, you can simply use following crontab line on control plane node:
 
 ```sh
 0 */8   * * *   root    /usr/local/bin/k3s kubectl exec sts/postgresql-primary -n postgres -- /bin/sh -c 'PGUSER="okami" PGPASSWORD="$POSTGRES_PASSWORD" pg_dumpall -c | gzip > /bitnami/postgresql/dump_$(date "+\%H")h.sql.gz'

@@ -14,24 +14,24 @@ This is the **Part IV** of more global topic tutorial. [Back to guide summary]({
 
 ## Flux
 
-In GitOps world, 2 tools are in lead for CD in k8s: Flux and ArgoCD. As Flux is CLI first and more lightweight, it's my personal goto. You may ask why don't continue with actual k8s Terraform project ?
+In GitOps world, 2 tools are leading for CD in k8s: **Flux** and **ArgoCD**. As Flux is CLI first and more lightweight, it's my personal goto. You may wonder why don't continue with actual k3s Terraform project ?
 
 You already noted that by adding more and more Helm dependencies to terraform, the plan time is increasing, as well as the state file. So not very scalable.
 
-It's the perfect moment to draw a clear line between **IaC** and **CD**. IaC is for infrastructure, CD is for application. So to resume our GitOps stack:
+It's the perfect moment to draw a clear line between **IaC** (Infrastructure as Code) and **CD** (Continuous Delivery). IaC is for infrastructure, CD is for application. So to resume our GitOps stack:
 
 1. IaC for Hcloud cluster initialization (*the basement*): **Terraform**
-2. IaC for cluster configuration (*the walls*): **Helm** through **Terraform**
-3. CD for application deployment (*the furniture*): **Flux**
+2. IaC for Kubernetes configuration (*the walls*): **Helm** through **Terraform**
+3. CD for any application deployments (*the furniture*): **Flux**
 
 {{< alert >}}
-You can probably eliminate with some efforts the 2nd stack by using both `Kube-Hetzner`, which take care of ingress and storage, and using Flux directly for the remaining helms like database cluster. Or maybe you can also add custom helms to `Kube-Hetzner` ?  
+You can probably eliminate with some efforts the 2nd stack by using both `Kube-Hetzner`, which take care of ingress and storage, and using Flux directly for the remaining helms like database cluster. Or maybe you can also add custom helms to `Kube-Hetzner`.  
 But as it's increase complexity and dependencies problem, I prefer personally to keep a clear separation between the middle part and the rest, as it's more straightforward for me. Just a matter of taste 🥮
 {{< /alert >}}
 
 ### Flux bootstrap
 
-Create a dedicated Git repository for Flux somewhere, I'm using Github, which is just a matter of:
+Create a dedicated Git repository for Flux somewhere, I'm using GitHub, which with [his CLI](https://cli.github.com/) is just a matter of:
 
 ```sh
 gh repo create demo-kube-flux --private --add-readme
@@ -324,6 +324,8 @@ data:
 
 {{< /highlight >}}
 
+Now be sure to encrypt it with `kubeseal` and remove original file:
+
 ```sh
 cat clusters/demo/postgres/secret-pgadmin.yaml | kubeseal --format=yaml --cert=pub-sealed-secrets.pem > clusters/demo/postgres/sealed-secret-pgadmin.yaml
 rm clusters/demo/postgres/secret-pgadmin.yaml
@@ -337,10 +339,10 @@ You may use [VSCode extension](https://github.com/codecontemplator/vscode-kubese
 Push it and wait a minute, and go to `pgadmin.kube.rocks` and login with chosen credentials. Now try to register a new server with `postgresql-primary.postgres` as hostname, and the rest with your PostgreSQL credential on previous installation. It should work !
 
 {{< alert >}}
-If you won't wait, do `flux reconcile kustomization flux-system --with-source` (require `flux-cli`). It also allows easy debugging by printing any syntax error in your manifests. It applies for every push from the flux repo.
+If you won't wait each time after code push, do `flux reconcile kustomization flux-system --with-source` (require `flux-cli`). It also allows easy debugging by printing any syntax error in your manifests.
 {{< /alert >}}
 
-You can test the read replica too by register a new server using the hostname `postgresql-read.postgres`. Try to do some update on primary and check that it's replicated on read replica. Any modification on replicas should be rejected as well.
+You can test the read replica too by register a new server using the hostname `postgresql-read.postgres`. Try to do some update on primary and check that it's replicated on read replica. Any modification on replicas should be rejected as it's on transaction read only mode.
 
 It's time to use some useful apps.
 
@@ -505,7 +507,7 @@ data:
 
 {{< /highlight >}}
 
-Before continue go to pgAdmin and create `n8n` DB and set `n8n` user with proper credentials as owner.
+While writing these secrets, create `n8n` DB and set `n8n` user with proper credentials as owner.
 
 Then don't forget to seal secrets and remove original files the same way as pgAdmin. Once pushed, n8n should be deploying, automatically migrate the db, and soon after `n8n.kube.rocks` should be available, allowing you to create your 1st account.
 
