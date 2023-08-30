@@ -23,20 +23,19 @@ This guide is mainly intended for any developers or some SRE who want to build a
 
 ### What you'll learn 📚
 
-* How to set up an On-Premise resilient Kubernetes cluster with Terraform, from the ground up, with automatic upgrades and reboot
 * Use Terraform to manage your infrastructure, for both cloud provider and Kubernetes, following the GitOps principles
+* How to set up an On-Premise resilient Kubernetes cluster, from the ground up, with automatic upgrades and reboot
 * Use [K3s](https://k3s.io/) as lightweight Kubernetes distribution
-* Use [Traefik](https://traefik.io/) as ingress controller, combined to [cert-manager](https://cert-manager.io/) for distributed SSL certificates, and first secure access attempt to our cluster through Hetzner Load Balancer
-* Continuous Delivery with [Flux](https://fluxcd.io/) and test it with a sample stateless app
+* Use [Traefik](https://traefik.io/) as ingress controller, combined to [cert-manager](https://cert-manager.io/) for distributed SSL certificates, and secured access attempt to our cluster through Hetzner Load Balancer
 * Use [Longhorn](https://longhorn.io/) as resilient storage, installed to dedicated storage nodes pool and volumes, include PVC incremental backups to S3
-* Install and configure some critical `StatefulSets` as **PostgreSQL** and **Redis** clusters to specific nodes pool via well-known [Bitnami Helms](https://bitnami.com/stacks/helm)
-* Test our resilient storage with some No Code apps, as [n8n](https://n8n.io/) and [nocodb](https://nocodb.com/), always managed by Flux
+* Install and configure data stateful components as **PostgreSQL** and **Redis** clusters to specific nodes pool via well-known [Bitnami Helms](https://bitnami.com/stacks/helm)
+* Test our resilient storage with some No Code apps, as [n8n](https://n8n.io/) and [nocodb](https://nocodb.com/), managed by Flux
 * Complete monitoring and logging stack with [Prometheus](https://prometheus.io/), [Grafana](https://grafana.com/), [Loki](https://grafana.com/oss/loki/)
 * Mount a complete self-hosted CI pipeline with the lightweight [Gitea](https://gitea.io/) + [Concourse CI](https://concourse-ci.org/) combo
-* Test above CI tools with a sample **.NET app**, with automatic CD using Flux
+* Test above CI tools with a sample **.NET API app**, using database cluster, with automatic CD using Flux
 * Integrate the app to our monitoring stack with [OpenTelemetry](https://opentelemetry.io/), and use [Tempo](https://grafana.com/oss/tempo/) for distributed tracing
-* Do some load testing scenarios with [k6](https://k6.io/)
 * Go further with [SonarQube](https://www.sonarsource.com/products/sonarqube/) for Continuous Inspection on code quality, including automatic code coverage reports
+* Do some load testing scenarios with [k6](https://k6.io/) and frontend SPA sample deployment using the .NET API.
 
 ### You probably don't need Kubernetes 🪧
 
@@ -44,21 +43,21 @@ All of this is of course overkill for any personal usage, and is only intended f
 
 **Docker Swarm** is probably the best solution for 99% of people that need a simple container orchestration system. Swarm stays an officially supported project, as it's built in into the Docker Engine, even if we shouldn't expect any new features.
 
-I wrote a [complete dedicated 2022 guide here]({{< ref "/posts/02-build-your-own-docker-swarm-cluster" >}}) that explains all steps in order to have a semi-pro grade Swarm cluster.
+I wrote a [complete dedicated 2022 guide here]({{< ref "/posts/02-build-your-own-docker-swarm-cluster" >}}) that explains all steps in order to have a semi-pro grade Swarm cluster (but no GitOps oriented, using only Portainer UI).
 
 ## Cluster Architecture 🏘️
 
-Here are the node pools that we'll need for a complete self-hosted Kubernetes cluster :
+Here are the node pools that we'll need for a complete self-hosted Kubernetes cluster, where each node pool is scalable independently:
 
-| Node pool     | Description                                                                                               |
-| ------------- | --------------------------------------------------------------------------------------------------------- |
-| `controllers` | The control planes nodes, use at least 3 or any greater odd number (when etcd) for HA kube API server     |
-| `workers`     | Workers for your production/staging apps, at least 3 for running Longhorn for resilient storage           |
-| `storages`    | Dedicated nodes for any DB / critical `StatefulSets` pods, recommended if you won't use managed databases |
-| `monitors`    | Workers dedicated for monitoring, optional                                                                |
-| `runners`     | Workers dedicated for CI/CD pipelines execution, optional                                                 |
+| Node pool    | Description                                                                                                |
+| ------------ | ---------------------------------------------------------------------------------------------------------- |
+| `controller` | The control planes nodes, use at least 3 or any greater odd number (when etcd) for HA kube API server      |
+| `worker`     | Workers for your production/staging stateless apps                                                         |
+| `storage`    | Dedicated nodes for running Longhorn for resilient storage and DB, in case you won't use managed databases |
+| `monitor`    | Workers dedicated for monitoring, optional                                                                 |
+| `runner`     | Workers dedicated for CI/CD pipelines execution, optional                                                  |
 
-Here a HA architecture sample with replicated storage (via Longhorn) and DB (PostgreSQL) that we will trying to replicate (controllers, monitoring and runners are excluded for simplicity) :
+Here a HA architecture sample with replicated storage (via Longhorn) and PostgreSQL DB (controllers, monitoring and runners are excluded for simplicity):
 
 {{< mermaid >}}
 flowchart TB
@@ -90,26 +89,35 @@ overlay(Overlay network)
 worker-01 --> overlay
 worker-02 --> overlay
 worker-03 --> overlay
-overlay --> db-rw
-overlay --> db-ro
-db-rw((RW SVC))
-db-rw -- Port 5432 --> storage-01
-db-ro((RO SVC))
-db-ro -- Port 5432 --> storage-01
-db-ro -- Port 5432 --> storage-02
+overlay --> db-primary
+overlay --> db-read
+db-primary((Primary SVC))
+db-primary -- Port 5432 --> storage-01
+db-read((Read SVC))
+db-read -- Port 5432 --> storage-02
+db-read -- Port 5432 --> storage-03
 subgraph storage-01
+  direction TB
   pg-primary([PostgreSQL primary])
   longhorn-01[(Longhorn<br>volume)]
   pg-primary --> longhorn-01
 end
 subgraph storage-02
-  pg-replica([PostgreSQL replica])
+  direction TB
+  pg-replica-01([PostgreSQL replica 1])
   longhorn-02[(Longhorn<br>volume)]
-  pg-replica --> longhorn-02
+  pg-replica-01 --> longhorn-02
+end
+subgraph storage-03
+  direction TB
+  pg-replica-02([PostgreSQL replica 2])
+  longhorn-03[(Longhorn<br>volume)]
+  pg-replica-02 --> longhorn-03
 end
 db-streaming(Streaming replication)
 storage-01 --> db-streaming
 storage-02 --> db-streaming
+storage-03 --> db-streaming
 {{</ mermaid >}}
 
 ### Cloud provider choice ☁️
@@ -118,11 +126,10 @@ As a HA Kubernetes cluster can be quickly expensive, a good cloud provider is an
 
 After testing many providers, as Digital Ocean, Vultr, Linode, Civo, OVH, Scaleway, it seems like **Hetzner** is very well suited **in my opinion** :
 
-* Very competitive price for middle-range performance (plan only around **$6** for 2CPU/4 GB for each node)
-* No frills, just the basics, VMs, block volumes, load balancer, DNS, firewall, and that's it
-* Simple nice UI + CLI tool
+* Very competitive price for middle-range performance (plan only around **$6** for 2 CPU/4 GB for each node)
+* No frills, just the basics, VMs, block volumes, load balancer, firewall, and that's it
+* Nice UI + efficient CLI tool
 * Official strong [Terraform support](https://registry.terraform.io/providers/hetznercloud/hcloud/latest), so GitOps ready
-* In case you use Hetzner DNS, you have cert-manager support via [a third party webhook](https://github.com/vadimkim/cert-manager-webhook-hetzner) for DSN01 challenge
 
 Please let me know in below comments if you have other better suggestions !
 
@@ -137,7 +144,7 @@ Please let me know in below comments if you have other better suggestions !
 | `monitor-0x` | **CX21** | 1                     | 0.5 + 4.85 |
 | `runner-0x`  | **CX21** | 1                     | 0.5 + 4.85 |
 
-**0.5** if for primary IPs.
+**€0.5** is for primary IPs.
 
 We will also need some expendable block volumes for our storage nodes. Let's start with **20 GB**, **2\*0.88**.
 
@@ -149,7 +156,7 @@ You can also prefer to take **2 larger** cx31 worker nodes (**8 GB** RAM) instea
 
 (5.39+**7**\*0.5+**5**\*4.85+**2**\*9.2+**2**\*0.88)\*1.2 = **€63.96** / month
 
-For an HA cluster, you'll need to put 2 more cx21 controllers, so **€72.78** (3 small workers) or **€76.80** / month (2 big workers).
+For an HA cluster, you'll need to put 2 more cx21 controllers, so **€72.78** (for 3 small workers option) or **€76.80** / month (for 2 big workers option).
 
 ## Let’s party 🎉
 
