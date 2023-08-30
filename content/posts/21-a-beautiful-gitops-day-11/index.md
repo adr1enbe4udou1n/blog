@@ -842,7 +842,24 @@ jobs:
 
 {{< /highlight >}}
 
-Apply it and put this nginx `Dockerfile` on frontend root project:
+Apply it and put this nginx config alongside the `Dockerfile` on frontend root project:
+
+{{< highlight host="kuberocks-demo-ui" file="docker/nginx.conf" >}}
+
+```conf
+server {
+    listen       80;
+    server_name  localhost;
+
+    root /usr/share/nginx/html;
+
+    location / {
+        try_files $uri /index.html;
+    }
+}
+```
+
+{{< /highlight >}}
 
 {{< highlight host="kuberocks-demo-ui" file="Dockerfile" >}}
 
@@ -854,6 +871,10 @@ COPY dist /usr/share/nginx/html
 ```
 
 {{< /highlight >}}
+
+{{< alert >}}
+Without nginx config, as it's an SPA, it will not handle properly the JS routes.
+{{< /alert >}}
 
 After push all CI should build correctly. Then the image policy for auto update:
 
