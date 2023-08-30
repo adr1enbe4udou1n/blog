@@ -114,7 +114,7 @@ module "hcloud_kube" {
 
 {{< /highlight >}}
 
-SSH to both storage nodes to check if a 20GB volume is correctly mounted by `df -h` command. It should be like :
+SSH to both storage nodes to check if a 20GB volume is correctly mounted by `df -h` command. It should be like:
 
 ```txt
 Filesystem      Size  Used Avail Use% Mounted on

@@ -68,12 +68,12 @@ However, writing all terraform logic from scratch is a bit tedious, even more if
 
 ### Choosing K3s Terraform module
 
-We have mainly 2 options :
+We have mainly 2 options:
 
-* Using the strongest community driven module for Hetzner : [Kube Hetzner](https://registry.terraform.io/modules/kube-hetzner/kube-hetzner/hcloud/latest)
+* Using the strongest community driven module for Hetzner: [Kube Hetzner](https://registry.terraform.io/modules/kube-hetzner/kube-hetzner/hcloud/latest)
 * Write our own reusable module or using my [existing start-kit module](https://registry.terraform.io/modules/okami101/k3s)
 
-Here are the pros and cons of each module :
+Here are the pros and cons of each module:
 
 |                         | [Kube Hetzner](https://registry.terraform.io/modules/kube-hetzner/kube-hetzner/hcloud/latest)                                                                                      | [Okami101 K3s](https://registry.terraform.io/modules/okami101/k3s)                                                                                         |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -89,13 +89,13 @@ Here are the pros and cons of each module :
 | **Security**            | Needs an SSH private key because of local provisioners, and SSH port opened to every node                                                                                          | Require only public SSH key, minimized opened SSH ports to only controllers, use SSH jump from a controller to access any internal worker node             |
 | **Reusability**         | Vendor locked to Hetzner Cloud                                                                                                                                                     | Easy to adapt for a different cloud provider as long as it supports **cloud-config** (as 99% of them)                                                      |
 
-So for resume, choose Kube Hetzner module if :
+So for resume, choose Kube Hetzner module if:
 
 * You want to use an OS optimized for containers, but note as it takes more RAM usage than Debian-like distro (230 Mo VS 120Mo).
 * Strong community support is important for you
 * Need of [Hcloud Controller](https://github.com/hetznercloud/hcloud-cloud-controller-manager) functionalities from the ground up, giving support for **autoscaling** and **dynamic load balancing**
 
-Choose the starter-kit module if :
+Choose the starter-kit module if:
 
 * You want to use a more standard OS, as Debian or Ubuntu, which consume less RAM, managed by preinstalled Salt
 * You prefer to start with a simplistic module, without internal hacks, giving you a better understanding of the cluster setup step-by-step and more moveable to another cloud provider
@@ -106,7 +106,7 @@ For this guide, I'll consider using the starter kit as it's more suited for tuto
 
 ### 1st Terraform project
 
-Let's initialize basic cluster setup. Create an empty folder (I name it `demo-kube-hcloud` here) for our terraform project, and create following `kube.tf` file :
+Let's initialize basic cluster setup. Create an empty folder (I name it `demo-kube-hcloud` here) for our terraform project, and create following `kube.tf` file:
 
 {{< highlight host="demo-kube-hcloud" file="kube.tf" >}}
 
@@ -234,7 +234,7 @@ I'm using a local backend for simplicity, but for teams sharing, you may use mor
 
 Treat the Terraform state very carefully in secured place, as it's the only source of truth for your cluster. If leaked, consider the cluster as **compromised and you should active DRP (disaster recovery plan)**. The first vital action is at least to renew the Hetzner Cloud and S3 tokens immediately.
 
-At any case, consider any leak of writeable Hetzner Cloud token as a **Game Over**. Indeed, even if the attacker has no direct access to existing servers, mainly because cluster SSH private key as well as kube config are not stored into Terraform state, he still has full control of infrastructure, and can do the following actions :
+At any case, consider any leak of writeable Hetzner Cloud token as a **Game Over**. Indeed, even if the attacker has no direct access to existing servers, mainly because cluster SSH private key as well as kube config are not stored into Terraform state, he still has full control of infrastructure, and can do the following actions:
 
 1. Create new server to same cluster network with its own SSH access.
 2. Install a new K3s agent and connect it to the controllers thanks to the generated K3s token stored into Terraform state.
@@ -394,14 +394,14 @@ export TF_VAR_s3_secret_key="xxx"
 
 #### Terraform apply
 
-It's finally time to initialize the cluster :
+It's finally time to initialize the cluster:
 
 ```sh
 terraform init
 terraform apply
 ```
 
-Check the printed plan and confirm. The cluster creation will take about 1 minute. When finished following SSH configuration should appear :
+Check the printed plan and confirm. The cluster creation will take about 1 minute. When finished following SSH configuration should appear:
 
 ```sh
 Host kube
@@ -468,7 +468,7 @@ kube-worker-01       Ready    <none>                      152m   v1.27.4+k3s1
 
 #### Kubectl Aliases
 
-As we'll use `kubectl` a lot, I highly encourage you to use aliases for better productivity :
+As we'll use `kubectl` a lot, I highly encourage you to use aliases for better productivity:
 
 * <https://github.com/ahmetb/kubectl-aliases> for bash
 * <https://github.com/shanoor/kubectl-aliases-powershell> for Powershell

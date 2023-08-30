@@ -378,7 +378,7 @@ resource "helm_release" "traefik" {
 
 {{< /highlight >}}
 
-And finally, the route ingress :
+And finally, the route ingress:
 
 {{< highlight host="demo-kube-k3s" file="gitea.tf" >}}
 

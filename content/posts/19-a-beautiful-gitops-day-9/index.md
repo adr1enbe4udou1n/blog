@@ -415,7 +415,7 @@ Click on one specific trace to get details. You can go through HTTP requests, EF
 
 It would be nice to have directly access to trace from logs through Loki search, as it's clearly a more seamless way than searching inside Tempo.
 
-For that we need to do 2 things :
+For that we need to do 2 things:
 
 * Add the `TraceId` to logs in order to correlate trace with log. In ASP.NET Core, a `TraceId` correspond to a unique request, allowing isolation analyze for each request.
 * Create a link in Grafana from the generated `TraceId` inside log and the detail Tempo view trace.

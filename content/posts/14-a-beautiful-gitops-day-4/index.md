@@ -14,15 +14,15 @@ This is the **Part IV** of more global topic tutorial. [Back to guide summary]({
 
 ## Flux
 
-In GitOps world, 2 tools are in lead for CD in k8s : Flux and ArgoCD. As Flux is CLI first and more lightweight, it's my personal goto. You may ask why don't continue with actual k8s Terraform project ?
+In GitOps world, 2 tools are in lead for CD in k8s: Flux and ArgoCD. As Flux is CLI first and more lightweight, it's my personal goto. You may ask why don't continue with actual k8s Terraform project ?
 
 You already noted that by adding more and more Helm dependencies to terraform, the plan time is increasing, as well as the state file. So not very scalable.
 
-It's the perfect moment to draw a clear line between **IaC** and **CD**. IaC is for infrastructure, CD is for application. So to resume our GitOps stack :
+It's the perfect moment to draw a clear line between **IaC** and **CD**. IaC is for infrastructure, CD is for application. So to resume our GitOps stack:
 
-1. IaC for Hcloud cluster initialization (*the basement*) : **Terraform**
-2. IaC for cluster configuration (*the walls*) : **Helm** through **Terraform**
-3. CD for application deployment (*the furniture*) : **Flux**
+1. IaC for Hcloud cluster initialization (*the basement*): **Terraform**
+2. IaC for cluster configuration (*the walls*): **Helm** through **Terraform**
+3. CD for application deployment (*the furniture*): **Flux**
 
 {{< alert >}}
 You can probably eliminate with some efforts the 2nd stack by using both `Kube-Hetzner`, which take care of ingress and storage, and using Flux directly for the remaining helms like database cluster. Or maybe you can also add custom helms to `Kube-Hetzner` ?  

@@ -189,7 +189,7 @@ Now it's time to expose our cluster to the outside world. We'll use Traefik as i
 
 ### Traefik
 
-Apply following file :
+Apply following file:
 
 {{< highlight host="demo-kube-k3s" file="traefik.tf" >}}
 
@@ -369,7 +369,7 @@ We'll use [DNS01 challenge](https://cert-manager.io/docs/configuration/acme/dns0
 You may use a DNS provider that is supported by cert-manager. Check the [list of supported providers](https://cert-manager.io/docs/configuration/acme/dns01/#supported-dns01-providers). But cert-manager is highly extensible, and you can easily add your own provider if needed with some efforts. Check [available contrib webhooks](https://cert-manager.io/docs/configuration/acme/dns01/#webhook).
 {{</ alert >}}
 
-First prepare variables and set them accordingly :
+First prepare variables and set them accordingly:
 
 {{< highlight host="demo-kube-k3s" file="main.tf" >}}
 
@@ -489,9 +489,9 @@ Try `test.kube.rocks` to check certificate validity. If not valid, check the cer
 
 Traefik dashboard is a nice tool to check all ingress and their status. Let's expose it with a simple ingress and protecting with IP whitelist and basic auth, which can be done with middlewares.
 
-First the auth variables :
+First the auth variables:
 
-First prepare variables and set them accordingly :
+First prepare variables and set them accordingly:
 
 {{< highlight host="demo-kube-k3s" file="main.tf" >}}
 
@@ -538,7 +538,7 @@ whitelisted_ips = ["82.82.82.82"]
 Note on encrypted_admin_password, we generate a bcrypt hash of the password compatible for HTTP basic auth and keep the original to avoid to regenerate it each time.
 {{</ alert >}}
 
-Then apply the following Terraform code :
+Then apply the following Terraform code:
 
 {{< highlight host="demo-kube-k3s" file="traefik.tf" >}}
 

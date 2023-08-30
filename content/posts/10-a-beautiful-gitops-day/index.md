@@ -12,7 +12,7 @@ Use GitOps workflow for building a production grade on-premise Kubernetes cluste
 
 ## The goal 🎯
 
-This guide is mainly intended for any developers or some SRE who want to build a Kubernetes cluster that respect following conditions :
+This guide is mainly intended for any developers or some SRE who want to build a Kubernetes cluster that respect following conditions:
 
 1. **On-Premise management** (The Hard Way), so no vendor lock in to any managed Kubernetes provider (KaaS/CaaS)
 2. Hosted on affordable VPS provider (**Hetzner**), with strong **Terraform support**, allowing **GitOps** principles
@@ -124,7 +124,7 @@ storage-03 --> db-streaming
 
 As a HA Kubernetes cluster can be quickly expensive, a good cloud provider is an essential part.
 
-After testing many providers, as Digital Ocean, Vultr, Linode, Civo, OVH, Scaleway, it seems like **Hetzner** is very well suited **in my opinion** :
+After testing many providers, as Digital Ocean, Vultr, Linode, Civo, OVH, Scaleway, it seems like **Hetzner** is very well suited **in my opinion**:
 
 * Very competitive price for middle-range performance (plan only around **$6** for 2 CPU/4 GB for each node)
 * No frills, just the basics, VMs, block volumes, load balancer, firewall, and that's it
@@ -152,7 +152,7 @@ We will also need some expendable block volumes for our storage nodes. Let's sta
 
 We targeted **€60/month** for a minimal working CI/CD cluster, so we are good !
 
-You can also prefer to take **2 larger** cx31 worker nodes (**8 GB** RAM) instead of **3 smaller** ones, which [will optimize resource usage](https://learnk8s.io/kubernetes-node-size), so :
+You can also prefer to take **2 larger** cx31 worker nodes (**8 GB** RAM) instead of **3 smaller** ones, which [will optimize resource usage](https://learnk8s.io/kubernetes-node-size), so:
 
 (5.39+**7**\*0.5+**5**\*4.85+**2**\*9.2+**2**\*0.88)\*1.2 = **€63.96** / month
 

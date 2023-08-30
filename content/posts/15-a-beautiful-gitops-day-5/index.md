@@ -152,7 +152,7 @@ resource "helm_release" "kube_prometheus_stack" {
 
 The application is deployed in `monitoring` namespace. It can takes a few minutes to be fully up and running. You can check the status with `kgpo -n monitoring`.
 
-Important notes :
+Important notes:
 
 * We set a retention of **15 days** and **5GB** of storage for Prometheus. Set this according to your needs.
 * We allow `serviceMonitorSelector` and `podMonitorSelector` for scrapping monitor CRDs from all namespaces.
@@ -426,7 +426,7 @@ Grafana should be deploying and migrate database successfully. Let's log in imme
 
 ### Native dashboards
 
-If you go to `https://grafana.kube.rocks/dashboards`, you should see a many dashboards available that should already perfectly work, giving you a complete vision of :
+If you go to `https://grafana.kube.rocks/dashboards`, you should see a many dashboards available that should already perfectly work, giving you a complete vision of:
 
 * Some core components of K8s, like coredns, kube api server, all kubelets
 * Detail of pods, namespace, workloads
