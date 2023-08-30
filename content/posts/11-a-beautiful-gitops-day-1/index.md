@@ -48,7 +48,7 @@ For better fluidity, here is the expected list of variables you'll need to prepa
 <sup>1</sup> Check [this link](https://github.com/hetznercloud/cli#getting-started>) for generating a token  
 <sup>2</sup> Check cert-manager documentation to generate the token for supporting DNS provider, [example for Cloudflare](https://cert-manager.io/docs/configuration/acme/dns01/cloudflare/#api-tokens)  
 <sup>3</sup> Generate a new SSH key with `ssh-keygen -t ed25519 -C "me@kube.rocks"`  
-<sup>4</sup> If your ISP provider doesn't provide static IP, you may need to use a custom VPN, hopefully Hetzner provide a self-hostable [one-click solution](https://github.com/hetznercloud/apps/tree/main/apps/hetzner/wireguard).
+<sup>4</sup> If your ISP doesn't provide static IP, you may need to use a custom VPN, hopefully Hetzner provide a self-hostable [one-click solution](https://github.com/hetznercloud/apps/tree/main/apps/hetzner/wireguard).
 For more enterprise grade solution check [Teleport](https://goteleport.com/), which is not covered by this guide. Whatever the solution is, it's essential to have at least one of them for obvious security reasons.
 
 ### Local tools
@@ -81,7 +81,7 @@ Here are the pros and cons of each module:
 | **Included helms**      | Traefik, Longhorn, Cert Manager, Kured                                                                                                                                             | None, just the K3s initial setup, as it's generally preferable to manage this helms dependencies on separated terraform project, allowing easier upgrading |
 | **Hetzner integration** | Complete, use [Hcloud Controller](https://github.com/hetznercloud/hcloud-cloud-controller-manager) internally, allowing dynamic Load Balancing, autoscaling, cleaner node deletion | Basic, public Load Balancer is statically managed by the nodepool configuration, no autoscaling support                                                    |
 | **OS**                  | openSUSE MicroOS, optimized for container worloads                                                                                                                                 | Debian 11 or Ubuntu 22.04                                                                                                                                  |
-| **Initial setup**       | Require packer for initial Snapshot creation, and slower on node creation because Hetnzer don't support it natively                                                                | Just about ~2 minutes for all cluster setup                                                                                                                |
+| **Initial setup**       | Require packer for initial Snapshot creation, and slower on node creation                                                                                                          | Just about ~1 minute for complete cluster creation, 1 more for initialization setup                                                                        |
 | **Client support**      | POSIX-based OS only, require WSL on Windows                                                                                                                                        | All including Powershell                                                                                                                                   |
 | **Internal complexity** | Huge, you can't really put your head inside                                                                                                                                        | Very accessible, easy to extend and fork, better for learning                                                                                              |
 | **Upgrade**             | You may need to follow new versions regularly                                                                                                                                      | As a simple starter-kit, no need to support all community problems, so very few updates                                                                    |
@@ -241,7 +241,7 @@ At any case, consider any leak of writeable Hetzner Cloud token as a **Game Over
 3. Sniff any data from the cluster that comes to the compromised server, including secrets, thanks to the new agent.
 4. Get access to remote S3 backups.
 
-In order to mitigate any risk of critical data leak, you may use data encryption whenever is possible. K3s offer it [natively for etcd](https://docs.k3s.io/security/secrets-encryption). Longhorn (treated later) also offer it [natively for volumes](https://longhorn.io/docs/latest/advanced-resources/security/volume-encryption/) (including backups).
+In order to mitigate any risk of critical data leak, you may use data encryption whenever is possible. K3s offer it [natively for etcd](https://docs.k3s.io/security/secrets-encryption). Longhorn also offer it [natively for volumes](https://longhorn.io/docs/latest/advanced-resources/security/volume-encryption/) (including backups).
 
 {{</ tab >}}
 {{< tab tabName="Global" >}}
@@ -261,7 +261,7 @@ my_public_ssh_keys = var.my_public_ssh_keys
 my_ip_addresses    = var.my_ip_addresses
 ```
 
-Choose between `ubuntu-22.04` or `debian-11`, and set the timezone, locale and the default packages you want to install on all nodes. Once server created you may use Salt for changing them globally in the cluster.
+Choose between `ubuntu-22.04` or `debian-11`, and set the timezone, locale and the default packages you want to install on initial node provisioning. Once server created you may use Salt for changing them globally in the cluster.
 
 Why not `debian-12` ? Because it's sadly not yet supported by [Salt project](https://github.com/saltstack/salt/issues/64223)...
 
@@ -337,7 +337,7 @@ agent_nodepools = [
 
 This is the heart configuration of the cluster, where you can define the number of control planes and workers nodes, their type, and their network interface. We'll use 1 master and 1 worker to begin with.
 
-The interface "ens10" is proper for intel CPU, use "enp7s0" for AMD.
+The interface `ens10` is proper for intel CPU, use `enp7s0` for AMD.
 
 Use the taint `node-role.kubernetes.io/control-plane:NoSchedule` in order to prevent any workload to be scheduled on the control plane.
 
@@ -350,7 +350,7 @@ output "ssh_config" {
 }
 ```
 
-Will print the SSH config for accessing the cluster, which will be used later.
+Will print the SSH config access after cluster creation.
 
 {{</ tab >}}
 {{</ tabs >}}
