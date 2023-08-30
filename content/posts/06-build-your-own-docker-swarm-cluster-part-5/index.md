@@ -345,7 +345,7 @@ Set proper `GF_DATABASE_PASSWORD` and deploy. Database migration should be autom
 
 ### Docker Swarm dashboard
 
-For best show-case scenario of Grafana, let's import an [existing dashboard](https://grafana.com/grafana/dashboards/11939) suited for complete Swarm monitor overview.
+For best show-case scenario of Grafana, let's import an [existing dashboard](https://grafana.com/dashboards/11939) suited for complete Swarm monitor overview.
 
 First we need to add Prometheus as main metrics data source. Go to *Configuration > Data source* menu and click on *Add data source*. Select Prometheus and set the internal docker prometheus URL, which should be `http://prometheus:9090`. A successful message should appear when saving.
 
