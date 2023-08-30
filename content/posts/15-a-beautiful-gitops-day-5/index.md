@@ -490,7 +490,7 @@ You can easily import some additional dashboards by importing them from Grafana 
 
 #### Redis
 
-[Link](https://grafana.com/dashboards/dashboards/763)
+[Link](https://grafana.com/dashboards/763)
 
 [![Redis](dashboards-redis.png)](dashboards-redis.png)
 
