@@ -22,7 +22,7 @@ In general `RWO` is more performant, but only one pod can mount it, while `RWX` 
 `RWO` is a single node volume, and `RWX` is a shared volume between multiple nodes.
 {{</ alert >}}
 
-`K3s` come with a built-in `local-path` provisioner, which is the most performant `RWO` solution by directly using local NVMe SSD. But it's not resilient neither scalable. I think it's a good solution for what you consider at no critical data.
+`K3s` comes with a built-in `local-path` provisioner, which is the most performant `RWO` solution by directly using local NVMe SSD. But it's not resilient neither scalable. I think it's a good solution for what you consider at no critical data.
 
 A dedicated NFS server is a good `RWX` solution, by using [this provisioner](https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner). It allows scalability and resiliency with [GlusterFS](https://www.gluster.org/). But it stays a single point of failure in case of network problems, and give of course low IOPS. It's also a separate server to maintain.
 
