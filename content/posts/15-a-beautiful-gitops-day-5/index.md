@@ -159,6 +159,10 @@ Important notes:
 * As we don't set any storage class, the default one will be used, which is `local-path` when using K3s. If you want to use longhorn instead and benefit of automatic monitoring backup, you can set it with `...volumeClaimTemplate.spec.storageClassName`. But don't forget to deploy Longhorn manager by adding monitor toleration.
 * As it's a huge chart, I want to minimize dependencies by disabling Grafana, as I prefer manage it separately. However, in this case we may set `grafana.forceDeployDatasources` and `grafana.forceDeployDashboards` to `true` in order to benefit of all included Kubernetes dashboards and automatic Prometheus datasource injection, and deploy them to config maps that can be used for next Grafana install by provisioning.
 
+{{< alert >}}
+As Terraform plan become slower and slower, you can directly apply one single resource by using `target` option. For example for applying only Prometheus stack, use `terraform apply -target=helm_release.kube_prometheus_stack`. It will save you a lot of time for testing.
+{{< /alert >}}
+
 And finally the ingress for external access:
 
 {{< highlight host="demo-kube-k3s" file="monitoring.tf" >}}

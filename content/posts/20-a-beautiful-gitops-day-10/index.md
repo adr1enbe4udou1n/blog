@@ -584,6 +584,10 @@ public class ArticlesListTests : TestBase
 
 Ensure all tests passes with `dotnet test`.
 
+{{< alert >}}
+You may be interested in [Testcontainers](https://testcontainers.com/) for native support of containers inside code, including parallelism.
+{{< /alert >}}
+
 ### CI tests & code coverage
 
 Now we need to integrate the tests in our CI pipeline. As we testing with a real database, create a new `demo_test` database through pgAdmin with basic `test` / `test` credentials.
