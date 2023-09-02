@@ -357,7 +357,7 @@ Will print the SSH config access after cluster creation.
 
 #### ETCD and network encryption by default
 
-You may need to enable etcd and network encryption in order to preventing any data leak in case of a server is compromised. You can easily do so by adding the following variables:
+You may need to enable etcd and network encryption in order to prevent any data leak in case of a server is compromised. You can easily do so by adding the following variables:
 
 {{< highlight host="demo-kube-hcloud" file="kube.tf" >}}
 
