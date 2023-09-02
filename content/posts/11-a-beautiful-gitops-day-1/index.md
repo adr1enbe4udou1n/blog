@@ -377,6 +377,18 @@ module "hcloud_kube" {
 
 {{< /highlight >}}
 
+You can check the ETCD encryption status with `sudo k3s secrets-encrypt status`:
+
+```txt
+Encryption Status: Enabled
+Current Rotation Stage: start
+Server Encryption Hashes: All hashes match
+
+Active  Key Type  Name
+------  --------  ----
+ *      AES-CBC   aescbckey
+```
+
 #### Inputs
 
 As input variables, you have the choice to use environment variables or separated `terraform.tfvars` file.
