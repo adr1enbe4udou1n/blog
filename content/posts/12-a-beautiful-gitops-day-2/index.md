@@ -25,7 +25,7 @@ terraform {
 }
 ```
 
-{{</ highlight >}}
+{{< /highlight >}}
 
 Let's begin with automatic upgrades management.
 
@@ -75,7 +75,7 @@ resource "helm_release" "kubereboot" {
 }
 ```
 
-{{</ highlight >}}
+{{< /highlight >}}
 
 For all `helm_release` resource you'll see from this guide, you may check the last chart version available. Example for `kured`:
 
@@ -100,7 +100,7 @@ However, as Terraform doesn't offer a proper way to apply a remote multi-documen
 
 {{< alert >}}
 Don't push yourself get fully 100% GitOps everywhere if the remedy give far more code complexity. Sometimes a simple documentation of manual steps in README is better.
-{{</ alert >}}
+{{< /alert >}}
 
 ```sh
 # installing system-upgrade-controller
@@ -187,11 +187,11 @@ resource "kubernetes_manifest" "agent_plan" {
 }
 ```
 
-{{</ highlight >}}
+{{< /highlight >}}
 
 {{< alert >}}
 You may set the same channel as previous step for hcloud cluster creation.
-{{</ alert >}}
+{{< /alert >}}
 
 ## External access
 
@@ -259,7 +259,7 @@ resource "helm_release" "traefik" {
 }
 ```
 
-{{</ highlight >}}
+{{< /highlight >}}
 
 `ports.web.redirectTo` will redirect all HTTP traffic to HTTPS.
 
@@ -317,14 +317,14 @@ resource "hcloud_load_balancer_service" "https_service" {
 }
 ```
 
-{{</ highlight >}}
+{{< /highlight >}}
 
 Use `hcloud load-balancer-type list` to get the list of available load balancer types.
 
 {{< alert >}}
 Don't forget to add `hcloud_load_balancer_service` resource for each service (aka port) you want to serve.  
 We use `tcp` protocol as Traefik will handle SSL termination. Set `proxyprotocol` to true to allow Traefik to get real IP of clients.
-{{</ alert >}}
+{{< /alert >}}
 
 One applied, use `hcloud load-balancer list` to get the public IP of the load balancer and try to curl it. You should be properly redirected to HTTPS and have certificate error. It's time to get SSL certificates.
 
@@ -362,12 +362,12 @@ resource "helm_release" "cert_manager" {
 }
 ```
 
-{{</ highlight >}}
+{{< /highlight >}}
 
 {{< alert >}}
 You can use `installCRDs` option to install CRDs automatically. But uninstall cert-manager will delete all associated resources including generated certificates. That's why I generally prefer to install CRDs manually.  
 As always we enable `prometheus.servicemonitor.enabled` to allow Prometheus to scrape cert-manager metrics.
-{{</ alert >}}
+{{< /alert >}}
 
 All should be ok with `kg deploy -n cert-manager`.
 
@@ -377,7 +377,7 @@ We'll use [DNS01 challenge](https://cert-manager.io/docs/configuration/acme/dns0
 
 {{< alert >}}
 You may use a DNS provider supported by cert-manager. Check the [list of supported providers](https://cert-manager.io/docs/configuration/acme/dns01/#supported-dns01-providers). As cert-manager is highly extensible, you can easily create your own provider with some efforts. Check [available contrib webhooks](https://cert-manager.io/docs/configuration/acme/dns01/#webhook).
-{{</ alert >}}
+{{< /alert >}}
 
 First prepare variables and set them accordingly:
 
@@ -398,7 +398,7 @@ variable "dns_api_token" {
 }
 ```
 
-{{</ highlight >}}
+{{< /highlight >}}
 
 {{< highlight host="demo-kube-k3s" file="terraform.tfvars" >}}
 
@@ -408,7 +408,7 @@ domain        = "kube.rocks"
 dns_api_token = "xxx"
 ```
 
-{{</ highlight >}}
+{{< /highlight >}}
 
 Then we need to create a default `Certificate` k8s resource associated to a valid `ClusterIssuer` resource that will manage its generation. Apply the following Terraform code for issuing the new wildcard certificate for your domain.
 
@@ -484,12 +484,12 @@ resource "kubernetes_manifest" "tls_certificate" {
 }
 ```
 
-{{</ highlight >}}
+{{< /highlight >}}
 
 {{< alert >}}
 You can set `acme.privateKeySecretRef.name` to **letsencrypt-staging** for testing purpose and avoid wasting LE quota limit.  
 Set `privateKey.rotationPolicy` to `Always` to ensure that the certificate will be [renewed automatically](https://cert-manager.io/docs/usage/certificate/) 30 days before expires without downtime.
-{{</ alert >}}
+{{< /alert >}}
 
 In the meantime, go to your DNS provider and add a new `*.kube.rocks` entry pointing to the load balancer IP.
 
@@ -530,7 +530,7 @@ resource "null_resource" "encrypted_admin_password" {
 }
 ```
 
-{{</ highlight >}}
+{{< /highlight >}}
 
 {{< highlight host="demo-kube-k3s" file="terraform.tfvars" >}}
 
@@ -540,11 +540,11 @@ http_password   = "xxx"
 whitelisted_ips = ["82.82.82.82"]
 ```
 
-{{</ highlight >}}
+{{< /highlight >}}
 
 {{< alert >}}
 Note on `encrypted_admin_password`, we generate a bcrypt hash of the password compatible for HTTP basic auth and keep the original to avoid to regenerate it each time.
-{{</ alert >}}
+{{< /alert >}}
 
 Then apply the following Terraform code:
 
@@ -619,7 +619,7 @@ resource "kubernetes_manifest" "traefik_middleware_ip" {
 }
 ```
 
-{{</ highlight >}}
+{{< /highlight >}}
 
 Now go to `https://traefik.kube.rocks` and you should be asked for credentials. After login, you should see the dashboard.
 
@@ -651,7 +651,7 @@ resource "kubernetes_manifest" "traefik_middleware_ip" {
 }
 ```
 
-{{</ highlight >}}
+{{< /highlight >}}
 
 In the case of Cloudflare, you may need also to trust the [Cloudflare IP ranges](https://www.cloudflare.com/ips-v4) in addition to Hetzner load balancer. Just set `ports.websecure.forwardedHeaders.trustedIPs` and `ports.websecure.proxyProtocol.trustedIPs` accordingly.
 
@@ -664,7 +664,7 @@ variable "cloudflare_ips" {
 }
 ```
 
-{{</ highlight >}}
+{{< /highlight >}}
 
 {{< highlight host="demo-kube-k3s" file="traefik.tf" >}}
 
@@ -688,7 +688,7 @@ resource "helm_release" "traefik" {
 }
 ```
 
-{{</ highlight >}}
+{{< /highlight >}}
 
 Or for testing purpose set `ports.websecure.forwardedHeaders.insecure` and `ports.websecure.proxyProtocol.insecure` to true.
 

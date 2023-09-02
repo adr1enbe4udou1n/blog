@@ -19,7 +19,7 @@ In Kubernetes world, the most difficult while essential part is probably the sto
 If you are not familiar with Kubernetes storage, you must at least be aware of pros and cons of `RWO` and `RWX` volumes when creating `PVC`.  
 In general `RWO` is more performant, but only one pod can mount it, while `RWX` is slower, but allow sharing between multiple pods.  
 `RWO` is a single node volume, and `RWX` is a shared volume between multiple nodes.
-{{</ alert >}}
+{{< /alert >}}
 
 `K3s` comes with a built-in `local-path` provisioner, which is the most performant `RWO` solution by directly using local NVMe SSD. But it's not resilient neither scalable. I think it's a good solution for what you consider as not critical data.
 
@@ -126,7 +126,7 @@ The volume is of course automatically mounted on each node reboot, it's done via
 
 {{< alert >}}
 Note as if you set volume in same time as node pool creation, Hetzner doesn't seem to automatically mount the volume. So it's preferable to create the node pool first, then add the volume as soon as the node in ready state. You can always detach / re-attach volumes manually through UI, which will force a proper remount.
-{{</ alert >}}
+{{< /alert >}}
 
 ### Longhorn variables
 
@@ -254,7 +254,7 @@ resource "helm_release" "longhorn" {
 Set both `persistence.defaultClassReplicaCount` (used for Kubernetes configuration in longhorn storage class) and `defaultSettings.defaultReplicaCount` (for volumes created from the UI) to 2 as we have 2 storage nodes.  
 The toleration is required to allow Longhorn pods (managers and drivers) to be scheduled on storage nodes in addition to workers.  
 Note as we need to have longhorn deployed on workers too, otherwise pods scheduled on these nodes can't be attached to longhorn volumes.
-{{</ alert >}}
+{{< /alert >}}
 
 Use `kgpo -n longhorn-system -o wide` to check that Longhorn pods are correctly running on storage nodes as well as worker nodes. You should have `instance-manager` deployed on each node.
 
@@ -342,7 +342,7 @@ resource "kubernetes_manifest" "longhorn_ingress" {
 {{< alert >}}
 It's vital that you have at least IP and AUTH middlewares with a strong password for Longhorn UI access, as its concern the most critical part of cluster.  
 Of course, you can skip this ingress and directly use `kpf svc/longhorn-frontend -n longhorn-system 8000:80` to access Longhorn UI securely.
-{{</ alert >}}
+{{< /alert >}}
 
 ### Nodes and volumes configuration
 
@@ -576,11 +576,11 @@ resource "helm_release" "postgresql" {
 }
 ```
 
-{{</ highlight >}}
+{{< /highlight >}}
 
 {{< alert >}}
 Don't forget to use fast storage by setting `primary.persistence.storageClass` and `readReplicas.persistence.storageClass` accordingly.
-{{</ alert >}}
+{{< /alert >}}
 
 Now check that PostgreSQL pods are correctly running on storage nodes with `kgpo -n postgres -o wide`.
 

@@ -217,7 +217,7 @@ output "ssh_config" {
 }
 ```
 
-{{</ highlight >}}
+{{< /highlight >}}
 
 #### Explanation
 
@@ -267,7 +267,7 @@ Why not `debian-12` ? Because it's sadly not yet supported by [Salt project](htt
 
 {{< alert >}}
 `nfs-common` package is required for Longhorn in order to support RWX volumes.
-{{</ alert >}}
+{{< /alert >}}
 
 `cluster_name` is the node's name prefix and will have the format `{cluster_name}-{pool_name}-{index}`, for example `kube-storage-01`. `cluster_user` is the username UID 1000 for SSH access with sudo rights. `root` user is disabled for remote access security reasons.
 
@@ -398,7 +398,7 @@ s3_access_key = "xxx"
 s3_secret_key = "xxx"
 ```
 
-{{</ highlight >}}
+{{< /highlight >}}
 
 {{</ tab >}}
 {{< tab tabName="Environment variables" >}}
@@ -463,7 +463,7 @@ Merge above SSH config into your `~/.ssh/config` file, then test the connection 
 
 {{< alert >}}
 If you get "Connection refused", it's probably because the server is still on cloud-init phase. Wait a few minutes and try again. Be sure to have the same public IPs as the one you whitelisted in the Terraform variables. You can edit them and reapply the Terraform configuration at any moment.
-{{</ alert >}}
+{{< /alert >}}
 
 Before using K3s, let's enable Salt for OS management by taping `sudo salt-key -A -y`. This will accept all pending keys, and allow Salt to connect to all nodes. To upgrade all nodes at one, just type `sudo salt '*' pkg.upgrade`.
 
@@ -478,7 +478,7 @@ From the controller, copy `/etc/rancher/k3s/k3s.yaml` on your machine located ou
 {{< alert >}}
 If `~/.kube/config` already existing, you have to properly [merging the config inside it](https://able8.medium.com/how-to-merge-multiple-kubeconfig-files-into-one-36fc987c2e2f). You can use `kubectl config view --flatten` for that.  
 Then use `kubectl config use-context kube` for switching to your new cluster.
-{{</ alert >}}
+{{< /alert >}}
 
 Type `kubectl get nodes` and you should see the 2 nodes of your cluster in **Ready** state.
 
@@ -514,7 +514,7 @@ agent_nodepools = [
 ]
 ```
 
-{{</ highlight >}}
+{{< /highlight >}}
 
 Then apply the Terraform configuration again. After few minutes, you should see 2 new nodes in **Ready** state.
 
@@ -528,7 +528,7 @@ kube-worker-03       Ready    <none>                      25s    v1.27.4+k3s1
 
 {{< alert >}}
 You'll have to use `sudo salt-key -A -y` each time you'll add a new node to the cluster for global OS management.
-{{</ alert >}}
+{{< /alert >}}
 
 #### Deleting workers
 
@@ -538,7 +538,7 @@ To finalize the deletion, delete the node from the cluster with `krm no kube-wor
 
 {{< alert >}}
 If node have some workloads running, you'll have to consider a proper [draining](https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/) before deleting it.
-{{</ alert >}}
+{{< /alert >}}
 
 ## 1st check ✅
 
