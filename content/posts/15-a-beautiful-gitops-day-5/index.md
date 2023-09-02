@@ -436,10 +436,6 @@ If you go to `https://grafana.kube.rocks/dashboards`, you should see a many dash
 * Prometheus and Grafana itself stats
 * Flux stats
 
-{{< alert >}}
-Some other core components like etcd, scheduler, proxy, and controller manager need to have metrics enabled to be scraped. See K3s docs or [this issue](https://github.com/k3s-io/k3s/issues/3619)
-{{< /alert >}}
-
 #### Prometheus
 
 [![Prometheus](dashboards-prometheus.png)](dashboards-prometheus.png)
@@ -497,6 +493,35 @@ You can easily import some additional dashboards by importing them from Grafana 
 [Link](https://grafana.com/dashboards/763)
 
 [![Redis](dashboards-redis.png)](dashboards-redis.png)
+
+#### Other core components
+
+Some other core components like etcd, scheduler, proxy, and controller manager need to have metrics enabled to be scraped. See K3s docs or [this issue](https://github.com/k3s-io/k3s/issues/3619).
+
+From Terraform Hcloud project, use `control_planes_custom_config` for expose all remaining metrics endpoint:
+
+{{< highlight host="demo-kube-hcloud" file="kube.tf" >}}
+
+```tf
+module "hcloud_kube" {
+  //...
+
+  control_planes_custom_config = {
+    etcd-expose-metrics         = true,
+    kube-scheduler-arg          = "bind-address=0.0.0.0",
+    kube-controller-manager-arg = "bind-address=0.0.0.0",
+    kube-proxy-arg              = "metrics-bind-address=0.0.0.0",
+  }
+
+  //...
+}
+```
+
+{{< /highlight >}}
+
+{{< alert >}}
+As above config applies only at cluster initialization, you may change directly `/etc/rancher/k3s/config.yaml` instead and restart K3s server.
+{{< /alert >}}
 
 ## Logging
 
