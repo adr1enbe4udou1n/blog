@@ -364,6 +364,8 @@ You may need to enable etcd and network encryption in order to prevent any data 
 ```tf
 module "hcloud_kube" {
   //...
+  # You need to install WireGuard package on all nodes
+  server_packages = ["wireguard"]
 
   enable_wireguard = true
 
