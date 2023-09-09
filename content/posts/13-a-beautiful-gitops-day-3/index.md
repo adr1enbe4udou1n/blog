@@ -667,6 +667,11 @@ resource "helm_release" "redis" {
   }
 
   set {
+    name  = "sentinel.enabled"
+    value = "true"
+  }
+
+  set {
     name  = "replica.persistence.enabled"
     value = "false"
   }
