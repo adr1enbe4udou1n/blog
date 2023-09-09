@@ -594,7 +594,7 @@ And that's it, we have replicated PostgreSQL cluster ready to use ! Go to longho
 
 ## Redis cluster
 
-After PostgreSQL, set up a master/slave redis is a piece of cake. You may prefer [redis cluster](https://redis.io/docs/management/scaling/) by using [Bitnami redis cluster](https://artifacthub.io/packages/helm/bitnami/redis-cluster), but it [doesn't work](https://github.com/bitnami/charts/issues/12901) at the time of writing this guide.
+After PostgreSQL, set up a redis cluster is a piece of cake. Let's use [redis cluster](https://redis.io/docs/management/scaling/) by using [Bitnami redis cluster](https://artifacthub.io/packages/helm/bitnami/redis-cluster).
 
 ### Redis variables
 
@@ -639,25 +639,20 @@ resource "kubernetes_secret_v1" "redis_auth" {
 }
 
 resource "helm_release" "redis" {
-  chart      = "redis"
-  version    = "17.15.6"
+  chart      = "redis-cluster"
+  version    = "9.0.3"
   repository = "https://charts.bitnami.com/bitnami"
 
-  name      = "redis"
+  name      = "redis-cluster"
   namespace = kubernetes_namespace_v1.redis.metadata[0].name
 
   set {
-    name  = "architecture"
-    value = "standalone"
-  }
-
-  set {
-    name  = "auth.existingSecret"
+    name  = "existingSecret"
     value = kubernetes_secret_v1.redis_auth.metadata[0].name
   }
 
   set {
-    name  = "auth.existingSecretPasswordKey"
+    name  = "existingSecretPasswordKey"
     value = "redis-password"
   }
 
@@ -672,67 +667,20 @@ resource "helm_release" "redis" {
   }
 
   set {
-    name  = "master.tolerations[0].key"
-    value = "node-role.kubernetes.io/storage"
-  }
-
-  set {
-    name  = "master.tolerations[0].effect"
-    value = "NoSchedule"
-  }
-
-  set {
-    name  = "master.nodeSelector.node-role\\.kubernetes\\.io/primary"
-    type  = "string"
-    value = "true"
-  }
-
-  set {
-    name  = "master.persistence.size"
-    value = "10Gi"
-  }
-
-  set {
-    name  = "master.persistence.storageClass"
-    value = "longhorn-fast"
-  }
-
-  set {
-    name  = "replica.replicaCount"
-    value = "1"
-  }
-
-  set {
-    name  = "replica.tolerations[0].key"
-    value = "node-role.kubernetes.io/storage"
-  }
-
-  set {
-    name  = "replica.tolerations[0].effect"
-    value = "NoSchedule"
-  }
-
-  set {
-    name  = "replica.nodeSelector.node-role\\.kubernetes\\.io/read"
-    type  = "string"
-    value = "true"
-  }
-
-  set {
-    name  = "replica.persistence.size"
-    value = "10Gi"
-  }
-
-  set {
-    name  = "replica.persistence.storageClass"
-    value = "longhorn-fast"
+    name  = "cluster.nodes"
+    value = "3"
   }
 }
 ```
 
 {{< /highlight >}}
 
-And that's it, job done ! Always check that Redis pods are correctly running on storage nodes with `kgpo -n redis -o wide` and volumes are ready on Longhorn.
+And that's it, job done ! Always check that all 3 Redis master pods are correctly running on worker nodes with `kgpo -n redis -o wide` and volumes are ready on Longhorn.
+
+{{< alert >}}
+You need at least 3 nodes for redis cluster working, you should be ok with 3 worker nodes.  
+If not enough workers, use `tolerations` and `nodeSelector` in case of needing to schedule on storage nodes too.
+{{< /alert >}}
 
 ## Backups
 

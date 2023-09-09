@@ -62,7 +62,7 @@ Then the Helm chart itself:
 
 ```tf
 locals {
-  redis_connection = "redis://:${urlencode(var.redis_password)}@redis-master.redis:6379/0"
+  redis_connection = "redis+cluster://:${urlencode(var.redis_password)}@redis-cluster.redis:6379/0"
 }
 
 resource "kubernetes_namespace_v1" "gitea" {
