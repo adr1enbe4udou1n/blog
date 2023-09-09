@@ -594,7 +594,7 @@ And that's it, we have replicated PostgreSQL cluster ready to use ! Go to longho
 
 ## Redis cluster
 
-After PostgreSQL, set up a redis cluster is a piece of cake. Let's use [redis cluster](https://redis.io/docs/management/scaling/) by using [Bitnami redis cluster](https://artifacthub.io/packages/helm/bitnami/redis-cluster).
+After PostgreSQL, set up a redis cluster is a piece of cake. Let's use [Bitnami redis](https://artifacthub.io/packages/helm/bitnami/redis) with [Sentinel](https://redis.io/docs/management/sentinel/).
 
 ### Redis variables
 
@@ -639,20 +639,20 @@ resource "kubernetes_secret_v1" "redis_auth" {
 }
 
 resource "helm_release" "redis" {
-  chart      = "redis-cluster"
-  version    = "9.0.3"
+  chart      = "redis"
+  version    = "18.0.2"
   repository = "https://charts.bitnami.com/bitnami"
 
-  name      = "redis-cluster"
+  name      = "redis"
   namespace = kubernetes_namespace_v1.redis.metadata[0].name
 
   set {
-    name  = "existingSecret"
+    name  = "auth.existingSecret"
     value = kubernetes_secret_v1.redis_auth.metadata[0].name
   }
 
   set {
-    name  = "existingSecretPasswordKey"
+    name  = "auth.existingSecretPasswordKey"
     value = "redis-password"
   }
 
@@ -667,7 +667,12 @@ resource "helm_release" "redis" {
   }
 
   set {
-    name  = "cluster.nodes"
+    name  = "replica.persistence.enabled"
+    value = "false"
+  }
+
+  set {
+    name  = "replica.replicaCount"
     value = "3"
   }
 }
@@ -675,12 +680,7 @@ resource "helm_release" "redis" {
 
 {{< /highlight >}}
 
-And that's it, job done ! Always check that all 3 Redis master pods are correctly running on worker nodes with `kgpo -n redis -o wide` and volumes are ready on Longhorn.
-
-{{< alert >}}
-You need at least 3 nodes for redis cluster working, you should be ok with 3 worker nodes.  
-If not enough workers, use `tolerations` and `nodeSelector` in case of needing to schedule on storage nodes too.
-{{< /alert >}}
+And that's it, job done ! Check that all 3 Redis nodes are correctly running on worker nodes with `kgpo -n redis -o wide`. Thanks to Sentinel, Redis is highly available and resilient.
 
 ## Backups
 
