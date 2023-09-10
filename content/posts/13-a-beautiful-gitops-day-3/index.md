@@ -759,7 +759,7 @@ Configure this variable according to your needs.
 If you need some regular dump of your database without requiring a dedicated Kubernetes `CronJob`, you can simply use following crontab line on control plane node:
 
 ```sh
-0 */8   * * *   root    /usr/local/bin/k3s kubectl exec sts/postgresql-primary -n postgres -- /bin/sh -c 'PGUSER="okami" PGPASSWORD="$POSTGRES_PASSWORD" pg_dumpall -c | gzip > /bitnami/postgresql/dump_$(date "+\%H")h.sql.gz'
+0 */8   * * *   root    /usr/local/bin/k3s kubectl exec sts/postgresql-primary -n postgres -- /bin/sh -c 'PGUSER="okami" PGPASSWORD="$POSTGRES_PASSWORD" pg_dumpall -c --if-exists | gzip > /bitnami/postgresql/dump_$(date "+\%H")h.sql.gz'
 ```
 
 It will generate 3 daily dumps, one every 8 hours, on the same primary db volume, allowing easy `psql` restore from the same container.
