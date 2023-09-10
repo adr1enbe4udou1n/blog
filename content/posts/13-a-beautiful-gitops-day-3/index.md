@@ -386,6 +386,7 @@ resource "kubernetes_storage_class_v1" "longhorn_fast" {
     fromBackup          = ""
     fsType              = "ext4"
     diskSelector        = "fast"
+    dataLocality        = "strict-local"
   }
 }
 ```
