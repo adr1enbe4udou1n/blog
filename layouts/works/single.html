@@ -49,8 +49,7 @@
                         {{ readFile (print "data/works/" .name ".md") | markdownify }}
                     </div>
                     <div class="flex justify-center gap-4">
-                        {{ partial "button.html" (dict "text" (partial "icon.html" "github") "href" (print
-                        "https://github.com/" .repo) "color" .color) }}
+                        {{ partial "button.html" (dict "text" (partial "icon.html" "github") "href" .repo "color" .color) }}
                         {{ if .ci }}
                         {{ partial "button.html" (dict "text" (partial "icon.html" "bug") "href" (print
                         "https://concourse.okami101.io/teams/main/pipelines/" .ci) "color" .color) }}
