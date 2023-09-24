@@ -21,25 +21,25 @@ SonarQube has its dedicated Helm chart which is perfect for us. However, it's th
 
 Create dedicated database for SonarQube same as usual, then we can use flux for deployment.
 
-Here are the secrets to adapt to your needs:
-
-{{< highlight host="demo-kube-flux" file="clusters/demo/sonarqube/secret-sonarqube.yaml" >}}
+{{< highlight host="demo-kube-flux" file="clusters/demo/sonarqube/deploy-sonarqube.yaml" >}}
 
 ```yaml
-apiVersion: v1
-kind: Secret
+apiVersion: apps/v1
+kind: Namespace
 metadata:
-  name: sonarqube-secret
+  name: sonarqube
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: sonarqube
   namespace: sonarqube
-type: Opaque
-data:
-  db-password: YWRtaW4=
-  monitoring-passcode: YWRtaW4=
+spec:
+  interval: 1h0m0s
+  url: https://SonarSource.github.io/helm-chart-sonarqube
 ```
 
 {{< /highlight >}}
-
-As seen in part 4 of this guide, seal these secrets with `kubeseal` under `sealed-secret-sonarqube.yaml` and delete original secret file.
 
 Inside Helm values, be sure to disable the PostgreSQL sub chart and use our self-hosted cluster with both `postgresql.enabled` and `jdbcOverwrite.enabled`. If needed, set proper `tolerations` and `nodeSelector` for deploying on a dedicated node.
 
