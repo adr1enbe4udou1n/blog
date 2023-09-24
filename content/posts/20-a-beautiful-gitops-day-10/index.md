@@ -37,9 +37,89 @@ metadata:
 spec:
   interval: 1h0m0s
   url: https://SonarSource.github.io/helm-chart-sonarqube
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: sonarqube
+  namespace: sonarqube
+spec:
+  chart:
+    spec:
+      chart: sonarqube
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: sonarqube
+      version: ">=10.0.0"
+  interval: 1m
+  releaseName: sonarqube
+  targetNamespace: sonarqube
+  values:
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 2Gi
+
+    prometheusMonitoring:
+      podMonitor:
+        enabled: true
+        namespace: sonarqube
+
+    monitoringPasscode: null
+    monitoringPasscodeSecretName: sonarqube-secret
+    monitoringPasscodeSecretKey: monitoring-passcode
+
+    jdbcOverwrite:
+      enable: true
+      jdbcUrl: jdbc:postgresql://postgresql-primary.postgres/sonarqube
+      jdbcUsername: sonarqube
+      jdbcSecretName: sonarqube-secret
+      jdbcSecretPasswordKey: db-password
+
+    postgresql:
+      enabled: false
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: sonarqube
+  namespace: sonarqube
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`sonarqube.kube.rocks`)
+      kind: Rule
+      services:
+        - name: sonarqube-sonarqube
+          port: http
 ```
 
 {{< /highlight >}}
+
+Here are the secrets to adapt to your needs:
+
+{{< highlight host="demo-kube-flux" file="clusters/demo/sonarqube/secret-sonarqube.yaml" >}}
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sonarqube-secret
+  namespace: sonarqube
+type: Opaque
+data:
+  db-password: YWRtaW4=
+  monitoring-passcode: YWRtaW4=
+```
+
+{{< /highlight >}}
+
+As seen in part 4 of this guide, seal these secrets with `kubeseal` under `sealed-secret-sonarqube.yaml` and delete original secret file.
 
 Inside Helm values, be sure to disable the PostgreSQL sub chart and use our self-hosted cluster with both `postgresql.enabled` and `jdbcOverwrite.enabled`. If needed, set proper `tolerations` and `nodeSelector` for deploying on a dedicated node.
 
