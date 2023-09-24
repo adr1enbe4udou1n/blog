@@ -19,105 +19,109 @@ SonarQube is leading the code metrics industry for a long time, embracing full O
 
 SonarQube has its dedicated Helm chart which is perfect for us. However, it's the most resource hungry component of our development stack so far (because built with Java ? End of troll), so be sure to deploy it on almost empty free node (which should be ok with 3 workers), maybe a dedicated one. In fact, it's the last Helm chart for this tutorial, I promise!
 
-Create dedicated database for SonarQube same as usual.
+Create dedicated database for SonarQube same as usual, then we can use flux for deployment.
 
-{{< highlight host="demo-kube-k3s" file="main.tf" >}}
+{{< highlight host="demo-kube-flux" file="clusters/demo/sonarqube/deploy-sonarqube.yaml" >}}
 
-```tf
-variable "sonarqube_db_password" {
-  type      = string
-  sensitive = true
-}
+```yaml
+apiVersion: apps/v1
+kind: Namespace
+metadata:
+  name: sonarqube
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: sonarqube
+  namespace: sonarqube
+spec:
+  interval: 1h0m0s
+  url: https://SonarSource.github.io/helm-chart-sonarqube
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: sonarqube
+  namespace: sonarqube
+spec:
+  chart:
+    spec:
+      chart: sonarqube
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: sonarqube
+      version: ">=10.0.0"
+  interval: 1m
+  releaseName: sonarqube
+  targetNamespace: sonarqube
+  values:
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 2Gi
+
+    prometheusMonitoring:
+      podMonitor:
+        enabled: true
+        namespace: sonarqube
+
+    monitoringPasscode: null
+    monitoringPasscodeSecretName: sonarqube-secret
+    monitoringPasscodeSecretKey: monitoring-passcode
+
+    jdbcOverwrite:
+      enable: true
+      jdbcUrl: jdbc:postgresql://postgresql-primary.postgres/sonarqube
+      jdbcUsername: sonarqube
+      jdbcSecretName: sonarqube-secret
+      jdbcSecretPasswordKey: db-password
+
+    postgresql:
+      enabled: false
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: sonarqube
+  namespace: sonarqube
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`sonarqube.kube.rocks`)
+      kind: Rule
+      services:
+        - name: sonarqube-sonarqube
+          port: http
 ```
 
 {{< /highlight >}}
 
-{{< highlight host="demo-kube-k3s" file="terraform.tfvars" >}}
+Here are the secrets to adapt to your needs:
 
-```tf
-sonarqube_db_password = "xxx"
+{{< highlight host="demo-kube-flux" file="clusters/demo/sonarqube/secret-sonarqube.yaml" >}}
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sonarqube-secret
+  namespace: sonarqube
+type: Opaque
+data:
+  db-password: YWRtaW4=
+  monitoring-passcode: YWRtaW4=
 ```
 
 {{< /highlight >}}
 
-{{< highlight host="demo-kube-k3s" file="sonarqube.tf" >}}
+As seen in part 4 of this guide, seal these secrets with `kubeseal` under `sealed-secret-sonarqube.yaml` and delete original secret file.
 
-```tf
-resource "kubernetes_namespace_v1" "sonarqube" {
-  metadata {
-    name = "sonarqube"
-  }
-}
-
-resource "helm_release" "sonarqube" {
-  chart      = "sonarqube"
-  version    = "10.1.0+628"
-  repository = "https://SonarSource.github.io/helm-chart-sonarqube"
-
-  name      = "sonarqube"
-  namespace = kubernetes_namespace_v1.sonarqube.metadata[0].name
-
-  set {
-    name  = "prometheusMonitoring.podMonitor.enabled"
-    value = "true"
-  }
-
-  set {
-    name  = "postgresql.enabled"
-    value = "false"
-  }
-
-  set {
-    name  = "jdbcOverwrite.enabled"
-    value = "true"
-  }
-
-  set {
-    name  = "jdbcOverwrite.jdbcUrl"
-    value = "jdbc:postgresql://postgresql-primary.postgres/sonarqube"
-  }
-
-  set {
-    name  = "jdbcOverwrite.jdbcUsername"
-    value = "sonarqube"
-  }
-
-  set {
-    name  = "jdbcOverwrite.jdbcPassword"
-    value = var.sonarqube_db_password
-  }
-}
-
-resource "kubernetes_manifest" "sonarqube_ingress" {
-  manifest = {
-    apiVersion = "traefik.io/v1alpha1"
-    kind       = "IngressRoute"
-    metadata = {
-      name      = "sonarqube"
-      namespace = kubernetes_namespace_v1.sonarqube.metadata[0].name
-    }
-    spec = {
-      entryPoints = ["websecure"]
-      routes = [
-        {
-          match = "Host(`sonarqube.${var.domain}`)"
-          kind  = "Rule"
-          services = [
-            {
-              name = "sonarqube-sonarqube"
-              port = "http"
-            }
-          ]
-        }
-      ]
-    }
-  }
-}
-```
-
-{{< /highlight >}}
-
-Be sure to disable the PostgreSQL sub chart and use our self-hosted cluster with both `postgresql.enabled` and `jdbcOverwrite.enabled`. If needed, set proper `tolerations` and `nodeSelector` for deploying on a dedicated node.
+Inside Helm values, be sure to disable the PostgreSQL sub chart and use our self-hosted cluster with both `postgresql.enabled` and `jdbcOverwrite.enabled`. If needed, set proper `tolerations` and `nodeSelector` for deploying on a dedicated node.
 
 The installation take many minutes, be patient. Once done, you can access SonarQube on `https://sonarqube.kube.rocks` and login with `admin` / `admin`.
 
