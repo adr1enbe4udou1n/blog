@@ -9,7 +9,7 @@ theme = "congo"
 title = "Okami101 Blog"
 # copyright = "Copy, _right?_ :thinking_face:"
 
-timeout = 120000
+timeout = "120s"
 
 enableEmoji = true
 enableRobotsTXT = true
