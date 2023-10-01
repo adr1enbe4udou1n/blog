@@ -601,6 +601,11 @@ resource "helm_release" "loki" {
   }
 
   set {
+    name  = "loki.commonConfig.replication_factor"
+    value = "1"
+  }
+
+  set {
     name  = "read.replicas"
     value = "1"
   }
