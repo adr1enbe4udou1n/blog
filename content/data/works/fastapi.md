@@ -8,7 +8,6 @@ Main packages involved :
 * [SQLAlchemy 2](https://www.sqlalchemy.org/) with [Alembic](https://alembic.sqlalchemy.org/en/latest/) for schema migration
 * [python-jose](https://github.com/mpdavis/python-jose) as JWT implementation
 * [Faker](https://faker.readthedocs.io/en/master/) as dummy data generator
-* [autoflake](https://pypi.org/project/autoflake/) and [isort](https://pycqa.github.io/isort/) for clean imports
-* [Flake8](https://flake8.pycqa.org/en/latest/) and [Black](https://black.readthedocs.io/en/stable/) as respective code linter and powerful code formatter
+* [Ruff](https://docs.astral.sh/ruff/) as extremely fast linter and code formatter written in rust, a perfect drop-in replacement for flake8, isort and black
 * [mypy](http://mypy-lang.org/) as advanced static analyzer
 * [pytest](https://docs.pytest.org) as main test framework
