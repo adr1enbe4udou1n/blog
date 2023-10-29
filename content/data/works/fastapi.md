@@ -1,4 +1,4 @@
-[`FastAPI`](https://fastapi.tiangolo.com/) implementation under last `Python 3.12` with [Pipenv](https://pypi.org/project/pipenv/) as package manager.
+[`FastAPI`](https://fastapi.tiangolo.com/) implementation under last `Python 3.12` with [Poetry](https://python-poetry.org/) as package manager.
 
 It's based on [pydantic](https://pydantic-docs.helpmanual.io/), an essential component that allows proper OpenAPI generation and data validations while bringing advanced type hints.
 
