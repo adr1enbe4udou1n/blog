@@ -1,4 +1,4 @@
-[`NestJS 9`](https://nestjs.com/) implementation under `NodeJS` using [`Typescript`](https://www.typescriptlang.org/) and [`pnpm`](https://pnpm.io/) as fast package manager. It relies by default on [`express`](https://github.com/expressjs/express) as NodeJS HTTP server implementation. NestJS offers a nice OpenAPI documentation generator thanks to Typescript which provides strong typing.
+[`NestJS 9`](https://nestjs.com/) implementation under `Node.js 20` using [`Typescript 5`](https://www.typescriptlang.org/) and [`pnpm`](https://pnpm.io/) as fast package manager. It relies by default on [`express`](https://github.com/expressjs/express) as NodeJS HTTP server implementation. NestJS offers a nice OpenAPI documentation generator thanks to Typescript which provides strong typing.
 
 Main packages involved :
 
