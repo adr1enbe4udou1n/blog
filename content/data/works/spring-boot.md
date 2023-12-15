@@ -1,4 +1,4 @@
-[`Spring Boot 3.2`](https://spring.io/projects/spring-boot) implementation using `Gradle 8` & `Java 17+`. Similar to the [official Spring Boot implementation](https://github.com/gothinkster/spring-boot-realworld-example-app) but with usage of `Spring Data JPA` instead of `MyBatis`. [Here is another nice one](https://github.com/raeperd/realworld-springboot-java) that explicitly follows `DDD`.
+[`Spring Boot 3.2`](https://spring.io/projects/spring-boot) implementation using `Gradle 8` & `Java 21`. Similar to the [official Spring Boot implementation](https://github.com/gothinkster/spring-boot-realworld-example-app) but with usage of `Spring Data JPA` instead of `MyBatis`. [Here is another nice one](https://github.com/raeperd/realworld-springboot-java) that explicitly follows `DDD`.
 
 Main packages involved :
 
