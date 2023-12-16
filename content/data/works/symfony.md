@@ -1,9 +1,10 @@
-[`Symfony 6.3`](https://symfony.com/) implementation on `PHP 8.2` that supports PHP 8 attributes. I excluded the usage of [API Platform](https://api-platform.com/) here, which is a very powerful API crud generator but really not well suited for real customized API in my taste.
+[`Symfony 7`](https://symfony.com/) implementation on `PHP 8.3` that supports PHP 8 attributes, using [API Platform](https://api-platform.com/).
 
 Contrary to Laravel, the usage of **DataMapper** pattern ORM involve classic POPO models. The additional usage of plain PHP DTO classes facilitates the OpenAPI spec models generation without writing all schemas by hand. On the downside the Nelmio package is far more verbose than the Laravel OpenAPI version.
 
 Main packages involved :
 
+* [API Platform](https://api-platform.com/) as API framework
 * [Doctrine](https://www.doctrine-project.org/) as **DataMapper** ORM
 * [SensioFrameworkExtraBundle](https://github.com/sensiolabs/SensioFrameworkExtraBundle) for ParamConverter helper with Doctrine
 * [FOSRestBundle](https://github.com/FriendsOfSymfony/FOSRestBundle) only for some helpers as DTO automatic converters and validation
