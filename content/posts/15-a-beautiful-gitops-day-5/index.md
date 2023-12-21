@@ -507,6 +507,7 @@ module "hcloud_kube" {
   //...
 
   control_planes_custom_config = {
+    //...
     etcd-expose-metrics         = true,
     kube-scheduler-arg          = "bind-address=0.0.0.0",
     kube-controller-manager-arg = "bind-address=0.0.0.0",

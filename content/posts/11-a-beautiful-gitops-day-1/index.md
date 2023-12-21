@@ -180,7 +180,8 @@ module "hcloud_kube" {
     "eviction-hard=memory.available<250Mi"
   ]
 
-  etcd_s3_backup = {
+  control_planes_custom_config = {
+    etcd-s3                     = true
     etcd-s3-endpoint            = "s3.fr-par.scw.cloud"
     etcd-s3-access-key          = var.s3_access_key
     etcd-s3-secret-key          = var.s3_secret_key
@@ -296,7 +297,8 @@ I also prefer increase the eviction threshold to 250Mi, in order to avoid OS OOM
 {{< tab tabName="Backup" >}}
 
 ```tf
-etcd_s3_backup = {
+control_planes_custom_config = {
+  etcd-s3                     = true
   etcd-s3-endpoint            = "s3.fr-par.scw.cloud"
   etcd-s3-access-key          = var.s3_access_key
   etcd-s3-secret-key          = var.s3_secret_key
@@ -371,6 +373,7 @@ module "hcloud_kube" {
   enable_wireguard = true
 
   control_planes_custom_config = {
+    //...
     secrets-encryption = true,
   }
 
