@@ -135,7 +135,11 @@ builder.Services.AddOpenTelemetry()
     {
         b
             .AddAspNetCoreInstrumentation()
-            .AddPrometheusExporter();
+            .AddPrometheusExporter()
+            .AddMeter(
+                "Microsoft.AspNetCore.Hosting",
+                "Microsoft.AspNetCore.Server.Kestrel"
+            );
     });
 
 var app = builder.Build();
@@ -149,9 +153,7 @@ app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
 Relaunch app and go to `https://demo.kube.rocks/metrics` to confirm it's working. It should show metrics after each endpoint call, simply try `https://demo.kube.rocks/Articles`.
 
-{{< alert >}}
-.NET metrics are currently pretty basic, but the next .NET 8 version will provide far better metrics from internal components allowing some [useful dashboard](https://github.com/JamesNK/aspnetcore-grafana).
-{{< /alert >}}
+Now you can easily import ASP.NET [specific grafana dashboards](https://github.com/dotnet/aspire/tree/main/src/Grafana) for visualizing.
 
 #### Hide internal endpoints
 

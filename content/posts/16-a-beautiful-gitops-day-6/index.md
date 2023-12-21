@@ -303,7 +303,7 @@ You should be able to log in `https://gitea.kube.rocks` with chosen admin creden
 
 ### Push a basic Web API project
 
-Let's generate a basic .NET Web API project. Create a new dotnet project like following (you may install [last .NET SDK](https://dotnet.microsoft.com/en-us/download)):
+Let's generate a basic .NET Web API project. Create a new dotnet 8 project like following (you may install [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download)):
 
 ```sh
 mkdir kuberocks-demo
@@ -311,7 +311,7 @@ cd kuberocks-demo
 dotnet new sln
 dotnet new gitignore
 dotnet new editorconfig
-dotnet new webapi -o src/KubeRocks.WebApi
+dotnet new webapi -o src/KubeRocks.WebApi --use-controllers
 dotnet sln add src/KubeRocks.WebApi
 git init
 git add .

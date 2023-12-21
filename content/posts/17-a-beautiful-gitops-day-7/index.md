@@ -193,7 +193,7 @@ Firstly create following files in root of your repo that we'll use for building 
 {{< highlight host="kuberocks-demo" file="Dockerfile" >}}
 
 ```Dockerfile
-FROM mcr.microsoft.com/dotnet/aspnet:7.0
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 
 WORKDIR /publish
 COPY /publish .
@@ -253,7 +253,7 @@ jobs:
             type: registry-image
             source:
               repository: mcr.microsoft.com/dotnet/sdk
-              tag: "7.0"
+              tag: "8.0"
           inputs:
             - name: source-code
               path: .
