@@ -173,14 +173,13 @@ module "hcloud_kube" {
 
   k3s_channel = "stable"
 
-  tls_sans = ["cp.kube.rocks"]
-
-  disabled_components = ["traefik"]
   kubelet_args = [
     "eviction-hard=memory.available<250Mi"
   ]
 
   control_planes_custom_config = {
+    tls-sans                    = ["cp.kube.rocks"]
+    disable                     = ["traefik"]
     etcd-s3                     = true
     etcd-s3-endpoint            = "s3.fr-par.scw.cloud"
     etcd-s3-access-key          = var.s3_access_key
@@ -279,17 +278,12 @@ Why not `debian-12` ? Because it's sadly not yet supported by [Salt project](htt
 ```tf
 k3s_channel = "stable"
 
-tls_sans = ["cp.kube.rocks"]
-
-disabled_components = ["traefik"]
 kubelet_args = [
   "eviction-hard=memory.available<250Mi"
 ]
 ```
 
-This is the K3s specific configuration, where you can choose the channel (stable or latest), the TLS SANs, and the kubelet arguments.
-
-I'm disabling included Traefik because we'll use a more flexible official Helm later.
+This is the K3s specific configuration, where you can choose the channel (stable or latest), and the kubelet arguments.
 
 I also prefer increase the eviction threshold to 250Mi, in order to avoid OS OOM killer.
 
@@ -298,6 +292,8 @@ I also prefer increase the eviction threshold to 250Mi, in order to avoid OS OOM
 
 ```tf
 control_planes_custom_config = {
+  tls-sans                    = ["cp.kube.rocks"]
+  disable                     = ["traefik"]
   etcd-s3                     = true
   etcd-s3-endpoint            = "s3.fr-par.scw.cloud"
   etcd-s3-access-key          = var.s3_access_key
@@ -308,7 +304,11 @@ control_planes_custom_config = {
 }
 ```
 
-This will enable automatic daily backup of etcd database on S3 bucket, which is useful for faster disaster recovery. See the official guide [here](https://docs.k3s.io/datastore/backup-restore).
+Here some specific additional configuration for k3s servers.
+
+I'm disabling included Traefik because we'll use a more flexible official Helm later.
+
+We're adding automatic daily backup of etcd database on S3 bucket, which is useful for faster disaster recovery. See the official guide [here](https://docs.k3s.io/datastore/backup-restore).
 
 {{</ tab >}}
 {{< tab tabName="Cluster" >}}
@@ -370,10 +370,9 @@ module "hcloud_kube" {
   # You need to install WireGuard package on all nodes
   server_packages = ["wireguard"]
 
-  enable_wireguard = true
-
   control_planes_custom_config = {
     //...
+    flannel-backend    = "wireguard-native"
     secrets-encryption = true,
   }
 
