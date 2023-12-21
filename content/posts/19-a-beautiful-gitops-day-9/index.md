@@ -120,8 +120,9 @@ The last step but not least for a total integration with our monitored Kubernete
 Install minimal ASP.NET Core metrics is really a no-brainer:
 
 ```sh
-dotnet add src/KubeRocks.WebApi package OpenTelemetry.AutoInstrumentation --prerelease
 dotnet add src/KubeRocks.WebApi package OpenTelemetry.Extensions.Hosting --prerelease
+dotnet add src/KubeRocks.WebApi package OpenTelemetry.Instrumentation.AspNetCore --prerelease
+dotnet add src/KubeRocks.WebApi package OpenTelemetry.Instrumentation.EntityFrameworkCore --prerelease
 dotnet add src/KubeRocks.WebApi package OpenTelemetry.Exporter.Prometheus.AspNetCore --prerelease
 ```
 
@@ -346,6 +347,7 @@ Use the *Test* button on `https://grafana.kube.rocks/connections/datasources/edi
 Let's firstly add another instrumentation package specialized for Npgsql driver used by EF Core to translate queries to PostgreSQL:
 
 ```sh
+dotnet add src/KubeRocks.WebApi package OpenTelemetry.Exporter.OpenTelemetryProtocol --prerelease
 dotnet add src/KubeRocks.WebApi package Npgsql.OpenTelemetry
 ```
 
