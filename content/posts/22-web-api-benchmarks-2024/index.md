@@ -276,7 +276,7 @@ As expected here, database is the bottleneck. We'll get slow response time at fu
 
 | Metric             | Value     |
 | ------------------ | --------- |
-| Iteration rate     | **0.5/s** |
+| Iteration rate     | **1/2/s** |
 | Total requests     | **29015** |
 | Total iterations   | **5**     |
 | Max req/s          | **360**   |
@@ -309,198 +309,210 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric             | Value   |
-| ------------------ | ------- |
-| Iteration rate     | **X**   |
-| Total requests     | **X**   |
-| Total iterations   | **X**   |
-| Max req/s          | **X**   |
-| p(90) req duration | **Xms** |
+| Metric             | Value     |
+| ------------------ | --------- |
+| Iteration rate     | **2/s**   |
+| Total requests     | **4386**  |
+| Total iterations   | **86**    |
+| Max req/s          | **70**    |
+| p(90) req duration | **1.24s** |
 
-{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|31,62,60,64,63,68,66,63,64,64,67,66,64,65,65,64,66,63,55,69,65,66,63,66,65,65,65,60,64,66,65,63,64,58,56,59,53,52,56,60,52,53,47,50,53,56,50,45,54,56,54,49,47,47,52,56,47,44,51,58,53,43,51,48,48,45,45,40,44,41,46,41,43,43,38,42,36,38,36,35,29" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|2,4,6,8,10,10,12,14,15,17,18,20,21,22,24,26,28,29,31,32,33,35,37,37,39,40,42,44,45,47,48,49,50,50,49,50,49,49,50,50,50,50,49,50,49,50,50,50,49,50,49,50,49,50,49,49,50,49,50,48,48,48,47,45,43,42,39,38,37,35,30,30,25,21,20,19,17,15,12,8" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|50,56,89,114,147,148,169,210,231,239,253,284,333,352,344,364,431,458,448,497,483,534,558,573,561,597,628,693,689,687,715,743,780,879,847,848,916,929,892,905,944,941,989,954,979,944,932,979,1009,929,934,940,1059,981,1001,962,989,1047,963,1015,911,925,1046,1008,962,905,970,910,894,877,792,725,730,584,515,505,474,459,382,289,186" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
 
-{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU runtime load" datasets="User|0.02,0.31,0.29,0.28,0.28,0.27,0.03|#4bc0c0$System|0.01,0.06,0.06,0.06,0.06,0.06,0.01|#ff6384" stacked="true" max="1" step="15" />}}
 
-{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU database load" datasets="User|0.04,0.8,0.82,0.85,0.86,0.87,0.36,0.03|#4bc0c0$System|0.02,0.19,0.18,0.15,0.14,0.13,0.05,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
 {{< /tab >}}
 {{< /tabs >}}
+
+Now it seems interesting, Laravel performs literally about 2x slower with PostgreSQL than MySQL, with a very high response time (> 1s). Many says that MySQL is better than PostgreSQL for reading data, but I can't explain such a difference. It will be interesting to compare with Symfony Doctrine to get a better idea.
 
 ### Laravel PgSQL scenario 2
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric             | Value   |
-| ------------------ | ------- |
-| Iteration rate     | **X**   |
-| Total requests     | **X**   |
-| Total iterations   | **X**   |
-| Max req/s          | **X**   |
-| p(90) req duration | **Xms** |
+| Metric             | Value     |
+| ------------------ | --------- |
+| Iteration rate     | **1/3/s** |
+| Total requests     | **16219** |
+| Total iterations   | **0**     |
+| Max req/s          | **220**   |
+| p(90) req duration | **128ms** |
 
-{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|16,26,27,64,93,94,119,128,120,134,149,150,157,155,152,169,168,169,167,166,175,178,185,175,176,187,181,190,185,179,190,196,194,187,178,193,202,195,195,183,195,201,195,196,190,203,195,205,195,191,203,205,205,197,188,200,208,207,197,190,208,215,212,205,185,204,203,211,194,189,208,211,201,198,199,197,207,206,203,194,203,207,203,198,195,202,206,207,203,191,41" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,9,9,9,10,10,10,11,11,11,12,12,12,13,13,13,14,14,14,15,15,15,16,16,16,17,17,17,18,18,18,19,19,19,20,20,20,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|44,38,37,27,21,21,22,23,24,28,27,26,30,32,32,34,36,35,40,42,40,43,43,46,50,48,49,51,54,55,56,56,56,63,67,62,62,67,66,74,71,70,75,76,78,77,82,77,85,89,84,85,88,91,96,97,92,94,103,104,99,99,97,104,110,107,102,100,105,109,105,99,104,105,107,106,100,102,103,107,104,102,103,104,106,105,103,101,103,108,102" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
 
-{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU runtime load" datasets="User|0.05,0.49,0.64,0.7,0.74,0.72,0.6,0.03|#4bc0c0$System|0.02,0.1,0.12,0.14,0.14,0.14,0.12,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
-{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU database load" datasets="User|0.09,0.28,0.34,0.35,0.37,0.39,0.03,0.03|#4bc0c0$System|0.13,0.36,0.41,0.44,0.46,0.47,0.02,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
 {{< /tab >}}
 {{< /tabs >}}
+
+Laravel seems less limited by database performance, but still slower than MySQL. Workers and databases are both heavy loaded, and finally we didn't complete a single scenario iteration !
 
 ### Symfony MySQL scenario 1
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric             | Value   |
-| ------------------ | ------- |
-| Iteration rate     | **X**   |
-| Total requests     | **X**   |
-| Total iterations   | **X**   |
-| Max req/s          | **X**   |
-| p(90) req duration | **Xms** |
+| Metric             | Value     |
+| ------------------ | --------- |
+| Iteration rate     | **3/s**   |
+| Total requests     | **3264**  |
+| Total iterations   | **64**    |
+| Max req/s          | **50**    |
+| p(90) req duration | **1.38s** |
 
-{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|13,37,37,38,41,40,39,38,37,42,35,39,37,40,40,38,38,38,38,41,37,42,39,33,45,41,42,32,39,44,38,33,41,44,32,43,41,43,32,39,45,40,36,36,40,39,37,44,40,35,42,43,29,41,40,44,38,35,42,41,40,38,39,40,40,40,43,41,43,43,38,40,39,48,43,42,39,41,40,45,38,44,37,10" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|3,6,9,12,15,18,21,24,27,30,33,36,39,42,45,48,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,49,50,50,50,49,49,50,50,50,49,50,50,49,50,50,49,49,48,47,46,43,42,42,40,36,35,32,28,23,17,14,14,13,12,10,9,8,2" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|85,107,182,244,304,380,458,555,623,664,740,817,916,994,1041,1109,1224,1272,1289,1272,1230,1243,1311,1343,1282,1227,1267,1247,1275,1273,1291,1300,1329,1261,1243,1278,1241,1307,1235,1277,1245,1269,1271,1385,1298,1220,1256,1288,1278,1258,1271,1250,1307,1353,1257,1235,1255,1254,1304,1245,1222,1262,1287,1241,1191,1122,1098,1073,1055,953,863,902,809,692,536,373,350,350,300,298,239,221,182,78" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
 
-{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU runtime load" datasets="User|0.03,0.2,0.19,0.18,0.2,0.2,0.18,0.03|#4bc0c0$System|0.02,0.1,0.09,0.1,0.08,0.1,0.08,0.03|#ff6384" stacked="true" max="1" step="15" />}}
 
-{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU database load" datasets="User|0.04,0.97,0.97,0.97,0.97,0.98,0.04,0.03|#4bc0c0$System|0.02,0.03,0.03,0.03,0.03,0.02,0.02,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
 {{< /tab >}}
 {{< /tabs >}}
+
+It's getting pretty ugly here, with a very high response time (> 1s) at full load. About 3 times slower than Laravel in the same context.
 
 ### Symfony MySQL scenario 2
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric             | Value   |
-| ------------------ | ------- |
-| Iteration rate     | **X**   |
-| Total requests     | **X**   |
-| Total iterations   | **X**   |
-| Max req/s          | **X**   |
-| p(90) req duration | **Xms** |
+| Metric             | Value     |
+| ------------------ | --------- |
+| Iteration rate     | **1/3/s** |
+| Total requests     | **32086** |
+| Total iterations   | **18**    |
+| Max req/s          | **414**   |
+| p(90) req duration | **41ms**  |
 
-{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|17,44,40,87,174,168,194,228,229,256,302,289,308,335,345,346,343,328,374,381,359,362,368,393,389,403,380,371,390,387,388,366,379,400,389,397,382,373,390,401,393,387,387,392,413,411,379,390,413,414,414,380,394,417,406,413,388,393,414,417,417,391,395,417,413,410,390,396,409,413,408,378,381,394,412,405,381,393,397,395,396,364,375,363,378,371,336,324,312,292,110" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,9,9,8,8,8,8,9,9,9,9,9,9,10,10,9,10,10,10,11,11,11,11,11,11,12,12,12,12,12,12,13,13,12,13,13,13,14,13,13,13,12,12,12,12,12,12,11,11,11,10,10,10,10,9,9,9,8,8,7,7,6,6,6,5,4,3" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|28,22,24,17,11,12,12,13,13,14,13,14,14,15,14,16,17,18,17,18,19,20,21,20,22,22,22,23,21,21,21,24,24,23,23,22,25,26,25,24,25,26,27,28,26,27,29,28,28,29,28,33,31,29,30,31,33,32,31,31,32,36,33,31,30,29,31,30,29,29,28,29,29,27,24,24,26,25,23,23,21,22,21,20,18,1" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
 
-{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU runtime load" datasets="User|0.03,0.42,0.56,0.59,0.59,0.58,0.48,0.03|#4bc0c0$System|0.02,0.24,0.32,0.31,0.36,0.34,0.27,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
-{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU database load" datasets="User|0.09,0.32,0.37,0.38,0.4,0.38,0.12,0.03|#4bc0c0$System|0.04,0.08,0.09,0.1,0.1,0.08,0.04,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
 {{< /tab >}}
 {{< /tabs >}}
+
+The situation is completely different here, Symfony is able to handle the load, better than Laravel in the same context, with a very low response time (~40ms). Let's see if it's able to keep up with the same performance with PostgreSQL contrary to Laravel.
 
 ### Symfony PgSQL scenario 1
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric             | Value   |
-| ------------------ | ------- |
-| Iteration rate     | **X**   |
-| Total requests     | **X**   |
-| Total iterations   | **X**   |
-| Max req/s          | **X**   |
-| p(90) req duration | **Xms** |
+| Metric             | Value     |
+| ------------------ | --------- |
+| Iteration rate     | **3/s**   |
+| Total requests     | **8160**  |
+| Total iterations   | **160**   |
+| Max req/s          | **120**   |
+| p(90) req duration | **469ms** |
 
-{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|28,108,116,120,121,112,119,121,121,120,111,116,120,120,116,111,116,116,124,107,115,114,119,119,116,112,118,118,119,117,111,118,117,118,116,112,116,115,123,120,111,113,121,114,117,115,107,123,117,114,107,116,123,115,115,113,121,114,121,115,111,117,121,120,119,116,113,121,123,123,88" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|3,6,9,12,12,13,14,16,17,19,19,20,22,23,24,25,27,28,29,31,33,33,35,36,38,38,39,41,43,44,46,46,48,48,50,49,47,50,50,50,49,50,49,50,50,49,50,47,49,49,49,49,48,48,50,48,50,50,50,47,48,47,44,41,37,36,32,27,23,17,5" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|125,55,76,97,107,113,119,128,142,156,172,176,185,190,206,223,236,240,250,271,297,288,294,305,326,345,331,356,351,382,394,401,395,414,431,446,418,419,411,415,457,422,422,418,424,443,428,415,408,429,462,423,409,432,420,435,419,419,425,410,437,396,380,354,322,321,289,248,203,147,73" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
 
-{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU runtime load" datasets="User|0.03,0.24,0.41,0.39,0.39,0.39,0.03,0.03|#4bc0c0$System|0.02,0.06,0.11,0.12,0.11,0.13,0.02,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
-{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU database load" datasets="User|0.04,0.69,0.71,0.7,0.72,0.72,0.04,0.03|#4bc0c0$System|0.03,0.29,0.29,0.3,0.28,0.28,0.02,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
 {{< /tab >}}
 {{< /tabs >}}
+
+Performance is strangely very similar with Laravel + MySQL on same scenario. Symfony performs clearly better here with PostgreSQL than MySQL, between 2 to 3 times, which is the complete opposite of Laravel.
 
 ### Symfony PgSQL scenario 2
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric             | Value   |
-| ------------------ | ------- |
-| Iteration rate     | **X**   |
-| Total requests     | **X**   |
-| Total iterations   | **X**   |
-| Max req/s          | **X**   |
-| p(90) req duration | **Xms** |
+| Metric             | Value     |
+| ------------------ | --------- |
+| Iteration rate     | **1/3/s** |
+| Total requests     | **19633** |
+| Total iterations   | **4**     |
+| Max req/s          | **250**   |
+| p(90) req duration | **95ms**  |
 
-{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|29,30,29,107,108,110,149,152,153,186,178,171,200,203,197,206,199,208,217,215,213,211,225,219,232,221,209,230,239,228,223,217,240,235,246,235,223,233,248,247,233,216,245,246,253,235,229,241,246,243,238,219,242,239,251,238,227,247,251,249,241,235,246,246,248,241,231,240,252,244,231,229,242,246,250,237,227,245,250,249,232,231,245,243,247,237,230,245,251,233" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,9,9,9,10,10,10,11,11,11,12,12,12,13,13,13,14,14,14,15,15,15,16,16,16,17,17,17,18,18,18,19,19,19,20,20,20,20,20,19,19,19,18,18,18,18,18,18,18,18,18,18,18,18,18,17,17,17,17,17,17,17,17,17,17,17,16" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|34,34,34,19,18,18,20,19,19,21,22,23,25,24,25,29,30,29,32,32,33,38,35,37,39,41,43,43,42,43,49,50,46,51,48,51,57,56,53,56,60,64,62,60,60,68,70,66,68,70,72,80,75,74,76,79,83,82,79,80,82,82,81,76,76,79,77,74,72,74,77,77,75,73,72,76,78,74,72,68,73,74,69,70,68,72,72,70,67,68" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
 
-{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU runtime load" datasets="User|0.12,0.55,0.67,0.71,0.73,0.73,0.29,0.03,0.03|#4bc0c0$System|0.05,0.17,0.2,0.21,0.22,0.2,0.09,0.01,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
-{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU database load" datasets="User|0.15,0.28,0.32,0.32,0.33,0.32,0.03,0.03,0.03|#4bc0c0$System|0.2,0.37,0.4,0.43,0.43,0.43,0.02,0.02,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
 {{< /tab >}}
 {{< /tabs >}}
+
+My mind is broken, now it performs slower than with MySQL in same scenario, about almost twice slower. The 1st scenario shown the inverse. At least it performs better than Laravel with PostgreSQL, but just slightly. To summary the 2nd scenario give MySQL a good advantage against PostgreSQL **with PHP**.
 
 ### FastAPI PgSQL scenario 1
 
