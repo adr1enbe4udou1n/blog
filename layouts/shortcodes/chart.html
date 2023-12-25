@@ -1,0 +1,55 @@
+<div class="chart">
+  {{ $id := delimit (shuffle (seq 1 9)) "" }}
+  <canvas id="{{ $id }}"></canvas>
+  <script type="text/javascript">
+    window.addEventListener("DOMContentLoaded", (event) => {
+      const ctx = document.getElementById("{{ $id }}");
+      const chart = new Chart(ctx, {
+        {{ if eq (.Get "type") "timeseries" }}
+        type: 'line',
+        options: {
+          scales: {
+            x: {
+              ticks: {
+                autoSkip: true,
+                callback: function(val, index) {
+                  return this.getLabelForValue(val) + 's'
+                },
+              }
+            },
+            {{ if .Get "max" }}
+            y: {
+              beginAtZero: true,
+              suggestedMax: {{ .Get "max" }},
+            }
+            {{ end }}
+          },
+        },
+        data: {
+          labels: [
+            {{ if .Get "step" }}
+            {{ range seq 0 (.Get "step") 90 }}
+            {{ . }},
+            {{ end }}
+            {{ else }}
+            {{ range seq 0 90 }}
+            {{ . }},
+            {{ end }}
+            {{ end }}
+          ],
+          datasets: [{
+            label: {{ .Get "label" }},
+            data: {{ split (.Get "data") "," }},
+            tension: 0.2,
+            {{ if .Get "fill" }}
+            fill: true,
+            {{ end }}
+          }]
+        }
+        {{ else }}
+        {{ .Inner | safeJS }}
+        {{ end }}
+      });
+    });
+  </script>
+</div>

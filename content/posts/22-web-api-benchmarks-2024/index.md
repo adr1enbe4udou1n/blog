@@ -124,14 +124,45 @@ export default function () {
 }
 ```
 
-To summary the expected SQL queries :
+To summary the expected JSON response:
+
+```json
+{
+    "articles": [
+        {
+            "title": "Laboriosam aliquid dolore sed dolore",
+            "slug": "laboriosam-aliquid-dolore-sed-dolore",
+            "description": "Rerum beatae est enim cum similique.",
+            "body": "Voluptas maxime incidunt...",
+            "createdAt": "2023-12-23T16:02:03.000000Z",
+            "updatedAt": "2023-12-23T16:02:03.000000Z",
+            "author": {
+                "username": "Devin Swift III",
+                "bio": "Nihil impedit totam....",
+                "image": "https:\/\/randomuser.me\/api\/portraits\/men\/47.jpg",
+                "following": false
+            },
+            "tagList": [
+                "aut",
+                "cumque"
+            ],
+            "favorited": false,
+            "favoritesCount": 5
+        }
+    ],
+    //...
+    "articlesCount": 500
+}
+```
+
+The expected pseudocode SQL queries to build this response:
 
 ```sql
-
 SELECT * FROM articles LIMIT 10 OFFSET 0;
-SELECT * FROM users WHERE id IN ([articles.author_id...]);
-SELECT count(*) FROM favorites WHERE article_id IN ([articles.id...]);
-SELECT * FROM article_tag WHERE article_id IN ([articles.id...]);
+SELECT count(*) FROM articles;
+SELECT * FROM users WHERE id IN (<articles.author_id...>);
+SELECT count(*) FROM favorites WHERE article_id IN (<articles.id...>);
+SELECT * FROM article_tag WHERE article_id IN (<articles.id...>);
 ```
 
 ### Scenario 2
@@ -203,133 +234,37 @@ export default function () {
 
 ### Laravel + MySQL scenario 1
 
+{{< tabs >}}
+{{< tab tabName="Counters" >}}
+
 | Metric           | Value    |
 | ---------------- | -------- |
 | Choosen rate     | **3**    |
 | Total requests   | **8007** |
 | Total iterations | **157**  |
 
-{{< chart >}}
-type: 'line',
-options: {
-  scales: {
-    x: {
-      ticks: {
-        autoSkip: false,
-        callback: function(val, index) {
-          return val % 5 === 0 ? (this.getLabelForValue(val) + 's') : ''
-        },
-      }
-    }
-  },
-},
-data: {
-  labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90],
-  datasets: [{
-    label: 'Req/s count',
-    data: [6, 69, 81, 103, 103, 113, 83, 91, 103, 112, 99, 101, 109, 101, 106, 108, 100, 112, 117, 124, 113, 111, 117, 108, 129, 119, 124, 81, 113, 128, 124, 108, 108, 128, 111, 128, 123, 127, 100, 124, 124, 118, 119, 125, 121, 101, 96, 120, 110, 130, 137, 117, 127, 120, 124, 129, 127, 115, 121, 114, 126, 121, 103, 124, 120, 120, 116, 102, 122, 103, 109, 81],
-    tension: 0.2
-  }]
-}
-{{< /chart >}}
+{{< /tab >}}
+{{< tab tabName="Req/s" >}}
 
-{{< chart >}}
-type: 'line',
-options: {
-  scales: {
-    x: {
-      ticks: {
-        autoSkip: false,
-        callback: function(val, index) {
-          return val % 5 === 0 ? (this.getLabelForValue(val) + 's') : ''
-        },
-      }
-    }
-  },
-},
-data: {
-  labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90],
-  datasets: [{
-    label: 'VUs count',
-    data: [3, 6, 8, 10, 12, 13, 14, 16, 19, 20, 23, 26, 25, 27, 28, 29, 31, 34, 35, 36, 37, 39, 41, 43, 45, 47, 48, 49, 49, 50, 49, 49, 48, 50, 49, 49, 49, 49, 49, 50, 49, 48, 48, 48, 49, 48, 50, 49, 48, 46, 48, 49, 48, 49, 48, 49, 47, 50, 49, 48, 46, 44, 42, 38, 36, 34, 33, 27, 18, 17, 4],
-    tension: 0.2
-  }]
-}
-{{< /chart >}}
+{{< chart type="timeseries" label="Req/s count" data="6,69,81,103,103,113,83,91,103,112,99,101,109,101,106,108,100,112,117,124,113,111,117,108,129,119,124,81,113,128,124,108,108,128,111,128,123,127,100,124,124,118,119,125,121,101,96,120,110,130,137,117,127,120,124,129,127,115,121,114,126,121,103,124,120,120,116,102,122,103,109,81" />}}
 
-{{< chart >}}
-type: 'line',
-options: {
-  scales: {
-    x: {
-      ticks: {
-        autoSkip: false,
-        callback: function(val, index) {
-          return val % 5 === 0 ? (this.getLabelForValue(val) + 's') : ''
-        },
-      }
-    },
-    y: {
-      ticks: {
-        autoSkip: false,
-        callback: function(val, index) {
-          return this.getLabelForValue(val) + 'ms'
-        },
-      }
-    }
-  },
-},
-data: {
-  labels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90],
-  datasets: [{
-    label: 'Request duration in ms',
-    data: [36, 37, 71, 70, 93, 104, 145, 152, 157, 171, 186, 224, 224, 265, 223, 295, 256, 260, 323, 286, 309, 324, 322, 353, 365, 350, 409, 454, 475, 408, 400, 395, 495, 414, 421, 391, 415, 394, 458, 391, 422, 416, 414, 400, 382, 443, 440, 494, 433, 376, 372, 381, 401, 410, 384, 382, 393, 381, 454, 369, 402, 438, 393, 378, 319, 316, 307, 304, 254, 212, 151, 80],
-    tension: 0.2
-  }]
-}
-{{< /chart >}}
+{{< /tab >}}
 
-{{< chart >}}
-type: 'line',
-options: {
-  scales: {
-    y: {
-        beginAtZero: true,
-        suggestedMax: 1
-    }
-  },
-},
-data: {
-  labels: [0, 15, 30, 45, 60, 75, 90],
-  datasets: [{
-    label: 'CPU runtime load',
-    data: [0.02, 0.34, 0.37, 0.35, 0.38, 0.35, 0.02],
-    tension: 0.2,
-    fill: true,
-  }]
-}
-{{< /chart >}}
+{{< tab tabName="Req duration" >}}
 
-{{< chart >}}
-type: 'line',
-options: {
-  scales: {
-    y: {
-        beginAtZero: true,
-        suggestedMax: 1
-    }
-  },
-},
-data: {
-  labels: [0, 15, 30, 45, 60, 75, 90],
-  datasets: [{
-    label: 'CPU database load',
-    data: [0.03, 0.89, 0.90, 0.90, 0.90, 0.52, 0.02],
-    tension: 0.2,
-    fill: true,
-  }]
-}
-{{< /chart >}}
+{{< chart type="timeseries" label="VUs count" data="3,6,8,10,12,13,14,16,19,20,23,26,25,27,28,29,31,34,35,36,37,39,41,43,45,47,48,49,49,50,49,49,48,50,49,49,49,49,49,50,49,48,48,48,49,48,50,49,48,46,48,49,48,49,48,49,47,50,49,48,46,44,42,38,36,34,33,27,18,17,4" />}}
+
+{{< chart type="timeseries" label="Request duration in ms" data="36,37,71,70,93,104,145,152,157,171,186,224,224,265,223,295,256,260,323,286,309,324,322,353,365,350,409,454,475,408,400,395,495,414,421,391,415,394,458,391,422,416,414,400,382,443,440,494,433,376,372,381,401,410,384,382,393,381,454,369,402,438,393,378,319,316,307,304,254,212,151,80" />}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" label="CPU runtime load" data="0.02,0.34,0.37,0.35,0.38,0.35,0.02" fill="true" max="1" step="15" />}}
+
+{{< chart type="timeseries" label="CPU database load" data="0.03,0.89,0.90,0.90,0.90,0.52,0.02" fill="true" max="1" step="15" />}}
+
+{{< /tab >}}
+{{< /tabs >}}
 
 ### Laravel + MySQL scenario 2
 
