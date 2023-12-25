@@ -39,7 +39,7 @@ All frameworks are :
 Note as I tested PostgreSQL for all frameworks as main Database, but I added MySQL for Laravel and Symfony too, because of simplicity of PHP for switching database without changing code base, as I have both DB drivers integrated into base PHP Docker image. It allows to have an interesting Eloquent VS Doctrine ORM comparison.
 
 {{< alert >}}
-I enabled OPcache and use simple Apache as web server, as it's the simplest configuration for PHP apps containers. I tested [FrankenPHP](https://frankenphp.dev/), which seems promising at first glance, but performance results was just far lower than Apache, even with worker mode...
+I enabled OPcache and use simple Apache as web server, as it's the simplest configuration for PHP apps containers. I tested [FrankenPHP](https://frankenphp.dev/), which seems promising at first glance, but performance results was just far lower than Apache, even with worker mode (tried with Symfony runtime and Laravel Octane)...
 {{< /alert >}}
 
 ## The target hardware
@@ -1774,4 +1774,8 @@ Here are the final req/s results for each framework. Note that I do my best for 
 ]
 {{< /chart >}}
 
-To resume, compiled languages have always a clear advantage when it comes to raw performance.
+To resume, compiled languages have always a clear advantage when it comes to raw performance. But do you really need it ?
+
+Keep in mind that the raw performance shouldn't be the only criteria to choose a web framework. The DX is also very important, and Laravel stays unbeatable in this regard when it comes to make a MVP.
+
+I'm stay open to any suggestions to improve my tests, especially for PHP frameworks (I already tested FrankenPHP which gives worst results). If you have any tips to improve performance by some Framework or PHP low level tuning, let me a comment below !
