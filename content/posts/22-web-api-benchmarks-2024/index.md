@@ -234,7 +234,9 @@ export default function () {
 
 ## The results
 
-### Laravel MySQL scenario 1
+### Laravel
+
+#### Laravel MySQL scenario 1
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
@@ -269,7 +271,7 @@ export default function () {
 
 As expected here, database is the bottleneck. We'll get slow response time at full load (> 500ms).
 
-### Laravel MySQL scenario 2
+#### Laravel MySQL scenario 2
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
@@ -304,7 +306,7 @@ As expected here, database is the bottleneck. We'll get slow response time at fu
 
 Now we have a very runtime intensive scenario, with workers as bottleneck, API is keeping up with a very low response time (~100ms).
 
-### Laravel PgSQL scenario 1
+#### Laravel PgSQL scenario 1
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
@@ -339,7 +341,7 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 
 Now it seems interesting, Laravel performs literally about 2x slower with PostgreSQL than MySQL, with a very high response time (> 1s). Many says that MySQL is better than PostgreSQL for reading data, but I can't explain such a difference. It will be interesting to compare with Symfony Doctrine to get a better idea.
 
-### Laravel PgSQL scenario 2
+#### Laravel PgSQL scenario 2
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
@@ -374,7 +376,9 @@ Now it seems interesting, Laravel performs literally about 2x slower with Postgr
 
 Laravel seems less limited by database performance, but still slower than MySQL. Workers and databases are both heavy loaded, and finally we didn't complete a single scenario iteration !
 
-### Symfony MySQL scenario 1
+### Symfony
+
+#### Symfony MySQL scenario 1
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
@@ -409,7 +413,7 @@ Laravel seems less limited by database performance, but still slower than MySQL.
 
 It's getting pretty ugly here, with a very high response time (> 1s) at full load. About 3 times slower than Laravel in the same context.
 
-### Symfony MySQL scenario 2
+#### Symfony MySQL scenario 2
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
@@ -419,7 +423,7 @@ It's getting pretty ugly here, with a very high response time (> 1s) at full loa
 | Iteration rate     | **1/3/s** |
 | Total requests     | **32086** |
 | Total iterations   | **18**    |
-| Max req/s          | **414**   |
+| Max req/s          | **410**   |
 | p(90) req duration | **41ms**  |
 
 {{< chart type="timeseries" title="Req/s count" datasets="Req/s|17,44,40,87,174,168,194,228,229,256,302,289,308,335,345,346,343,328,374,381,359,362,368,393,389,403,380,371,390,387,388,366,379,400,389,397,382,373,390,401,393,387,387,392,413,411,379,390,413,414,414,380,394,417,406,413,388,393,414,417,417,391,395,417,413,410,390,396,409,413,408,378,381,394,412,405,381,393,397,395,396,364,375,363,378,371,336,324,312,292,110" />}}
@@ -444,7 +448,7 @@ It's getting pretty ugly here, with a very high response time (> 1s) at full loa
 
 The situation is completely different here, Symfony is able to handle the load, better than Laravel in the same context, with a very low response time (~40ms). Let's see if it's able to keep up with the same performance with PostgreSQL contrary to Laravel.
 
-### Symfony PgSQL scenario 1
+#### Symfony PgSQL scenario 1
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
@@ -479,7 +483,7 @@ The situation is completely different here, Symfony is able to handle the load, 
 
 Performance is strangely very similar with Laravel + MySQL on same scenario. Symfony performs clearly better here with PostgreSQL than MySQL, between 2 to 3 times, which is the complete opposite of Laravel.
 
-### Symfony PgSQL scenario 2
+#### Symfony PgSQL scenario 2
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
@@ -514,7 +518,83 @@ Performance is strangely very similar with Laravel + MySQL on same scenario. Sym
 
 My mind is broken, now it performs slower than with MySQL in same scenario, about almost twice slower. The 1st scenario shown the inverse. At least it performs better than Laravel with PostgreSQL, but just slightly. To summary the 2nd scenario give MySQL a good advantage against PostgreSQL **with PHP**.
 
-### FastAPI PgSQL scenario 1
+### FastAPI
+
+As a side note here, uvicorn is limited to 1 CPU core, so I use 2 replicas on each worker to use all CPU cores.
+
+#### FastAPI PgSQL scenario 1
+
+{{< tabs >}}
+{{< tab tabName="Counters & Req/s" >}}
+
+| Metric             | Value     |
+| ------------------ | --------- |
+| Iteration rate     | **10/s**  |
+| Total requests     | **30651** |
+| Total iterations   | **601**   |
+| Max req/s          | **550**   |
+| p(90) req duration | **49ms**  |
+
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|2,385,495,476,462,502,534,518,496,480,513,520,520,509,473,539,491,483,516,463,526,522,520,512,503,545,478,541,468,521,519,489,530,469,479,513,515,495,513,491,508,523,548,483,500,526,505,527,519,496,506,541,504,507,478,508,535,521,488,480,543,379" />}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" datasets="VUs|7,8,9,11,11,11,11,12,12,12,11,12,11,12,12,12,13,14,15,15,14,13,15,14,12,13,12,13,15,12,14,15,16,16,16,16,16,18,17,17,16,16,15,18,14,16,15,15,17,16,16,16,17,16,16,15,15,16,16,17" />}}
+
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|25,14,15,18,21,22,21,21,22,24,23,22,23,23,25,24,24,27,26,29,28,27,27,27,27,25,28,24,27,27,25,27,28,30,33,33,32,31,31,34,33,32,29,31,33,30,33,31,31,32,31,29,30,31,31,31,31,30,32,34,32,22" />}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" datasets="User|0.03,0.02,0.63,0.66,0.64,0.64,0.03|#4bc0c0$System|0.01,0.01,0.13,0.13,0.15,0.14,0.02|#ff6384" stacked="true" max="1" step="15" />}}
+
+{{< chart type="timeseries" title="CPU database load" datasets="User|0.03,0.03,0.39,0.37,0.38,0.38,0.03|#4bc0c0$System|0.02,0.02,0.13,0.13,0.16,0.15,0.02|#ff6384" stacked="true" max="1" step="15" />}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+Now we are talking, FastAPI outperforms above PHP frameworks, and database isn't the bottleneck anymore.
+
+#### FastAPI PgSQL scenario 2
+
+{{< tabs >}}
+{{< tab tabName="Counters & Req/s" >}}
+
+| Metric             | Value     |
+| ------------------ | --------- |
+| Iteration rate     | **2/s**   |
+| Total requests     | **71394** |
+| Total iterations   | **16**    |
+| Max req/s          | **870**   |
+| p(90) req duration | **113ms** |
+
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|18,187,561,712,691,710,760,736,773,728,812,853,818,874,808,762,828,797,783,779,779,786,828,795,771,804,877,803,852,828,771,877,837,862,773,813,794,834,770,804,768,803,811,839,780,827,821,824,846,807,808,797,837,859,810,788,803,847,839,783,761,835,800,869,787,775,811,828,840,826,837,873,840,857,819,816,817,763,861,769,789,850,832,801,790,771,784,760,773,756,559" />}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" datasets="VUs|2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,49,50,50,50,50,49,49,50,50,50,50,50,50,50,48,48,48,48,47,47,47,47,47,46,45,45,45,44,44,43,43,42,41,40,40,38,38,38" />}}
+
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|13,11,7,8,11,14,16,19,20,25,24,25,30,29,35,39,38,42,45,49,51,53,52,58,63,60,58,63,58,60,66,56,60,57,65,60,63,60,66,61,66,60,64,59,64,60,61,61,59,61,61,64,60,57,61,64,63,59,59,63,61,64,63,57,63,63,63,58,56,59,56,56,55,55,57,57,57,59,52,59,56,51,52,53,53,53,53,51,50,50,46" />}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" datasets="User|0.11,0.69,0.72,0.7,0.7,0.72,0.49,0.02|#4bc0c0$System|0.03,0.19,0.19,0.18,0.17,0.17,0.14,0.02|#ff6384" stacked="true" max="1" step="15" />}}
+
+{{< chart type="timeseries" title="CPU database load" datasets="User|0.19,0.29,0.31,0.33,0.32,0.32,0.03,0.03|#4bc0c0$System|0.09,0.19,0.24,0.26,0.24,0.24,0.02,0.02|#ff6384" stacked="true" max="1" step="15" />}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+FastAPI performs around twice better PHP main frameworks in every situation. I'm not sure that testing it on MySQL change anything.
+
+### NestJS
+
+#### NestJS PgSQL scenario 1
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
@@ -547,7 +627,7 @@ My mind is broken, now it performs slower than with MySQL in same scenario, abou
 {{< /tab >}}
 {{< /tabs >}}
 
-### FastAPI PgSQL scenario 2
+#### NestJS PgSQL scenario 2
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
@@ -580,7 +660,9 @@ My mind is broken, now it performs slower than with MySQL in same scenario, abou
 {{< /tab >}}
 {{< /tabs >}}
 
-### NestJS PgSQL scenario 1
+### Spring Boot
+
+#### Spring Boot PgSQL scenario 1
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
@@ -613,7 +695,7 @@ My mind is broken, now it performs slower than with MySQL in same scenario, abou
 {{< /tab >}}
 {{< /tabs >}}
 
-### NestJS PgSQL scenario 2
+#### Spring Boot PgSQL scenario 2
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
@@ -646,7 +728,9 @@ My mind is broken, now it performs slower than with MySQL in same scenario, abou
 {{< /tab >}}
 {{< /tabs >}}
 
-### Spring Boot PgSQL scenario 1
+### ASP.NET Core
+
+#### ASP.NET Core PgSQL scenario 1
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
@@ -679,73 +763,7 @@ My mind is broken, now it performs slower than with MySQL in same scenario, abou
 {{< /tab >}}
 {{< /tabs >}}
 
-### Spring Boot PgSQL scenario 2
-
-{{< tabs >}}
-{{< tab tabName="Counters & Req/s" >}}
-
-| Metric             | Value   |
-| ------------------ | ------- |
-| Iteration rate     | **X**   |
-| Total requests     | **X**   |
-| Total iterations   | **X**   |
-| Max req/s          | **X**   |
-| p(90) req duration | **Xms** |
-
-{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
-
-{{< /tab >}}
-
-{{< tab tabName="Req duration" >}}
-
-{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
-
-{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
-
-{{< /tab >}}
-{{< tab tabName="CPU load" >}}
-
-{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
-
-{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
-
-{{< /tab >}}
-{{< /tabs >}}
-
-### ASP.NET Core PgSQL scenario 1
-
-{{< tabs >}}
-{{< tab tabName="Counters & Req/s" >}}
-
-| Metric             | Value   |
-| ------------------ | ------- |
-| Iteration rate     | **X**   |
-| Total requests     | **X**   |
-| Total iterations   | **X**   |
-| Max req/s          | **X**   |
-| p(90) req duration | **Xms** |
-
-{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
-
-{{< /tab >}}
-
-{{< tab tabName="Req duration" >}}
-
-{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
-
-{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
-
-{{< /tab >}}
-{{< tab tabName="CPU load" >}}
-
-{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
-
-{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
-
-{{< /tab >}}
-{{< /tabs >}}
-
-### ASP.NET Core PgSQL scenario 2
+#### ASP.NET Core PgSQL scenario 2
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
