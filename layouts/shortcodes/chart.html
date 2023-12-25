@@ -44,25 +44,7 @@
             {{ end }}
             {{ end }}
           ],
-          datasets: [
-            {{ range split (.Get "datasets") "$" }}
-            {
-              label: {{ index (split . "|") 0 }},
-              data: [
-                {{ range split (index (split . "|") 1) "," }}
-                {{ . }},
-                {{ end }}
-              ],
-              {{ if $c := index (split . "|") 2 }}
-              borderColor: {{ $c }},
-              backgroundColor: {{ $c }},
-              {{ end }}
-              {{ if $.Get "stacked" }}
-              fill: true,
-              {{ end }}
-            },
-            {{ end }}
-          ]
+          datasets: {{ .Inner | safeJS }}
         }
         {{ else }}
         {{ .Inner | safeJS }}
