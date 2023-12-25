@@ -53,8 +53,10 @@
                 {{ . }},
                 {{ end }}
               ],
-              borderColor: {{ index (split . "|") 2 }} || '#a78bfa',
-              backgroundColor: {{ index (split . "|") 2 }} || '#c4b5fd',
+              {{ if $c := index (split . "|") 2 }}
+              borderColor: {{ $c }},
+              backgroundColor: {{ $c }},
+              {{ end }}
               {{ if $.Get "stacked" }}
               fill: true,
               {{ end }}

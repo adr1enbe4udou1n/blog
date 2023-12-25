@@ -309,21 +309,23 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric           | Value |
-| ---------------- | ----- |
-| Iteration rate   | **X** |
-| Total requests   | **X** |
-| Total iterations | **X** |
+| Metric             | Value   |
+| ------------------ | ------- |
+| Iteration rate     | **X**   |
+| Total requests     | **X**   |
+| Total iterations   | **X**   |
+| Max req/s          | **X**   |
+| p(90) req duration | **Xms** |
 
-{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
@@ -340,21 +342,23 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric           | Value |
-| ---------------- | ----- |
-| Iteration rate   | **X** |
-| Total requests   | **X** |
-| Total iterations | **X** |
+| Metric             | Value   |
+| ------------------ | ------- |
+| Iteration rate     | **X**   |
+| Total requests     | **X**   |
+| Total iterations   | **X**   |
+| Max req/s          | **X**   |
+| p(90) req duration | **Xms** |
 
-{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
@@ -371,21 +375,23 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric           | Value |
-| ---------------- | ----- |
-| Iteration rate   | **X** |
-| Total requests   | **X** |
-| Total iterations | **X** |
+| Metric             | Value   |
+| ------------------ | ------- |
+| Iteration rate     | **X**   |
+| Total requests     | **X**   |
+| Total iterations   | **X**   |
+| Max req/s          | **X**   |
+| p(90) req duration | **Xms** |
 
-{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
@@ -402,21 +408,23 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric           | Value |
-| ---------------- | ----- |
-| Iteration rate   | **X** |
-| Total requests   | **X** |
-| Total iterations | **X** |
+| Metric             | Value   |
+| ------------------ | ------- |
+| Iteration rate     | **X**   |
+| Total requests     | **X**   |
+| Total iterations   | **X**   |
+| Max req/s          | **X**   |
+| p(90) req duration | **Xms** |
 
-{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
@@ -433,21 +441,23 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric           | Value |
-| ---------------- | ----- |
-| Iteration rate   | **X** |
-| Total requests   | **X** |
-| Total iterations | **X** |
+| Metric             | Value   |
+| ------------------ | ------- |
+| Iteration rate     | **X**   |
+| Total requests     | **X**   |
+| Total iterations   | **X**   |
+| Max req/s          | **X**   |
+| p(90) req duration | **Xms** |
 
-{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
@@ -464,21 +474,23 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric           | Value |
-| ---------------- | ----- |
-| Iteration rate   | **X** |
-| Total requests   | **X** |
-| Total iterations | **X** |
+| Metric             | Value   |
+| ------------------ | ------- |
+| Iteration rate     | **X**   |
+| Total requests     | **X**   |
+| Total iterations   | **X**   |
+| Max req/s          | **X**   |
+| p(90) req duration | **Xms** |
 
-{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
@@ -495,21 +507,23 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric           | Value |
-| ---------------- | ----- |
-| Iteration rate   | **X** |
-| Total requests   | **X** |
-| Total iterations | **X** |
+| Metric             | Value   |
+| ------------------ | ------- |
+| Iteration rate     | **X**   |
+| Total requests     | **X**   |
+| Total iterations   | **X**   |
+| Max req/s          | **X**   |
+| p(90) req duration | **Xms** |
 
-{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
@@ -526,21 +540,23 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric           | Value |
-| ---------------- | ----- |
-| Iteration rate   | **X** |
-| Total requests   | **X** |
-| Total iterations | **X** |
+| Metric             | Value   |
+| ------------------ | ------- |
+| Iteration rate     | **X**   |
+| Total requests     | **X**   |
+| Total iterations   | **X**   |
+| Max req/s          | **X**   |
+| p(90) req duration | **Xms** |
 
-{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
@@ -557,21 +573,23 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric           | Value |
-| ---------------- | ----- |
-| Iteration rate   | **X** |
-| Total requests   | **X** |
-| Total iterations | **X** |
+| Metric             | Value   |
+| ------------------ | ------- |
+| Iteration rate     | **X**   |
+| Total requests     | **X**   |
+| Total iterations   | **X**   |
+| Max req/s          | **X**   |
+| p(90) req duration | **Xms** |
 
-{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
@@ -588,21 +606,23 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric           | Value |
-| ---------------- | ----- |
-| Iteration rate   | **X** |
-| Total requests   | **X** |
-| Total iterations | **X** |
+| Metric             | Value   |
+| ------------------ | ------- |
+| Iteration rate     | **X**   |
+| Total requests     | **X**   |
+| Total iterations   | **X**   |
+| Max req/s          | **X**   |
+| p(90) req duration | **Xms** |
 
-{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
@@ -619,21 +639,23 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric           | Value |
-| ---------------- | ----- |
-| Iteration rate   | **X** |
-| Total requests   | **X** |
-| Total iterations | **X** |
+| Metric             | Value   |
+| ------------------ | ------- |
+| Iteration rate     | **X**   |
+| Total requests     | **X**   |
+| Total iterations   | **X**   |
+| Max req/s          | **X**   |
+| p(90) req duration | **Xms** |
 
-{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
@@ -650,21 +672,23 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric           | Value |
-| ---------------- | ----- |
-| Iteration rate   | **X** |
-| Total requests   | **X** |
-| Total iterations | **X** |
+| Metric             | Value   |
+| ------------------ | ------- |
+| Iteration rate     | **X**   |
+| Total requests     | **X**   |
+| Total iterations   | **X**   |
+| Max req/s          | **X**   |
+| p(90) req duration | **Xms** |
 
-{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
@@ -681,21 +705,23 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric           | Value |
-| ---------------- | ----- |
-| Iteration rate   | **X** |
-| Total requests   | **X** |
-| Total iterations | **X** |
+| Metric             | Value   |
+| ------------------ | ------- |
+| Iteration rate     | **X**   |
+| Total requests     | **X**   |
+| Total iterations   | **X**   |
+| Max req/s          | **X**   |
+| p(90) req duration | **Xms** |
 
-{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
@@ -712,21 +738,23 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric           | Value |
-| ---------------- | ----- |
-| Iteration rate   | **X** |
-| Total requests   | **X** |
-| Total iterations | **X** |
+| Metric             | Value   |
+| ------------------ | ------- |
+| Iteration rate     | **X**   |
+| Total requests     | **X**   |
+| Total iterations   | **X**   |
+| Max req/s          | **X**   |
+| p(90) req duration | **Xms** |
 
-{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
