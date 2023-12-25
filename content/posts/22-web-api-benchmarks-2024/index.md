@@ -671,66 +671,70 @@ What can I say, NestJS is the clear winner so far. The native even loop system m
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric             | Value   |
-| ------------------ | ------- |
-| Iteration rate     | **X**   |
-| Total requests     | **X**   |
-| Total iterations   | **X**   |
-| Max req/s          | **X**   |
-| p(90) req duration | **Xms** |
+| Metric             | Value     |
+| ------------------ | --------- |
+| Iteration rate     | **10**    |
+| Total requests     | **29376** |
+| Total iterations   | **576**   |
+| Max req/s          | **500**   |
+| p(90) req duration | **161ms** |
 
-{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|20,334,444,468,449,425,462,467,499,472,446,479,477,490,490,459,454,490,449,460,453,456,490,486,467,461,496,494,504,503,460,478,502,487,471,460,473,491,476,470,455,464,478,457,491,447,489,476,485,475,458,454,493,490,463,471,460,485,504,480,447,453,481,208" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|10,13,16,16,19,23,24,26,24,28,31,31,32,34,35,37,38,39,41,41,44,48,47,48,50,45,48,46,47,46,48,48,48,47,49,49,50,48,47,50,49,46,47,48,49,45,46,49,47,48,50,46,48,48,48,48,48,48,47,48,39,24" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|21,22,28,31,36,43,48,50,51,54,61,62,63,66,67,74,78,77,87,87,89,97,95,96,104,107,93,97,93,92,101,101,95,98,102,107,101,99,103,99,108,105,100,106,98,109,94,97,101,100,106,105,95,97,100,103,101,99,98,99,105,93,58,24" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
 
-{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU runtime load" datasets="User|0.03,0.06,0.18,0.2,0.18,0.19,0.03|#4bc0c0$System|0.02,0.06,0.24,0.25,0.25,0.25,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
-{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU database load" datasets="User|0.03,0.41,0.42,0.44,0.45,0.15,0.03|#4bc0c0$System|0.02,0.49,0.51,0.51,0.5,0.19,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
 {{< /tab >}}
 {{< /tabs >}}
+
+Database is the bottleneck again, java runtime is clearly sleeping here, while performing a magnitude better than PHP equivalent in this scenario. Fall behind FastAPI and NestJS, but still a good performance.
 
 #### Spring Boot PgSQL scenario 2
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric             | Value   |
-| ------------------ | ------- |
-| Iteration rate     | **X**   |
-| Total requests     | **X**   |
-| Total iterations   | **X**   |
-| Max req/s          | **X**   |
-| p(90) req duration | **Xms** |
+| Metric             | Value      |
+| ------------------ | ---------- |
+| Iteration rate     | **5**      |
+| Total requests     | **169168** |
+| Total iterations   | **109**    |
+| Max req/s          | **2600**   |
+| p(90) req duration | **38ms**   |
 
-{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|19,819,1441,1883,2236,2093,2106,2245,2362,2424,2523,2343,2357,2525,2402,2395,2189,2040,2314,2479,2576,2316,2362,2550,2510,2307,2303,2373,2578,2535,2458,2431,2172,2463,2469,2423,2317,2349,2379,2461,2510,2289,2255,2336,2448,2466,2293,2274,2113,2251,2521,2480,2368,2485,2582,2450,2368,2385,2306,2510,2641,2351,2284,2590,2455,2231,2222,2224,2356,2393,1979,1722,1649,1794,1060" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|5,10,15,20,25,30,35,40,45,50,50,50,50,50,50,50,50,50,50,50,50,49,50,50,50,50,50,50,48,50,50,49,49,50,50,49,49,49,47,49,48,50,50,50,50,50,50,50,50,50,50,50,50,50,49,49,50,50,50,50,48,47,43,42,39,37,34,32,23,12,9,9,9,2" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|7,4,6,7,8,11,13,15,16,18,19,21,21,20,21,21,22,25,21,20,19,21,21,20,20,21,22,21,19,19,20,21,23,20,20,20,21,21,21,20,20,22,22,21,20,20,22,22,23,22,20,20,21,20,19,20,21,21,22,19,19,21,21,17,17,18,17,15,14,10,8,5,5,5,4" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
 
-{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU runtime load" datasets="User|0.03,0.17,0.31,0.34,0.32,0.35,0.05|#4bc0c0$System|0.02,0.11,0.26,0.25,0.26,0.27,0.03|#ff6384" stacked="true" max="1" step="15" />}}
 
-{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU database load" datasets="User|0.04,0.51,0.55,0.54,0.53,0.52,0.03|#4bc0c0$System|0.03,0.32,0.34,0.35,0.36,0.33,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
 {{< /tab >}}
 {{< /tabs >}}
+
+Java is maybe not the best DX experience for me, but it's a beast in terms of raw performance. Besides, we'll again have database bottleneck, which is the only case seen in this scenario on every framework tested ! Impossible to reach 100% java runtime CPU usage, even with 4 CPU cores, about only 60% overall...
 
 ### ASP.NET Core
 
@@ -739,63 +743,67 @@ What can I say, NestJS is the clear winner so far. The native even loop system m
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric             | Value   |
-| ------------------ | ------- |
-| Iteration rate     | **X**   |
-| Total requests     | **X**   |
-| Total iterations   | **X**   |
-| Max req/s          | **X**   |
-| p(90) req duration | **Xms** |
+| Metric             | Value     |
+| ------------------ | --------- |
+| Iteration rate     | **20**    |
+| Total requests     | **57936** |
+| Total iterations   | **1136**  |
+| Max req/s          | **980**   |
+| p(90) req duration | **87ms**  |
 
-{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|18,742,920,880,882,977,984,976,947,927,962,967,979,955,911,954,965,1005,957,918,904,986,973,974,892,969,973,988,917,900,973,975,972,953,928,963,997,975,971,884,954,977,950,965,923,942,976,968,972,885,959,960,974,948,890,952,973,986,953,914,973,947,102" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|13,20,24,28,34,36,37,38,43,43,47,50,47,48,49,49,46,48,48,47,48,47,47,45,50,48,44,49,49,48,47,48,44,47,48,47,46,48,48,48,45,46,45,47,48,47,47,49,49,45,49,46,46,43,50,42,44,44,50,48,20" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|12,14,18,26,30,33,34,37,39,44,45,48,48,48,52,50,49,45,49,52,52,48,50,45,53,50,49,46,50,55,50,47,48,49,50,49,46,47,49,53,51,47,47,48,50,51,49,48,49,53,49,49,48,48,50,51,44,43,47,51,50,33,9" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
 
-{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU runtime load" datasets="User|0.03,0.03,0.43,0.46,0.46,0.46,0.11|#4bc0c0$System|0.01,0.01,0.18,0.2,0.21,0.2,0.05|#ff6384" stacked="true" max="1" step="15" />}}
 
-{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU database load" datasets="User|0.03,0.04,0.78,0.76,0.76,0.76,0.03|#4bc0c0$System|0.02,0.02,0.21,0.24,0.23,0.22,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
 {{< /tab >}}
 {{< /tabs >}}
+
+ASP.NET Core is the final winner of 1st scenario. EF Core is incredibly efficient here.
 
 #### ASP.NET Core PgSQL scenario 2
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric             | Value   |
-| ------------------ | ------- |
-| Iteration rate     | **X**   |
-| Total requests     | **X**   |
-| Total iterations   | **X**   |
-| Max req/s          | **X**   |
-| p(90) req duration | **Xms** |
+| Metric             | Value      |
+| ------------------ | ---------- |
+| Iteration rate     | **5**      |
+| Total requests     | **167616** |
+| Total iterations   | **108**    |
+| Max req/s          | **2500**   |
+| p(90) req duration | **38ms**   |
 
-{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|205,1130,1622,1790,2011,2135,2024,2093,2463,2465,2428,2385,2144,2460,2503,2551,2337,2200,2404,2379,2452,2322,2252,2462,2449,2469,2306,2230,2488,2554,2466,2253,2180,2426,2445,2502,2349,2196,2476,2343,2538,2341,2166,2499,2412,2452,2259,2137,2439,2474,2461,2302,2113,2479,2374,2421,2369,2221,2462,2409,2332,2382,2216,2394,2478,2341,1644,1934,2134,2266,2070,1598,1417,1505,1518,710" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|5,10,15,21,25,30,35,40,45,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,49,49,50,50,50,50,48,49,50,50,49,50,48,50,47,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,49,50,50,48,49,47,46,44,42,39,37,34,31,21,13,8,8,8,4" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|6,5,7,9,10,12,15,17,17,18,20,21,23,20,20,19,21,23,21,21,20,21,22,20,20,20,21,22,20,19,20,22,23,20,20,20,21,22,20,21,19,21,23,20,21,20,22,23,21,20,20,22,23,20,21,21,21,22,20,21,21,20,21,19,18,18,24,19,16,13,10,8,5,5,5,4" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
 
-{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU runtime load" datasets="User|0.03,0.6,0.6,0.61,0.64,0.47,0.02|#4bc0c0$System|0.01,0.3,0.29,0.3,0.29,0.29,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
-{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU database load" datasets="User|0.2,0.55,0.54,0.53,0.53,0.15,0.03|#4bc0c0$System|0.14,0.34,0.34,0.34,0.34,0.09,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
 {{< /tab >}}
 {{< /tabs >}}
+
+It's very close to Spring Boot, just a bit behind. Nonetheless, compiled languages have always a clear advantage when it comes to raw performance.
