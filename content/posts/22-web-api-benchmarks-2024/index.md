@@ -51,7 +51,7 @@ Traefik will be used as a reverse proxy, with a single replica, and will load ba
 {{< mermaid >}}
 flowchart TD
 client((Client))
-client -- Port 80 + 443 --> traefik-01
+client -- Port 80 443 --> traefik-01
 subgraph manager-01
     traefik-01{Traefik SSL}
 end
@@ -79,7 +79,9 @@ We'll be using [k6](https://k6.io/) to run the tests, with [constant-arrival-rat
 - **Scenario 1** : fetch all articles, following the pagination
 - **Scenario 2** : fetch all articles, calling each single article with slug, fetch associated comments for each article, and fetch profile of each related author
 
-Duration of each scenario is 1 minute, with a 30 seconds graceful for finishing last started iterations.
+Duration of each scenario is 1 minute, with a 30 seconds graceful for finishing last started iterations. Results with one single test failures, i.e. any response status different than 200 or any response json error parsing, are not accepted.
+
+The **iteration rate** (rate / timeUnit) will be choosen in order to obtain the highest possible request rate, without any test failures.
 
 ### Scenario 1
 
@@ -232,66 +234,506 @@ export default function () {
 
 ## The results
 
-### Laravel + MySQL scenario 1
+### Laravel MySQL scenario 1
 
 {{< tabs >}}
-{{< tab tabName="Counters" >}}
+{{< tab tabName="Counters & Req/s" >}}
 
-| Metric           | Value    |
-| ---------------- | -------- |
-| Choosen rate     | **3**    |
-| Total requests   | **8007** |
-| Total iterations | **157**  |
+| Metric             | Value     |
+| ------------------ | --------- |
+| Iteration rate     | **3/s**   |
+| Total requests     | **8007**  |
+| Total iterations   | **157**   |
+| Max req/s          | **140**   |
+| p(90) req duration | **544ms** |
 
-{{< /tab >}}
-{{< tab tabName="Req/s" >}}
-
-{{< chart type="timeseries" label="Req/s count" data="6,69,81,103,103,113,83,91,103,112,99,101,109,101,106,108,100,112,117,124,113,111,117,108,129,119,124,81,113,128,124,108,108,128,111,128,123,127,100,124,124,118,119,125,121,101,96,120,110,130,137,117,127,120,124,129,127,115,121,114,126,121,103,124,120,120,116,102,122,103,109,81" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|6,69,81,103,103,113,83,91,103,112,99,101,109,101,106,108,100,112,117,124,113,111,117,108,129,119,124,81,113,128,124,108,108,128,111,128,123,127,100,124,124,118,119,125,121,101,96,120,110,130,137,117,127,120,124,129,127,115,121,114,126,121,103,124,120,120,116,102,122,103,109,81" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" label="VUs count" data="3,6,8,10,12,13,14,16,19,20,23,26,25,27,28,29,31,34,35,36,37,39,41,43,45,47,48,49,49,50,49,49,48,50,49,49,49,49,49,50,49,48,48,48,49,48,50,49,48,46,48,49,48,49,48,49,47,50,49,48,46,44,42,38,36,34,33,27,18,17,4" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|3,6,8,10,12,13,14,16,19,20,23,26,25,27,28,29,31,34,35,36,37,39,41,43,45,47,48,49,49,50,49,49,48,50,49,49,49,49,49,50,49,48,48,48,49,48,50,49,48,46,48,49,48,49,48,49,47,50,49,48,46,44,42,38,36,34,33,27,18,17,4" />}}
 
-{{< chart type="timeseries" label="Request duration in ms" data="36,37,71,70,93,104,145,152,157,171,186,224,224,265,223,295,256,260,323,286,309,324,322,353,365,350,409,454,475,408,400,395,495,414,421,391,415,394,458,391,422,416,414,400,382,443,440,494,433,376,372,381,401,410,384,382,393,381,454,369,402,438,393,378,319,316,307,304,254,212,151,80" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|36,37,71,70,93,104,145,152,157,171,186,224,224,265,223,295,256,260,323,286,309,324,322,353,365,350,409,454,475,408,400,395,495,414,421,391,415,394,458,391,422,416,414,400,382,443,440,494,433,376,372,381,401,410,384,382,393,381,454,369,402,438,393,378,319,316,307,304,254,212,151,80" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
 
-{{< chart type="timeseries" label="CPU runtime load" data="0.02,0.34,0.37,0.35,0.38,0.35,0.02" fill="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU runtime load" datasets="User|0.03,0.34,0.37,0.36,0.38,0.36,0.03|#4bc0c0$System|0.02,0.08,0.07,0.09,0.08,0.08,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
-{{< chart type="timeseries" label="CPU database load" data="0.03,0.89,0.90,0.90,0.90,0.52,0.02" fill="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU database load" datasets="User|0.03,0.89,0.9,0.91,0.91,0.53,0.03|#4bc0c0$System|0.02,0.07,0.07,0.09,0.09,0.05,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
 {{< /tab >}}
 {{< /tabs >}}
 
-### Laravel + MySQL scenario 2
+As expected here, database is the bottleneck. We'll get slow response time at full load (> 500ms).
 
-### Laravel + PostgreSQL scenario 1
+### Laravel MySQL scenario 2
 
-### Laravel + PostgreSQL scenario 2
+{{< tabs >}}
+{{< tab tabName="Counters & Req/s" >}}
 
-### Symfony + MySQL scenario 1
+| Metric             | Value     |
+| ------------------ | --------- |
+| Iteration rate     | **0.5/s** |
+| Total requests     | **29015** |
+| Total iterations   | **5**     |
+| Max req/s          | **360**   |
+| p(90) req duration | **117ms** |
 
-### Symfony + MySQL scenario 2
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|1,38,40,137,150,211,216,255,247,269,285,299,294,291,295,322,322,327,308,314,329,329,341,324,318,336,341,344,328,329,349,347,353,329,333,352,360,351,339,330,355,359,353,328,340,355,348,355,340,334,356,347,356,346,337,347,358,353,336,341,347,347,350,328,345,355,351,351,349,341,354,351,353,340,343,343,353,362,336,333,353,344,362,338,335,353,353,355,339,320,304" />}}
 
-### Symfony + PostgreSQL scenario 1
+{{< /tab >}}
 
-### Symfony + PostgreSQL scenario 2
+{{< tab tabName="Req duration" >}}
 
-### FastAPI + PostgreSQL scenario 1
+{{< chart type="timeseries" title="VUs count" datasets="VUs|1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,14,14,15,15,16,16,17,17,18,18,19,19,20,20,21,21,22,22,23,23,24,24,25,24,25,25,26,25,26,26,27,27,28,28,29,29,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,28,27,27,27,26,26,26,26,26,26,26,26,26" />}}
 
-### FastAPI + PostgreSQL scenario 2
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|30,26,26,14,13,13,13,15,16,18,17,19,20,24,23,24,24,27,29,31,30,32,32,36,37,38,37,40,42,45,42,45,45,51,50,50,50,53,56,57,58,58,60,65,64,65,65,66,71,73,70,71,70,75,71,76,72,76,80,78,82,83,82,83,82,78,79,79,79,81,78,80,78,81,78,85,79,77,83,81,75,77,76,75,76,74,73,73,76,80,74" />}}
 
-### NestJS + PostgreSQL scenario 1
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
 
-### NestJS + PostgreSQL scenario 2
+{{< chart type="timeseries" title="CPU runtime load" datasets="User|0.27,0.69,0.76,0.77,0.77,0.77,0.03|#4bc0c0$System|0.08,0.16,0.2,0.2,0.19,0.21,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
-### Spring Boot + PostgreSQL scenario 1
+{{< chart type="timeseries" title="CPU database load" datasets="User|0.14,0.2,0.2,0.2,0.21,0.22,0.03|#4bc0c0$System|0.11,0.14,0.15,0.17,0.14,0.14,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
-### Spring Boot + PostgreSQL scenario 2
+{{< /tab >}}
+{{< /tabs >}}
 
-### ASP.NET Core + PostgreSQL scenario 1
+Now we have a very runtime intensive scenario, with workers as bottleneck, API is keeping up with a very low response time (~100ms).
 
-### ASP.NET Core + PostgreSQL scenario 2
+### Laravel PgSQL scenario 1
+
+{{< tabs >}}
+{{< tab tabName="Counters & Req/s" >}}
+
+| Metric           | Value |
+| ---------------- | ----- |
+| Iteration rate   | **X** |
+| Total requests   | **X** |
+| Total iterations | **X** |
+
+{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" datasets="" />}}
+
+{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+### Laravel PgSQL scenario 2
+
+{{< tabs >}}
+{{< tab tabName="Counters & Req/s" >}}
+
+| Metric           | Value |
+| ---------------- | ----- |
+| Iteration rate   | **X** |
+| Total requests   | **X** |
+| Total iterations | **X** |
+
+{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" datasets="" />}}
+
+{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+### Symfony MySQL scenario 1
+
+{{< tabs >}}
+{{< tab tabName="Counters & Req/s" >}}
+
+| Metric           | Value |
+| ---------------- | ----- |
+| Iteration rate   | **X** |
+| Total requests   | **X** |
+| Total iterations | **X** |
+
+{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" datasets="" />}}
+
+{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+### Symfony MySQL scenario 2
+
+{{< tabs >}}
+{{< tab tabName="Counters & Req/s" >}}
+
+| Metric           | Value |
+| ---------------- | ----- |
+| Iteration rate   | **X** |
+| Total requests   | **X** |
+| Total iterations | **X** |
+
+{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" datasets="" />}}
+
+{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+### Symfony PgSQL scenario 1
+
+{{< tabs >}}
+{{< tab tabName="Counters & Req/s" >}}
+
+| Metric           | Value |
+| ---------------- | ----- |
+| Iteration rate   | **X** |
+| Total requests   | **X** |
+| Total iterations | **X** |
+
+{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" datasets="" />}}
+
+{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+### Symfony PgSQL scenario 2
+
+{{< tabs >}}
+{{< tab tabName="Counters & Req/s" >}}
+
+| Metric           | Value |
+| ---------------- | ----- |
+| Iteration rate   | **X** |
+| Total requests   | **X** |
+| Total iterations | **X** |
+
+{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" datasets="" />}}
+
+{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+### FastAPI PgSQL scenario 1
+
+{{< tabs >}}
+{{< tab tabName="Counters & Req/s" >}}
+
+| Metric           | Value |
+| ---------------- | ----- |
+| Iteration rate   | **X** |
+| Total requests   | **X** |
+| Total iterations | **X** |
+
+{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" datasets="" />}}
+
+{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+### FastAPI PgSQL scenario 2
+
+{{< tabs >}}
+{{< tab tabName="Counters & Req/s" >}}
+
+| Metric           | Value |
+| ---------------- | ----- |
+| Iteration rate   | **X** |
+| Total requests   | **X** |
+| Total iterations | **X** |
+
+{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" datasets="" />}}
+
+{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+### NestJS PgSQL scenario 1
+
+{{< tabs >}}
+{{< tab tabName="Counters & Req/s" >}}
+
+| Metric           | Value |
+| ---------------- | ----- |
+| Iteration rate   | **X** |
+| Total requests   | **X** |
+| Total iterations | **X** |
+
+{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" datasets="" />}}
+
+{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+### NestJS PgSQL scenario 2
+
+{{< tabs >}}
+{{< tab tabName="Counters & Req/s" >}}
+
+| Metric           | Value |
+| ---------------- | ----- |
+| Iteration rate   | **X** |
+| Total requests   | **X** |
+| Total iterations | **X** |
+
+{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" datasets="" />}}
+
+{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+### Spring Boot PgSQL scenario 1
+
+{{< tabs >}}
+{{< tab tabName="Counters & Req/s" >}}
+
+| Metric           | Value |
+| ---------------- | ----- |
+| Iteration rate   | **X** |
+| Total requests   | **X** |
+| Total iterations | **X** |
+
+{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" datasets="" />}}
+
+{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+### Spring Boot PgSQL scenario 2
+
+{{< tabs >}}
+{{< tab tabName="Counters & Req/s" >}}
+
+| Metric           | Value |
+| ---------------- | ----- |
+| Iteration rate   | **X** |
+| Total requests   | **X** |
+| Total iterations | **X** |
+
+{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" datasets="" />}}
+
+{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+### ASP.NET Core PgSQL scenario 1
+
+{{< tabs >}}
+{{< tab tabName="Counters & Req/s" >}}
+
+| Metric           | Value |
+| ---------------- | ----- |
+| Iteration rate   | **X** |
+| Total requests   | **X** |
+| Total iterations | **X** |
+
+{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" datasets="" />}}
+
+{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+### ASP.NET Core PgSQL scenario 2
+
+{{< tabs >}}
+{{< tab tabName="Counters & Req/s" >}}
+
+| Metric           | Value |
+| ---------------- | ----- |
+| Iteration rate   | **X** |
+| Total requests   | **X** |
+| Total iterations | **X** |
+
+{{< chart type="timeseries" title="Req/s count" datasets="" />}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" datasets="" />}}
+
+{{< chart type="timeseries" title="Request duration in ms" datasets="" />}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+
+{{< /tab >}}
+{{< /tabs >}}

@@ -8,6 +8,12 @@
         {{ if eq (.Get "type") "timeseries" }}
         type: 'line',
         options: {
+          plugins: {
+            title: {
+              display: true,
+              text: {{ .Get "title" }},
+            },
+          },
           scales: {
             x: {
               ticks: {
@@ -19,6 +25,7 @@
             },
             {{ if .Get "max" }}
             y: {
+              stacked: {{ .Get "stacked" }},
               beginAtZero: true,
               suggestedMax: {{ .Get "max" }},
             }
@@ -37,14 +44,23 @@
             {{ end }}
             {{ end }}
           ],
-          datasets: [{
-            label: {{ .Get "label" }},
-            data: {{ split (.Get "data") "," }},
-            tension: 0.2,
-            {{ if .Get "fill" }}
-            fill: true,
+          datasets: [
+            {{ range split (.Get "datasets") "$" }}
+            {
+              label: {{ index (split . "|") 0 }},
+              data: [
+                {{ range split (index (split . "|") 1) "," }}
+                {{ . }},
+                {{ end }}
+              ],
+              borderColor: {{ index (split . "|") 2 }} || '#a78bfa',
+              backgroundColor: {{ index (split . "|") 2 }} || '#c4b5fd',
+              {{ if $.Get "stacked" }}
+              fill: true,
+              {{ end }}
+            },
             {{ end }}
-          }]
+          ]
         }
         {{ else }}
         {{ .Inner | safeJS }}
