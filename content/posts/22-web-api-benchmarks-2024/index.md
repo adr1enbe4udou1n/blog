@@ -599,66 +599,70 @@ FastAPI performs around twice better PHP main frameworks in every situation. I'm
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric             | Value   |
-| ------------------ | ------- |
-| Iteration rate     | **X**   |
-| Total requests     | **X**   |
-| Total iterations   | **X**   |
-| Max req/s          | **X**   |
-| p(90) req duration | **Xms** |
+| Metric             | Value     |
+| ------------------ | --------- |
+| Iteration rate     | **15/s**  |
+| Total requests     | **37281** |
+| Total iterations   | **731**   |
+| Max req/s          | **700**   |
+| p(90) req duration | **Xms**   |
 
-{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|111,508,571,566,569,558,544,672,589,628,607,610,555,527,586,596,568,598,581,601,630,595,625,615,623,601,620,685,621,569,579,600,672,643,577,663,695,715,581,576,584,605,605,659,638,594,627,583,603,622,642,606,589,618,584,635,642,592,548,568,653,617,237" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|15,22,28,37,43,49,50,50,50,46,50,50,49,46,47,50,50,49,49,49,49,49,49,48,49,49,50,50,47,49,50,46,48,50,48,49,48,50,49,50,48,49,49,48,49,48,50,47,47,46,48,49,48,46,47,48,50,50,48,43,27" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|14,25,36,48,62,75,86,73,83,76,78,79,88,93,82,78,86,83,85,81,74,84,79,77,76,82,79,70,78,83,84,82,72,74,86,74,68,64,84,83,84,78,82,74,71,85,77,83,81,78,73,78,83,78,81,79,73,81,89,89,66,45,24" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
 
-{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU runtime load" datasets="User|0.06,0.05,0.42,0.43,0.44,0.42,0.04|#4bc0c0$System|0.02,0.08,0.56,0.53,0.51,0.55,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
-{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU database load" datasets="User|0.03,0.2,0.22,0.24,0.22,0.1,0.03|#4bc0c0$System|0.02,0.15,0.17,0.17,0.18,0.07,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
 {{< /tab >}}
 {{< /tabs >}}
+
+It's even better than FastAPI, let's keep up on scenario 2.
 
 #### NestJS PgSQL scenario 2
 
 {{< tabs >}}
 {{< tab tabName="Counters & Req/s" >}}
 
-| Metric             | Value   |
-| ------------------ | ------- |
-| Iteration rate     | **X**   |
-| Total requests     | **X**   |
-| Total iterations   | **X**   |
-| Max req/s          | **X**   |
-| p(90) req duration | **Xms** |
+| Metric             | Value      |
+| ------------------ | ---------- |
+| Iteration rate     | **3/s**    |
+| Total requests     | **105536** |
+| Total iterations   | **68**     |
+| Max req/s          | **1400**   |
+| p(90) req duration | **53ms**   |
 
-{{< chart type="timeseries" title="Req/s count" datasets="Req/s|" />}}
+{{< chart type="timeseries" title="Req/s count" datasets="Req/s|17,369,682,787,878,1048,1104,1102,1083,1147,1171,1246,1276,1182,1200,1281,1233,1302,1247,1249,1320,1382,1386,1362,1382,1357,1379,1423,1259,1296,1340,1341,1394,1264,1328,1446,1365,1356,1258,1326,1324,1466,1372,1206,1287,1352,1449,1322,1248,1367,1332,1341,1305,1264,1284,1362,1343,1428,1274,1319,1393,1440,1434,1228,1223,1349,1356,1421,1278,1269,1158,1215,1239,1068,1151,1192,1152,1210,1083,1132,1165,1154,1193,1035,984,765,36" />}}
 
 {{< /tab >}}
 
 {{< tab tabName="Req duration" >}}
 
-{{< chart type="timeseries" title="VUs count" datasets="VUs|" />}}
+{{< chart type="timeseries" title="VUs count" datasets="VUs|3,6,9,12,15,18,21,24,27,30,33,36,39,42,45,48,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,49,50,50,49,50,50,50,50,50,50,49,49,50,50,50,50,49,49,49,50,49,46,44,43,40,40,36,32,29,24,18,18,18,18,18,18,18,18,18,18,17,15,12,9,4" />}}
 
-{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|" />}}
+{{< chart type="timeseries" title="Request duration in ms" datasets="Duration (ms)|20,8,8,12,13,14,16,19,22,23,25,26,28,33,35,35,39,38,40,40,37,36,36,37,36,37,36,35,40,39,37,37,36,39,37,35,36,37,40,37,38,34,36,41,39,36,34,37,40,36,38,37,37,40,39,36,37,35,38,39,36,34,32,35,35,30,29,25,26,23,20,15,14,17,16,15,15,15,16,16,15,14,12,12,10,7,5" />}}
 
 {{< /tab >}}
 {{< tab tabName="CPU load" >}}
 
-{{< chart type="timeseries" title="CPU runtime load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU runtime load" datasets="User|0.03,0.43,0.47,0.45,0.45,0.45,0.35,0.02|#4bc0c0$System|0.02,0.54,0.52,0.52,0.52,0.52,0.57,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
-{{< chart type="timeseries" title="CPU database load" datasets="" stacked="true" max="1" step="15" />}}
+{{< chart type="timeseries" title="CPU database load" datasets="User|0.08,0.37,0.39,0.37,0.38,0.34,0.17,0.04|#4bc0c0$System|0.01,0.27,0.31,0.32,0.31,0.28,0.11,0.02|#ff6384" stacked="true" max="1" step="15" />}}
 
 {{< /tab >}}
 {{< /tabs >}}
+
+What can I say, NestJS is the clear winner so far. The native even loop system makes miracles. It's time to test it against compiled language.
 
 ### Spring Boot
 
