@@ -1333,17 +1333,17 @@ What can I say, NestJS is the clear winner so far. The native even loop system m
 
 | Metric             | Value     |
 | ------------------ | --------- |
-| Iteration rate     | **10**    |
-| Total requests     | **29376** |
-| Total iterations   | **576**   |
-| Max req/s          | **500**   |
-| p(90) req duration | **161ms** |
+| Iteration rate     | **30/s**  |
+| Total requests     | **91851** |
+| Total iterations   | **1801**  |
+| Max req/s          | **1600**  |
+| p(90) req duration | **33ms**  |
 
 {{< chart type="timeseries" title="Req/s count" >}}
 [
     {
         label: 'Req/s',
-        data: [20,334,444,468,449,425,462,467,499,472,446,479,477,490,490,459,454,490,449,460,453,456,490,486,467,461,496,494,504,503,460,478,502,487,471,460,473,491,476,470,455,464,478,457,491,447,489,476,485,475,458,454,493,490,463,471,460,485,504,480,447,453,481,208]
+        data: [867,1438,1481,1409,1556,1589,1466,1434,1412,1510,1570,1553,1461,1540,1599,1614,1570,1522,1423,1640,1578,1615,1535,1476,1472,1525,1509,1367,1462,1513,1661,1541,1506,1452,1619,1589,1609,1510,1419,1534,1554,1622,1570,1515,1516,1550,1535,1492,1500,1578,1601,1577,1524,1398,1566,1568,1532,1517,1506,1579,905]
     }
 ]
 {{< /chart >}}
@@ -1356,7 +1356,7 @@ What can I say, NestJS is the clear winner so far. The native even loop system m
 [
     {
         label: 'VUs',
-        data: [10,13,16,16,19,23,24,26,24,28,31,31,32,34,35,37,38,39,41,41,44,48,47,48,50,45,48,46,47,46,48,48,48,47,49,49,50,48,47,50,49,46,47,48,49,45,46,49,47,48,50,46,48,48,48,48,48,48,47,48,39,24]
+        data: [17,23,26,29,28,26,28,33,37,36,35,35,36,39,35,32,30,29,33,32,28,26,24,25,29,27,30,36,38,38,34,35,35,37,34,31,28,30,34,35,33,30,28,26,30,29,26,29,31,28,26,24,24,30,29,28,26,25,28,24]
     }
 ]
 {{< /chart >}}
@@ -1365,7 +1365,7 @@ What can I say, NestJS is the clear winner so far. The native even loop system m
 [
     {
         label: 'Duration (ms)',
-        data: [21,22,28,31,36,43,48,50,51,54,61,62,63,66,67,74,78,77,87,87,89,97,95,96,104,107,93,97,93,92,101,101,95,98,102,107,101,99,103,99,108,105,100,106,98,109,94,97,101,100,106,105,95,97,100,103,101,99,98,99,105,93,58,24]
+        data: [10,12,16,18,18,17,18,21,23,24,23,23,24,24,23,20,19,20,22,19,18,16,16,17,18,19,19,23,25,25,22,22,23,25,22,21,19,19,22,22,21,19,18,19,18,18,18,19,20,19,17,16,16,19,18,17,17,17,18,17,14]
     }
 ]
 {{< /chart >}}
@@ -1377,14 +1377,14 @@ What can I say, NestJS is the clear winner so far. The native even loop system m
 [
     {
         label: 'User',
-        data: [0.03,0.06,0.18,0.2,0.18,0.19,0.03],
+        data: [0.01,0.03,0.28,0.28,0.28,0.28,0.05],
         borderColor: '#4bc0c0',
         backgroundColor: '#4bc0c0',
         fill: true
     },
     {
         label: 'System',
-        data: [0.02,0.06,0.24,0.25,0.25,0.25,0.02],
+        data: [0.01,0.02,0.2,0.22,0.22,0.21,0.03],
         borderColor: '#ff6384',
         backgroundColor: '#ff6384',
         fill: true
@@ -1396,14 +1396,14 @@ What can I say, NestJS is the clear winner so far. The native even loop system m
 [
     {
         label: 'User',
-        data: [0.03,0.41,0.42,0.44,0.45,0.15,0.03],
+        data: [0.01,0.03,0.58,0.59,0.62,0.61,0.04],
         borderColor: '#4bc0c0',
         backgroundColor: '#4bc0c0',
         fill: true
     },
     {
         label: 'System',
-        data: [0.02,0.49,0.51,0.51,0.5,0.19,0.02],
+        data: [0.01,0.02,0.3,0.31,0.3,0.3,0.03],
         borderColor: '#ff6384',
         backgroundColor: '#ff6384',
         fill: true
@@ -1414,7 +1414,7 @@ What can I say, NestJS is the clear winner so far. The native even loop system m
 {{< /tab >}}
 {{< /tabs >}}
 
-Database is the bottleneck again, java runtime is clearly sleeping here, while performing a magnitude better than PHP equivalent in this scenario. Fall behind FastAPI and NestJS, but still a good performance.
+End of debate, Spring Boot is the clear winner for 1st scenario. Moreover, database is the bottleneck, and java runtime is clearly sleeping here. But JPA Hibernate was difficult to tune for optimal performance, and finally the magic [`@BatchSize`](https://docs.jboss.org/hibernate/orm/current/javadocs/org/hibernate/annotations/BatchSize.html) annotation was the key, allowing to merge n+1 queries into 1+1 queries. Without it, Spring Boot was performing 3 times slower !
 
 #### Spring Boot PgSQL scenario 2
 
@@ -1423,17 +1423,17 @@ Database is the bottleneck again, java runtime is clearly sleeping here, while p
 
 | Metric             | Value      |
 | ------------------ | ---------- |
-| Iteration rate     | **5**      |
-| Total requests     | **169168** |
-| Total iterations   | **109**    |
-| Max req/s          | **2600**   |
-| p(90) req duration | **38ms**   |
+| Iteration rate     | **10/s**   |
+| Total requests     | **197104** |
+| Total iterations   | **127**    |
+| Max req/s          | **2900**   |
+| p(90) req duration | **33ms**   |
 
 {{< chart type="timeseries" title="Req/s count" >}}
 [
     {
         label: 'Req/s',
-        data: [19,819,1441,1883,2236,2093,2106,2245,2362,2424,2523,2343,2357,2525,2402,2395,2189,2040,2314,2479,2576,2316,2362,2550,2510,2307,2303,2373,2578,2535,2458,2431,2172,2463,2469,2423,2317,2349,2379,2461,2510,2289,2255,2336,2448,2466,2293,2274,2113,2251,2521,2480,2368,2485,2582,2450,2368,2385,2306,2510,2641,2351,2284,2590,2455,2231,2222,2224,2356,2393,1979,1722,1649,1794,1060]
+        data: [142,1671,2230,2167,2456,2562,2715,2845,2609,2513,2777,2909,2835,2591,2503,2552,2921,2804,2567,2480,2722,2738,2767,2021,2521,2843,2937,2883,2521,2450,2743,2818,2784,2539,2487,2774,2797,2748,2558,2548,2796,2850,2820,2538,2507,2664,2893,2923,2657,2493,2894,2856,2801,2575,2505,2700,2859,2905,2573,2667,2703,2797,2684,2176,2328,2364,2638,2513,2413,2379,2614,2594,2623,2435,2385,2197,737]
     }
 ]
 {{< /chart >}}
@@ -1446,7 +1446,8 @@ Database is the bottleneck again, java runtime is clearly sleeping here, while p
 [
     {
         label: 'VUs',
-        data: [5,10,15,20,25,30,35,40,45,50,50,50,50,50,50,50,50,50,50,50,50,49,50,50,50,50,50,50,48,50,50,49,49,50,50,49,49,49,47,49,48,50,50,50,50,50,50,50,50,50,50,50,50,50,49,49,50,50,50,50,48,47,43,42,39,37,34,32,23,12,9,9,9,2]
+        data: [10,20,30,40,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,49,50,49,50,50,47,48,48,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,41,29,27,27,27,27,27,27,27,27,27,27,25,21,14
+]
     }
 ]
 {{< /chart >}}
@@ -1455,7 +1456,7 @@ Database is the bottleneck again, java runtime is clearly sleeping here, while p
 [
     {
         label: 'Duration (ms)',
-        data: [7,4,6,7,8,11,13,15,16,18,19,21,21,20,21,21,22,25,21,20,19,21,21,20,20,21,22,21,19,19,20,21,23,20,20,20,21,21,21,20,20,22,22,21,20,20,22,22,23,22,20,20,21,20,19,20,21,21,22,19,19,21,21,17,17,18,17,15,14,10,8,5,5,5,4]
+        data: [5,5,8,13,16,19,18,17,19,20,18,17,17,19,20,19,17,18,19,20,18,18,18,25,20,17,17,17,20,20,18,17,17,19,20,18,18,18,19,20,18,17,18,20,20,19,17,17,19,20,17,17,17,19,20,18,17,17,19,19,18,15,11,12,11,11,10,11,11,11,10,10,10,10,9,7,4]
     }
 ]
 {{< /chart >}}
@@ -1467,14 +1468,14 @@ Database is the bottleneck again, java runtime is clearly sleeping here, while p
 [
     {
         label: 'User',
-        data: [0.03,0.17,0.31,0.34,0.32,0.35,0.05],
+        data: [0.01,0.13,0.39,0.37,0.4,0.4,0.38,0.03],
         borderColor: '#4bc0c0',
         backgroundColor: '#4bc0c0',
         fill: true
     },
     {
         label: 'System',
-        data: [0.02,0.11,0.26,0.25,0.26,0.27,0.03],
+        data: [0.01,0.08,0.26,0.25,0.25,0.24,0.22,0.02],
         borderColor: '#ff6384',
         backgroundColor: '#ff6384',
         fill: true
@@ -1486,14 +1487,14 @@ Database is the bottleneck again, java runtime is clearly sleeping here, while p
 [
     {
         label: 'User',
-        data: [0.04,0.51,0.55,0.54,0.53,0.52,0.03],
+        data: [0.01,0.04,0.58,0.58,0.57,0.58,0.52,0.03],
         borderColor: '#4bc0c0',
         backgroundColor: '#4bc0c0',
         fill: true
     },
     {
         label: 'System',
-        data: [0.03,0.32,0.34,0.35,0.36,0.33,0.02],
+        data: [0.01,0.02,0.3,0.29,0.3,0.31,0.29,0.02],
         borderColor: '#ff6384',
         backgroundColor: '#ff6384',
         fill: true
@@ -1504,7 +1505,7 @@ Database is the bottleneck again, java runtime is clearly sleeping here, while p
 {{< /tab >}}
 {{< /tabs >}}
 
-Java is maybe not the best DX experience for me, but it's a beast in terms of raw performance. Besides, we'll again have database bottleneck, which is the only case seen in this scenario on every framework tested ! Impossible to reach 100% java runtime CPU usage, even with 4 CPU cores, about only 60% overall...
+Java is maybe not the best DX experience for me, but it's a beast in terms of raw performance. Besides, we'll again have database bottleneck, which is the only case seen in this scenario on every framework tested ! Impossible to reach 100% java runtime CPU usage, even with 4 CPU cores, staying only at 60-70% overall...
 
 ### ASP.NET Core
 
@@ -1596,7 +1597,7 @@ Java is maybe not the best DX experience for me, but it's a beast in terms of ra
 {{< /tab >}}
 {{< /tabs >}}
 
-ASP.NET Core is the final winner of 1st scenario. EF Core is incredibly efficient here.
+ASP.NET Core is performing well here. EF Core is incredibly efficient by default without any tuning headaches.
 
 #### ASP.NET Core PgSQL scenario 2
 
@@ -1686,13 +1687,13 @@ ASP.NET Core is the final winner of 1st scenario. EF Core is incredibly efficien
 {{< /tab >}}
 {{< /tabs >}}
 
-It's very close to Java variant, just a bit behind. But as workers are fully loaded here, contrary to Spring Boot which is limited by database, Java stays by far the clear winner for raw performance (in sacrifice of some memory obviously).
+Not that far to Java variant, just a bit behind. But as workers are fully loaded here, contrary to Spring Boot which is limited by database, Java stays by far the clear winner for raw performance (in sacrifice of some memory obviously).
 
 ### Conclusion
 
 Here are the final req/s results for each framework. Note that I do my best for PHP by choosing MySQL which shows the best results overall.
 
-{{< chart type="timeseries" title="Scenario 2" >}}
+{{< chart type="timeseries" title="Scenario 1" >}}
 [
     {
         label: 'Laravel',
@@ -1720,7 +1721,7 @@ Here are the final req/s results for each framework. Note that I do my best for 
     },
     {
         label: 'Spring Boot',
-        data: [20,334,444,468,449,425,462,467,499,472,446,479,477,490,490,459,454,490,449,460,453,456,490,486,467,461,496,494,504,503,460,478,502,487,471,460,473,491,476,470,455,464,478,457,491,447,489,476,485,475,458,454,493,490,463,471,460,485,504,480,447,453,481,208],
+        data: [867,1438,1481,1409,1556,1589,1466,1434,1412,1510,1570,1553,1461,1540,1599,1614,1570,1522,1423,1640,1578,1615,1535,1476,1472,1525,1509,1367,1462,1513,1661,1541,1506,1452,1619,1589,1609,1510,1419,1534,1554,1622,1570,1515,1516,1550,1535,1492,1500,1578,1601,1577,1524,1398,1566,1568,1532,1517,1506,1579,905],
         borderColor: '#15803d',
         backgroundColor: '#15803d'
     },
@@ -1761,7 +1762,7 @@ Here are the final req/s results for each framework. Note that I do my best for 
     },
     {
         label: 'Spring Boot',
-        data: [19,819,1441,1883,2236,2093,2106,2245,2362,2424,2523,2343,2357,2525,2402,2395,2189,2040,2314,2479,2576,2316,2362,2550,2510,2307,2303,2373,2578,2535,2458,2431,2172,2463,2469,2423,2317,2349,2379,2461,2510,2289,2255,2336,2448,2466,2293,2274,2113,2251,2521,2480,2368,2485,2582,2450,2368,2385,2306,2510,2641,2351,2284,2590,2455,2231,2222,2224,2356,2393,1979,1722,1649,1794,1060],
+        data: [142,1671,2230,2167,2456,2562,2715,2845,2609,2513,2777,2909,2835,2591,2503,2552,2921,2804,2567,2480,2722,2738,2767,2021,2521,2843,2937,2883,2521,2450,2743,2818,2784,2539,2487,2774,2797,2748,2558,2548,2796,2850,2820,2538,2507,2664,2893,2923,2657,2493,2894,2856,2801,2575,2505,2700,2859,2905,2573,2667,2703,2797,2684,2176,2328,2364,2638,2513,2413,2379,2614,2594,2623,2435,2385,2197,737],
         borderColor: '#15803d',
         backgroundColor: '#15803d'
     },
