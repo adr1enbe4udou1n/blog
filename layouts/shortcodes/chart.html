@@ -1,6 +1,6 @@
 <div class="chart">
   {{ $id := delimit (shuffle (seq 1 9)) "" }}
-  <canvas id="{{ $id }}"></canvas>
+  <canvas id="{{ $id }}" height="350"></canvas>
   <script type="text/javascript">
     window.addEventListener("DOMContentLoaded", (event) => {
       const ctx = document.getElementById("{{ $id }}");
@@ -8,6 +8,7 @@
         {{ if eq (.Get "type") "timeseries" }}
         type: 'line',
         options: {
+          maintainAspectRatio: false,
           plugins: {
             title: {
               display: true,
