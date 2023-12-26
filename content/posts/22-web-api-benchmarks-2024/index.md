@@ -1,56 +1,61 @@
 ---
-title: "A performance overview of main Web APIs frameworks for 2024"
-date: 2023-12-30
+title: "A 2024 performance overview of main Web APIs frameworks"
+date: 2023-12-26
 tags: ["kubernetes", "docker", "load-testing", "k6", "webapi"]
 ---
 
 {{< lead >}}
-We'll be comparing the read performance of 6 Web APIs frameworks for 2024, sharing the same OpenAPI contract from [realworld app](https://github.com/gothinkster/realworld), a medium-like clone, implemented under multiple languages (PHP, Python, Javascript, Java and C#).
+We'll be comparing the read performance of 6 Web APIs frameworks, sharing the same OpenAPI contract from [realworld app](https://github.com/gothinkster/realworld), a medium-like clone, implemented under multiple languages (PHP, Python, Javascript, Java and C#).
 {{< /lead >}}
 
-This is not a basic synthetic benchmark, but a real world benchmark with DB data tests, and multiple scenarios.
+This is not a basic synthetic benchmark, but a real world benchmark with DB data tests, and multiple scenarios. This post may be updated when new versions of frameworks will be released or any suggestions for performance related improvement in below commentary section.
 
-A state of the art of real world benchmarks comparison is very difficult to achieve. As performance can highly dependent of code implementation, all made by my own, and advanced fine-tuning for each runtime, I'm opened to any suggestions for performance improvement.
+A state of the art of real world benchmarks comparison of Web APIs is difficult to achieve and very time-consuming as it forces to master each framework. As performance can highly dependent of:
 
-Now that it is said, let's fight !
+- Code implementation, all made by my own
+- Fine-tuning for each runtime, so I mostly take the default configuration
+
+Now that's said, let's fight !
 
 ## The contenders
 
 We'll be using the very last up-to-date stable versions of the frameworks, and the latest stable version of the runtime.
 
-| Framework & Source code                                                                         | Runtime     | ORM            | Tested Database    |
-| ----------------------------------------------------------------------------------------------- | ----------- | -------------- | ------------------ |
-| [Laravel 10](https://github.com/adr1enbe4udou1n/laravel-realworld-example-app)                  | PHP 8.3     | Eloquent       | MySQL & PostgreSQL |
-| [Symfony 7 with API Platform](https://github.com/adr1enbe4udou1n/symfony-realworld-example-app) | PHP 8.3     | Doctrine       | MySQL & PostgreSQL |
-| [FastAPI](https://github.com/adr1enbe4udou1n/fastapi-realworld-example-app)                     | Python 3.12 | SQLAlchemy 2.0 | PostgreSQL         |
-| [NestJS 10](https://github.com/adr1enbe4udou1n/nestjs-realworld-example-app)                    | Node 20     | Prisma 5       | PostgreSQL         |
-| [Spring Boot 3.2](https://github.com/adr1enbe4udou1n/spring-boot-realworld-example-app)         | Java 21     | Hibernate 6    | PostgreSQL         |
-| [ASP.NET Core 8](https://github.com/adr1enbe4udou1n/aspnetcore-realworld-example-app)           | .NET 8.0    | EF Core 8      | PostgreSQL         |
+| Framework & Source code                                                                                                                       | Runtime     | ORM            | Tested Database    |
+| --------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | -------------- | ------------------ |
+| [Laravel 10](https://github.com/adr1enbe4udou1n/laravel-realworld-example-app) ([api](https://laravelrealworld.okami101.io/api/))             | PHP 8.3     | Eloquent       | MySQL & PostgreSQL |
+| [Symfony 7](https://github.com/adr1enbe4udou1n/symfony-realworld-example-app) ([api](https://symfonyrealworld.okami101.io/api/))              | PHP 8.3     | Doctrine       | MySQL & PostgreSQL |
+| [FastAPI](https://github.com/adr1enbe4udou1n/fastapi-realworld-example-app) ([api](https://fastapirealworld.okami101.io/api/))                | Python 3.12 | SQLAlchemy 2.0 | PostgreSQL         |
+| [NestJS 10](https://github.com/adr1enbe4udou1n/nestjs-realworld-example-app) ([api](https://nestjsrealworld.okami101.io/api/))                | Node 20     | Prisma 5       | PostgreSQL         |
+| [Spring Boot 3.2](https://github.com/adr1enbe4udou1n/spring-boot-realworld-example-app) ([api](https://springbootrealworld.okami101.io/api/)) | Java 21     | Hibernate 6    | PostgreSQL         |
+| [ASP.NET Core 8](https://github.com/adr1enbe4udou1n/aspnetcore-realworld-example-app) ([api](https://aspnetcorerealworld.okami101.io/api/))   | .NET 8.0    | EF Core 8      | PostgreSQL         |
 
-All frameworks are :
+Each project are:
 
 - Using the same OpenAPI contract
-- Fully tested against same [Postman collection](https://github.com/gothinkster/realworld/blob/main/api/Conduit.postman_collection.json)
-- Highly tooled with high code quality in mind (static analyzers, formatter, linters, etc.)
-- Share roughly the same amount of DB datasets, 50 users, 500 articles, 5000 comments
+- Fully tested and fonctional against same [Postman collection](https://github.com/gothinkster/realworld/blob/main/api/Conduit.postman_collection.json)
+- Highly tooled with high code quality in mind (static analyzers, formatter, linters, good code coverage, etc.)
+- Share roughly the same amount of DB datasets, 50 users, 500 articles, 5000 comments, generated by faker-like library for each language
+- Avoiding N+1 queries with eager loading (normally)
+- Containerized with Docker, and deployed on a monitored Docker Swarm cluster
 
 ### Side note on PHP configuration
 
-Note as I tested PostgreSQL for all frameworks as main Database, but I added MySQL for Laravel and Symfony too, because of simplicity of PHP for switching database without changing code base, as I have both DB drivers integrated into base PHP Docker image. It allows to have an interesting Eloquent VS Doctrine ORM comparison.
+Note as I tested against PostgreSQL for all frameworks as main Database, but I added MySQL for Laravel and Symfony too, just by curiosity, and because of simplicity of PHP for switching database without changing code base, as both DB drivers integrated into base PHP Docker image. It allows to have an interesting Eloquent VS Doctrine ORM comparison for each database.
 
 {{< alert >}}
-I enabled OPcache and use simple Apache as web server, as it's the simplest configuration for PHP apps containers. I tested [FrankenPHP](https://frankenphp.dev/), which seems promising at first glance, but performance results was just far lower than Apache, even with worker mode (tried with Symfony runtime and Laravel Octane)...
+I enabled OPcache and use simple Apache PHP docker image, as it's the simplest configuration for PHP apps containers. I tested [FrankenPHP](https://frankenphp.dev/), which seems promising at first glance, but performance results was just far lower than Apache, even with worker mode (tried with Symfony runtime and Laravel Octane)...
 {{< /alert >}}
 
 ## The target hardware
 
-We'll be using a dedicated hardware target, running on a Docker swarm cluster, each node composed of 4 CPUs and 8 GB of RAM.
+We'll running all Web APIs project on a Docker swarm cluster, where each node are composed of 2 dedicated CPUs for stable performance and 8 GB of RAM.
 
-Traefik will be used as a reverse proxy, with a single replica, and will load balance the requests to the replicas of each node.
+Traefik will be used as a reverse proxy, load balancing the requests to the replicas of each node.
 
 {{< mermaid >}}
 flowchart TD
-client((Client))
+client((k6))
 client -- Port 80 443 --> traefik-01
 subgraph manager-01
     traefik-01{Traefik SSL}
@@ -85,7 +90,7 @@ The **iteration rate** (rate / timeUnit) will be choosen in order to obtain the 
 
 ### Scenario 1
 
-The interest of this scenario is to be very database intensive, by fetching all articles, authors, and favorites, following the pagination, with a couple of SQL queries. Note as each code implementation use eager loading to avoid N+1 queries.
+The interest of this scenario is to be very database intensive, by fetching all articles, authors, and favorites, following the pagination, with a couple of SQL queries. Note as each code implementation normally use eager loading to avoid N+1 queries, which can have high influence in this test.
 
 ```js
 import http from "k6/http";
@@ -126,7 +131,7 @@ export default function () {
 }
 ```
 
-To summary the expected JSON response:
+Here the expected JSON response format:
 
 ```json
 {
@@ -163,9 +168,13 @@ The expected pseudocode SQL queries to build this response:
 SELECT * FROM articles LIMIT 10 OFFSET 0;
 SELECT count(*) FROM articles;
 SELECT * FROM users WHERE id IN (<articles.author_id...>);
-SELECT count(*) FROM favorites WHERE article_id IN (<articles.id...>);
 SELECT * FROM article_tag WHERE article_id IN (<articles.id...>);
+SELECT * FROM favorites WHERE article_id IN (<articles.id...>);
 ```
+
+{{< alert >}}
+It can highly differ according to each ORM, as few of them can prefer to reduce the queries by using subselect, but it's a good approximation.
+{{< /alert >}}
 
 ### Scenario 2
 
@@ -246,7 +255,7 @@ export default function () {
 | Iteration rate     | **3/s**   |
 | Total requests     | **8007**  |
 | Total iterations   | **157**   |
-| Max req/s          | **140**   |
+| Average max req/s  | **140**   |
 | p(90) req duration | **544ms** |
 
 {{< chart type="timeseries" title="Req/s count" >}}
@@ -336,7 +345,7 @@ As expected here, database is the bottleneck. We'll get slow response time at fu
 | Iteration rate     | **1/2/s** |
 | Total requests     | **29015** |
 | Total iterations   | **5**     |
-| Max req/s          | **360**   |
+| Average max req/s  | **360**   |
 | p(90) req duration | **117ms** |
 
 {{< chart type="timeseries" title="Req/s count" >}}
@@ -414,7 +423,7 @@ As expected here, database is the bottleneck. We'll get slow response time at fu
 {{< /tab >}}
 {{< /tabs >}}
 
-Now we have a very runtime intensive scenario, with workers as bottleneck, API is keeping up with a very low response time (~100ms).
+Now we have a very runtime intensive scenario, with workers as bottleneck, API is keeping up with a low response time (~100ms).
 
 #### Laravel PgSQL scenario 1
 
@@ -426,7 +435,7 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 | Iteration rate     | **2/s**   |
 | Total requests     | **4386**  |
 | Total iterations   | **86**    |
-| Max req/s          | **70**    |
+| Average max req/s  | **70**    |
 | p(90) req duration | **1.24s** |
 
 {{< chart type="timeseries" title="Req/s count" >}}
@@ -516,7 +525,7 @@ Now it seems interesting, Laravel performs literally about 2x slower with Postgr
 | Iteration rate     | **1/3/s** |
 | Total requests     | **16219** |
 | Total iterations   | **0**     |
-| Max req/s          | **220**   |
+| Average max req/s  | **220**   |
 | p(90) req duration | **128ms** |
 
 {{< chart type="timeseries" title="Req/s count" >}}
@@ -608,7 +617,7 @@ Laravel seems less limited by database performance, but still slower than MySQL.
 | Iteration rate     | **3/s**   |
 | Total requests     | **3264**  |
 | Total iterations   | **64**    |
-| Max req/s          | **50**    |
+| Average max req/s  | **40**    |
 | p(90) req duration | **1.38s** |
 
 {{< chart type="timeseries" title="Req/s count" >}}
@@ -698,7 +707,7 @@ It's getting pretty ugly here, with a very high response time (> 1s) at full loa
 | Iteration rate     | **1/3/s** |
 | Total requests     | **32086** |
 | Total iterations   | **18**    |
-| Max req/s          | **410**   |
+| Average max req/s  | **410**   |
 | p(90) req duration | **41ms**  |
 
 {{< chart type="timeseries" title="Req/s count" >}}
@@ -776,7 +785,7 @@ It's getting pretty ugly here, with a very high response time (> 1s) at full loa
 {{< /tab >}}
 {{< /tabs >}}
 
-The situation is completely different here, Symfony is able to handle the load, better than Laravel in the same context, with a very low response time (~40ms). Let's see if it's able to keep up with the same performance with PostgreSQL contrary to Laravel.
+The situation is completely different here, Symfony is able to handle the load, better than Laravel in the same context, with a very low response time (~40ms). Let's see if it's able to keep up with the same performance with PostgreSQL.
 
 #### Symfony PgSQL scenario 1
 
@@ -788,7 +797,7 @@ The situation is completely different here, Symfony is able to handle the load, 
 | Iteration rate     | **3/s**   |
 | Total requests     | **8160**  |
 | Total iterations   | **160**   |
-| Max req/s          | **120**   |
+| Average max req/s  | **120**   |
 | p(90) req duration | **469ms** |
 
 {{< chart type="timeseries" title="Req/s count" >}}
@@ -878,7 +887,7 @@ Performance is strangely very similar with Laravel + MySQL on same scenario. Sym
 | Iteration rate     | **1/3/s** |
 | Total requests     | **19633** |
 | Total iterations   | **4**     |
-| Max req/s          | **250**   |
+| Average max req/s  | **250**   |
 | p(90) req duration | **95ms**  |
 
 {{< chart type="timeseries" title="Req/s count" >}}
@@ -956,7 +965,7 @@ Performance is strangely very similar with Laravel + MySQL on same scenario. Sym
 {{< /tab >}}
 {{< /tabs >}}
 
-My mind is broken, now it performs slower than with MySQL in same scenario, about almost twice slower. The 1st scenario shown the inverse. At least it performs better than Laravel with PostgreSQL, but just slightly. To summary the 2nd scenario give MySQL a good advantage against PostgreSQL **with PHP**.
+Now it performs slower than with MySQL in same scenario, about almost twice. The 1st scenario shown the inverse. At least it performs better than Laravel with PostgreSQL, but just slightly. To summary the 2nd scenario give MySQL a good advantage against PostgreSQL **with PHP**.
 
 ### FastAPI
 
@@ -972,7 +981,7 @@ As a side note here, uvicorn is limited to 1 CPU core, so I use 2 replicas on ea
 | Iteration rate     | **10/s**  |
 | Total requests     | **30651** |
 | Total iterations   | **601**   |
-| Max req/s          | **550**   |
+| Average max req/s  | **550**   |
 | p(90) req duration | **49ms**  |
 
 {{< chart type="timeseries" title="Req/s count" >}}
@@ -1062,7 +1071,7 @@ Now we are talking, FastAPI outperforms above PHP frameworks, and database isn't
 | Iteration rate     | **2/s**   |
 | Total requests     | **71394** |
 | Total iterations   | **16**    |
-| Max req/s          | **870**   |
+| Average max req/s  | **870**   |
 | p(90) req duration | **113ms** |
 
 {{< chart type="timeseries" title="Req/s count" >}}
@@ -1140,7 +1149,7 @@ Now we are talking, FastAPI outperforms above PHP frameworks, and database isn't
 {{< /tab >}}
 {{< /tabs >}}
 
-FastAPI performs around twice better PHP main frameworks in every situation. I'm not sure that testing it on MySQL change anything.
+FastAPI performs around at least twice better than PHP main frameworks in every situation. I'm not sure that testing it on MySQL change anything.
 
 ### NestJS
 
@@ -1154,7 +1163,7 @@ FastAPI performs around twice better PHP main frameworks in every situation. I'm
 | Iteration rate     | **15/s**  |
 | Total requests     | **37281** |
 | Total iterations   | **731**   |
-| Max req/s          | **700**   |
+| Average max req/s  | **700**   |
 | p(90) req duration | **Xms**   |
 
 {{< chart type="timeseries" title="Req/s count" >}}
@@ -1232,7 +1241,7 @@ FastAPI performs around twice better PHP main frameworks in every situation. I'm
 {{< /tab >}}
 {{< /tabs >}}
 
-It's even better than FastAPI, let's keep up on scenario 2.
+It's slightly better than FastAPI, let's keep up on scenario 2.
 
 #### NestJS PgSQL scenario 2
 
@@ -1244,7 +1253,7 @@ It's even better than FastAPI, let's keep up on scenario 2.
 | Iteration rate     | **3/s**    |
 | Total requests     | **105536** |
 | Total iterations   | **68**     |
-| Max req/s          | **1400**   |
+| Average max req/s  | **1400**   |
 | p(90) req duration | **53ms**   |
 
 {{< chart type="timeseries" title="Req/s count" >}}
@@ -1322,7 +1331,7 @@ It's even better than FastAPI, let's keep up on scenario 2.
 {{< /tab >}}
 {{< /tabs >}}
 
-What can I say, NestJS is the clear winner so far. The native even loop system makes miracles. It's time to test it against compiled language.
+Huge gap now, NestJS is the clear winner so far. The native even loop system seems to make miracles. It's time to test it against compiled language.
 
 ### Spring Boot
 
@@ -1336,7 +1345,7 @@ What can I say, NestJS is the clear winner so far. The native even loop system m
 | Iteration rate     | **30/s**  |
 | Total requests     | **91851** |
 | Total iterations   | **1801**  |
-| Max req/s          | **1600**  |
+| Average max req/s  | **1600**  |
 | p(90) req duration | **33ms**  |
 
 {{< chart type="timeseries" title="Req/s count" >}}
@@ -1414,7 +1423,7 @@ What can I say, NestJS is the clear winner so far. The native even loop system m
 {{< /tab >}}
 {{< /tabs >}}
 
-End of debate, Spring Boot is the clear winner for 1st scenario. Moreover, database is the bottleneck, and java runtime is clearly sleeping here. But JPA Hibernate was difficult to tune for optimal performance, and finally the magic [`@BatchSize`](https://docs.jboss.org/hibernate/orm/current/javadocs/org/hibernate/annotations/BatchSize.html) annotation was the key, allowing to merge n+1 queries into 1+1 queries. Without it, Spring Boot was performing 3 times slower !
+End of debate, Spring Boot destroys competition for 1st scenario. Moreover, database is the bottleneck, and java runtime is clearly sleeping here. But JPA Hibernate was difficult to tune for optimal performance, and finally the magic [`@BatchSize`](https://docs.jboss.org/hibernate/orm/current/javadocs/org/hibernate/annotations/BatchSize.html) annotation was the key, allowing to merge n+1 queries into 1+1 queries. Without it, Spring Boot was performing 3 times slower !
 
 #### Spring Boot PgSQL scenario 2
 
@@ -1426,7 +1435,7 @@ End of debate, Spring Boot is the clear winner for 1st scenario. Moreover, datab
 | Iteration rate     | **10/s**   |
 | Total requests     | **197104** |
 | Total iterations   | **127**    |
-| Max req/s          | **2900**   |
+| Average max req/s  | **2900**   |
 | p(90) req duration | **33ms**   |
 
 {{< chart type="timeseries" title="Req/s count" >}}
@@ -1519,7 +1528,7 @@ Java is maybe not the best DX experience for me, but it's a beast in terms of ra
 | Iteration rate     | **20**    |
 | Total requests     | **57936** |
 | Total iterations   | **1136**  |
-| Max req/s          | **980**   |
+| Average max req/s  | **980**   |
 | p(90) req duration | **87ms**  |
 
 {{< chart type="timeseries" title="Req/s count" >}}
@@ -1609,7 +1618,7 @@ ASP.NET Core is performing well here. EF Core is incredibly efficient by default
 | Iteration rate     | **5**      |
 | Total requests     | **167616** |
 | Total iterations   | **108**    |
-| Max req/s          | **2500**   |
+| Average max req/s  | **2500**   |
 | p(90) req duration | **38ms**   |
 
 {{< chart type="timeseries" title="Req/s count" >}}
@@ -1777,6 +1786,8 @@ Here are the final req/s results for each framework. Note that I do my best for 
 
 To resume, compiled languages have always a clear advantage when it comes to raw performance. But do you really need it ?
 
-Keep in mind that the raw performance shouldn't be the only criteria to choose a web framework. The DX is also very important, and Laravel stays unbeatable in this regard when it comes to make a MVP.
+Keep in mind that it shouldn't be the only criteria to choose a web framework. The DX is also very important, for exemple Laravel stays unbeatable in this regard when it comes to make a MVP.
 
-I'm stay open to any suggestions to improve my tests, especially for PHP frameworks (I already tested FrankenPHP which gives worst results). If you have any tips to improve performance by some Framework or PHP low level tuning, let me a comment below !
+When it comes to compiled languages, I still personally prefer ASP.NET Core over Spring Boot because of the DX. The performance gap is negligible, and it hasn't this warmup Java feeling and keeps a raisonable memory footprint.
+
+I'm stay open to any suggestions to improve my tests, especially on PHP side (I already tested FrankenPHP which gives worst results, and the `memory_limit` is set to **1G**). If you have any tips to improve performance by some Framework or PHP low level tuning, let me a comment below !
