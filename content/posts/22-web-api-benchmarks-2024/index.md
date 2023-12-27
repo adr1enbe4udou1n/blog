@@ -695,7 +695,7 @@ Laravel seems less limited by database performance, but still slower than MySQL.
 {{< /tab >}}
 {{< /tabs >}}
 
-It's very similar to Laravel in this case.
+It's very similar to Laravel in this case, performs slightly better with a lower response time.
 
 #### Symfony MySQL scenario 2
 
@@ -785,7 +785,7 @@ It's very similar to Laravel in this case.
 {{< /tab >}}
 {{< /tabs >}}
 
-Symfony is able to handle the load, slightly than Laravel in the same context, with a very low response time (~40ms). Let's see if it's able to keep up with the same performance with PostgreSQL.
+Symfony is able to handle the load, a little better than Laravel in the same context. Let's see if it's able to keep up with the same performance with PostgreSQL.
 
 #### Symfony PgSQL scenario 1
 
@@ -965,7 +965,7 @@ Symfony performs same with PostgreSQL and MySQL, contrary to Laravel which perfo
 {{< /tab >}}
 {{< /tabs >}}
 
-Now it performs clearly slower than with MySQL in same scenario, about almost twice. At least it performs better than Laravel with PostgreSQL, but just slightly. To summary the 2nd scenario give MySQL a good advantage against PostgreSQL **with PHP**.
+Now it performs clearly slower than with MySQL in same scenario, about almost twice. Slightly better than Laravel in same context. To summary the 2nd scenario give MySQL a good advantage against PostgreSQL **with PHP**.
 
 ### FastAPI
 
