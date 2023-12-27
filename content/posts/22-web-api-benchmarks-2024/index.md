@@ -44,7 +44,7 @@ Each project are:
 Note as I tested against PostgreSQL for all frameworks as main Database, but I added MySQL for Laravel and Symfony too, just by curiosity, and because of simplicity of PHP for switching database without changing code base, as both DB drivers integrated into base PHP Docker image. It allows to have an interesting Eloquent VS Doctrine ORM comparison for each database.
 
 {{< alert >}}
-I enabled OPcache and use simple Apache PHP docker image, as it's the simplest configuration for PHP apps containers. I tested [FrankenPHP](https://frankenphp.dev/), which seems promising at first glance, but performance results was just far lower than Apache, even with worker mode (tried with Symfony runtime and Laravel Octane)...
+I enabled OPcache and use simple Apache PHP docker image, as it's the simplest configuration for PHP apps containers. The `memory_limit` is set to **1G**. I tested [FrankenPHP](https://frankenphp.dev/), which seems promising at first glance, but performance results was just far lower than Apache, even with worker mode (tried with Symfony runtime and Laravel Octane)...
 {{< /alert >}}
 
 ## The target hardware
@@ -1786,8 +1786,8 @@ Here are the final req/s results for each framework. I choose to take MySQL resu
 
 To resume, compiled languages have always a clear advantage when it comes to raw performance. But do you really need it ?
 
-Keep in mind that it shouldn't be the only criteria to choose a web framework. The DX is also very important, for exemple Laravel stays unbeatable in this regard when it comes to make a MVP.
+Keep in mind that it shouldn't be the only criteria to choose a web framework. The DX is also very important, for exemple Laravel stays a very nice candidate in this regard.
 
 When it comes to compiled languages, I still personally prefer ASP.NET Core over Spring Boot because of the DX. The performance gap is negligible, and it hasn't this warmup Java feeling and keeps a raisonable memory footprint.
 
-I'm stay open to any suggestions to improve my tests, especially on PHP side (I already tested FrankenPHP which gives worst results, and the `memory_limit` is set to **1G**). If you have any tips to improve performance by some Framework or PHP low level tuning, let me a comment below !
+I'm stay open to any suggestions to improve my tests, especially on PHP side. If you have any tips to improve performance by some Framework or PHP low level tuning, let me a comment below !
