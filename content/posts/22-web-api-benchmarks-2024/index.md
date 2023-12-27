@@ -614,17 +614,17 @@ Laravel seems less limited by database performance, but still slower than MySQL.
 
 | Metric             | Value     |
 | ------------------ | --------- |
-| Iteration rate     | **3/s**   |
-| Total requests     | **3264**  |
-| Total iterations   | **64**    |
-| Average max req/s  | **40**    |
-| p(90) req duration | **1.38s** |
+| Iteration rate     | **5/s**   |
+| Total requests     | **10302** |
+| Total iterations   | **202**   |
+| Average max req/s  | **160**   |
+| p(90) req duration | **399s**  |
 
 {{< chart type="timeseries" title="Req/s count" >}}
 [
     {
         label: 'Req/s',
-        data: [13,37,37,38,41,40,39,38,37,42,35,39,37,40,40,38,38,38,38,41,37,42,39,33,45,41,42,32,39,44,38,33,41,44,32,43,41,43,32,39,45,40,36,36,40,39,37,44,40,35,42,43,29,41,40,44,38,35,42,41,40,38,39,40,40,40,43,41,43,43,38,40,39,48,43,42,39,41,40,45,38,44,37,10]
+        data: [4,105,150,161,153,142,157,151,155,153,138,151,154,154,154,146,153,153,156,153,141,154,155,161,153,136,147,160,159,156,140,156,156,155,160,142,149,158,156,156,134,149,165,147,156,146,153,153,160,149,148,149,159,150,157,143,155,154,162,159,137,157,155,160,158,143,160,157,134]
     }
 ]
 {{< /chart >}}
@@ -637,7 +637,7 @@ Laravel seems less limited by database performance, but still slower than MySQL.
 [
     {
         label: 'VUs',
-        data: [3,6,9,12,15,18,21,24,27,30,33,36,39,42,45,48,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,50,49,50,50,50,49,49,50,50,50,49,50,50,49,50,50,49,49,48,47,46,43,42,42,40,36,35,32,28,23,17,14,14,13,12,10,9,8,2]
+        data: [5,10,14,16,20,22,26,29,33,37,40,43,47,49,50,50,48,50,50,50,49,49,50,47,50,48,47,49,48,50,50,50,50,49,50,50,50,50,50,50,48,49,48,49,48,48,50,50,50,50,48,49,50,50,50,49,49,48,47,47,46,41,37,31,27,22,16,5]
     }
 ]
 {{< /chart >}}
@@ -646,7 +646,7 @@ Laravel seems less limited by database performance, but still slower than MySQL.
 [
     {
         label: 'Duration (ms)',
-        data: [85,107,182,244,304,380,458,555,623,664,740,817,916,994,1041,1109,1224,1272,1289,1272,1230,1243,1311,1343,1282,1227,1267,1247,1275,1273,1291,1300,1329,1261,1243,1278,1241,1307,1235,1277,1245,1269,1271,1385,1298,1220,1256,1288,1278,1258,1271,1250,1307,1353,1257,1235,1255,1254,1304,1245,1222,1262,1287,1241,1191,1122,1098,1073,1055,953,863,902,809,692,536,373,350,350,300,298,239,221,182,78]
+        data: [44,38,58,82,98,133,139,162,182,202,257,268,274,287,317,340,325,332,303,315,365,328,308,332,302,351,324,308,311,315,340,321,317,328,313,335,324,327,307,336,350,332,319,312,313,341,314,313,323,315,350,326,313,313,325,352,321,318,317,307,331,305,280,246,211,191,161,119,75]
     }
 ]
 {{< /chart >}}
@@ -658,14 +658,14 @@ Laravel seems less limited by database performance, but still slower than MySQL.
 [
     {
         label: 'User',
-        data: [0.03,0.2,0.19,0.18,0.2,0.2,0.18,0.03],
+        data: [0.02,0.03,0.32,0.32,0.32,0.31,0.12],
         borderColor: '#4bc0c0',
         backgroundColor: '#4bc0c0',
         fill: true
     },
     {
         label: 'System',
-        data: [0.02,0.1,0.09,0.1,0.08,0.1,0.08,0.03],
+        data: [0.02,0.01,0.14,0.16,0.15,0.16,0.06],
         borderColor: '#ff6384',
         backgroundColor: '#ff6384',
         fill: true
@@ -677,14 +677,14 @@ Laravel seems less limited by database performance, but still slower than MySQL.
 [
     {
         label: 'User',
-        data: [0.04,0.97,0.97,0.97,0.97,0.98,0.04,0.03],
+        data: [0.03,0.13,0.93,0.95,0.95,0.94,0.03],
         borderColor: '#4bc0c0',
         backgroundColor: '#4bc0c0',
         fill: true
     },
     {
         label: 'System',
-        data: [0.02,0.03,0.03,0.03,0.03,0.02,0.02,0.02],
+        data: [0.02,0.02,0.07,0.05,0.05,0.06,0.03],
         borderColor: '#ff6384',
         backgroundColor: '#ff6384',
         fill: true
@@ -695,7 +695,7 @@ Laravel seems less limited by database performance, but still slower than MySQL.
 {{< /tab >}}
 {{< /tabs >}}
 
-It's getting pretty ugly here, with a very high response time (> 1s) at full load. About 3 times slower than Laravel in the same context.
+It's very similar to Laravel in this case.
 
 #### Symfony MySQL scenario 2
 
@@ -704,7 +704,7 @@ It's getting pretty ugly here, with a very high response time (> 1s) at full loa
 
 | Metric             | Value     |
 | ------------------ | --------- |
-| Iteration rate     | **1/3/s** |
+| Iteration rate     | **1/2/s** |
 | Total requests     | **32086** |
 | Total iterations   | **18**    |
 | Average max req/s  | **410**   |
@@ -785,7 +785,7 @@ It's getting pretty ugly here, with a very high response time (> 1s) at full loa
 {{< /tab >}}
 {{< /tabs >}}
 
-The situation is completely different here, Symfony is able to handle the load, better than Laravel in the same context, with a very low response time (~40ms). Let's see if it's able to keep up with the same performance with PostgreSQL.
+Symfony is able to handle the load, slightly than Laravel in the same context, with a very low response time (~40ms). Let's see if it's able to keep up with the same performance with PostgreSQL.
 
 #### Symfony PgSQL scenario 1
 
@@ -794,17 +794,17 @@ The situation is completely different here, Symfony is able to handle the load, 
 
 | Metric             | Value     |
 | ------------------ | --------- |
-| Iteration rate     | **3/s**   |
-| Total requests     | **8160**  |
+| Iteration rate     | **5/s**   |
+| Total requests     | **10302** |
 | Total iterations   | **160**   |
-| Average max req/s  | **120**   |
-| p(90) req duration | **469ms** |
+| Average max req/s  | **160**   |
+| p(90) req duration | **379ms** |
 
 {{< chart type="timeseries" title="Req/s count" >}}
 [
     {
         label: 'Req/s',
-        data: [28,108,116,120,121,112,119,121,121,120,111,116,120,120,116,111,116,116,124,107,115,114,119,119,116,112,118,118,119,117,111,118,117,118,116,112,116,115,123,120,111,113,121,114,117,115,107,123,117,114,107,116,123,115,115,113,121,114,121,115,111,117,121,120,119,116,113,121,123,123,88]
+        data: [21,132,134,149,159,147,160,141,149,159,159,146,155,143,164,150,158,142,155,157,152,160,145,150,159,152,153,147,146,166,151,157,146,144,152,161,153,146,148,157,157,154,152,149,155,158,156,145,151,152,159,160,149,144,158,157,152,144,148,157,153,159,143,160,156,154,153,142,100]
     }
 ]
 {{< /chart >}}
@@ -817,7 +817,7 @@ The situation is completely different here, Symfony is able to handle the load, 
 [
     {
         label: 'VUs',
-        data: [3,6,9,12,12,13,14,16,17,19,19,20,22,23,24,25,27,28,29,31,33,33,35,36,38,38,39,41,43,44,46,46,48,48,50,49,47,50,50,50,49,50,49,50,50,49,50,47,49,49,49,49,48,48,50,48,50,50,50,47,48,47,44,41,37,36,32,27,23,17,5]
+        data: [5,10,15,17,21,24,28,32,35,38,41,45,49,48,50,49,50,49,50,49,49,50,49,49,49,48,50,46,49,48,48,50,50,50,50,49,50,47,49,50,49,49,49,49,48,48,50,50,50,50,49,50,49,49,48,49,50,48,49,48,46,40,35,32,28,24,20,12]
     }
 ]
 {{< /chart >}}
@@ -826,7 +826,7 @@ The situation is completely different here, Symfony is able to handle the load, 
 [
     {
         label: 'Duration (ms)',
-        data: [125,55,76,97,107,113,119,128,142,156,172,176,185,190,206,223,236,240,250,271,297,288,294,305,326,345,331,356,351,382,394,401,395,414,431,446,418,419,411,415,457,422,422,418,424,443,428,415,408,429,462,423,409,432,420,435,419,419,425,410,437,396,380,354,322,321,289,248,203,147,73]
+        data: [57,45,78,103,110,142,153,197,212,224,239,264,307,322,315,318,323,345,321,322,312,320,341,327,314,324,321,342,318,299,312,315,345,326,320,329,323,343,311,324,319,316,338,324,311,309,310,344,323,316,316,317,348,326,327,310,329,350,319,318,314,298,279,229,202,182,149,128,72]
     }
 ]
 {{< /chart >}}
@@ -838,14 +838,14 @@ The situation is completely different here, Symfony is able to handle the load, 
 [
     {
         label: 'User',
-        data: [0.03,0.24,0.41,0.39,0.39,0.39,0.03,0.03],
+        data: [0.03,0.35,0.55,0.54,0.53,0.53,0.03],
         borderColor: '#4bc0c0',
         backgroundColor: '#4bc0c0',
         fill: true
     },
     {
         label: 'System',
-        data: [0.02,0.06,0.11,0.12,0.11,0.13,0.02,0.02],
+        data: [0.02,0.12,0.16,0.15,0.16,0.16,0.02],
         borderColor: '#ff6384',
         backgroundColor: '#ff6384',
         fill: true
@@ -857,14 +857,14 @@ The situation is completely different here, Symfony is able to handle the load, 
 [
     {
         label: 'User',
-        data: [0.04,0.69,0.71,0.7,0.72,0.72,0.04,0.03],
+        data: [0.04,0.61,0.63,0.65,0.63,0.6,0.03],
         borderColor: '#4bc0c0',
         backgroundColor: '#4bc0c0',
         fill: true
     },
     {
         label: 'System',
-        data: [0.03,0.29,0.29,0.3,0.28,0.28,0.02,0.02],
+        data: [0.03,0.37,0.37,0.35,0.37,0.35,0.02],
         borderColor: '#ff6384',
         backgroundColor: '#ff6384',
         fill: true
@@ -875,7 +875,7 @@ The situation is completely different here, Symfony is able to handle the load, 
 {{< /tab >}}
 {{< /tabs >}}
 
-Performance is strangely very similar with Laravel + MySQL on same scenario. Symfony performs clearly better here with PostgreSQL than MySQL, between 2 to 3 times, which is the complete opposite of Laravel.
+Symfony performs same with PostgreSQL and MySQL, contrary to Laravel which performs more than twice lower in the same context.
 
 #### Symfony PgSQL scenario 2
 
@@ -965,7 +965,7 @@ Performance is strangely very similar with Laravel + MySQL on same scenario. Sym
 {{< /tab >}}
 {{< /tabs >}}
 
-Now it performs slower than with MySQL in same scenario, about almost twice. The 1st scenario shown the inverse. At least it performs better than Laravel with PostgreSQL, but just slightly. To summary the 2nd scenario give MySQL a good advantage against PostgreSQL **with PHP**.
+Now it performs clearly slower than with MySQL in same scenario, about almost twice. At least it performs better than Laravel with PostgreSQL, but just slightly. To summary the 2nd scenario give MySQL a good advantage against PostgreSQL **with PHP**.
 
 ### FastAPI
 
@@ -1712,7 +1712,7 @@ Here are the final req/s results for each framework. Note that I do my best for 
     },
     {
         label: 'Symfony',
-        data: [13,37,37,38,41,40,39,38,37,42,35,39,37,40,40,38,38,38,38,41,37,42,39,33,45,41,42,32,39,44,38,33,41,44,32,43,41,43,32,39,45,40,36,36,40,39,37,44,40,35,42,43,29,41,40,44,38,35,42,41,40,38,39,40,40,40,43,41,43,43,38,40,39,48,43,42,39,41,40,45,38,44,37,10],
+        data: [4,105,150,161,153,142,157,151,155,153,138,151,154,154,154,146,153,153,156,153,141,154,155,161,153,136,147,160,159,156,140,156,156,155,160,142,149,158,156,156,134,149,165,147,156,146,153,153,160,149,148,149,159,150,157,143,155,154,162,159,137,157,155,160,158,143,160,157,134],
         borderColor: '#ffffff',
         backgroundColor: '#ffffff'
     },
