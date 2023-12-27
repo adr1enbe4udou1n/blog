@@ -24,13 +24,15 @@
                 },
               }
             },
-            {{ if .Get "max" }}
             y: {
-              stacked: {{ .Get "stacked" }},
+              {{ if .Get "stacked" }}
+              stacked: {{ .Get "stacked"  }},
+              {{ end }}
               beginAtZero: true,
+              {{ if .Get "max" }}
               suggestedMax: {{ .Get "max" }},
+              {{ end }}
             }
-            {{ end }}
           },
         },
         data: {

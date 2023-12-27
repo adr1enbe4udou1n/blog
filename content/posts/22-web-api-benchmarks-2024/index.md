@@ -253,16 +253,16 @@ export default function () {
 | Metric                  | Value     |
 | ----------------------- | --------- |
 | Iteration creation rate | **5/s**   |
-| Total requests          | **8007**  |
-| Total iterations        | **157**   |
-| Average max req/s       | **140**   |
-| p(90) req duration      | **544ms** |
+| Total requests          | **8160**  |
+| Total iterations        | **160**   |
+| Average max req/s       | **130**   |
+| p(90) req duration      | **584ms** |
 
 {{< chart type="timeseries" title="Req/s count" >}}
 [
     {
         label: 'Req/s',
-        data: [6,69,81,103,103,113,83,91,103,112,99,101,109,101,106,108,100,112,117,124,113,111,117,108,129,119,124,81,113,128,124,108,108,128,111,128,123,127,100,124,124,118,119,125,121,101,96,120,110,130,137,117,127,120,124,129,127,115,121,114,126,121,103,124,120,120,116,102,122,103,109,81]
+        data: [54,93,105,93,96,106,111,130,123,116,115,122,124,122,129,115,111,119,121,108,110,109,135,97,109,120,107,105,103,125,115,125,126,126,113,117,114,131,134,84,115,116,112,89,116,120,121,125,120,119,112,112,124,115,138,89,113,137,98,123,111,125,120,126,123,102,124,111,99,107,89,91]
     }
 ]
 {{< /chart >}}
@@ -275,7 +275,7 @@ export default function () {
 [
     {
         label: 'VUs',
-        data: [3,6,8,10,12,13,14,16,19,20,23,26,25,27,28,29,31,34,35,36,37,39,41,43,45,47,48,49,49,50,49,49,48,50,49,49,49,49,49,50,49,48,48,48,49,48,50,49,48,46,48,49,48,49,48,49,47,50,49,48,46,44,42,38,36,34,33,27,18,17,4]
+        data: [5,10,15,20,25,28,32,36,41,45,50,50,50,50,50,49,49,49,50,48,49,49,49,49,50,49,49,49,48,50,48,49,50,49,50,49,50,50,50,50,50,50,49,50,50,50,49,50,49,48,47,50,48,48,50,50,50,50,50,50,48,47,46,44,41,39,34,31,29,22,12]
     }
 ]
 {{< /chart >}}
@@ -284,7 +284,7 @@ export default function () {
 [
     {
         label: 'Duration (ms)',
-        data: [36,37,71,70,93,104,145,152,157,171,186,224,224,265,223,295,256,260,323,286,309,324,322,353,365,350,409,454,475,408,400,395,495,414,421,391,415,394,458,391,422,416,414,400,382,443,440,494,433,376,372,381,401,410,384,382,393,381,454,369,402,438,393,378,319,316,307,304,254,212,151,80]
+        data: [41,75,121,168,217,240,263,273,308,341,396,394,405,419,388,443,450,387,443,458,457,409,419,436,438,464,455,425,455,472,415,398,406,391,422,434,417,398,387,410,567,434,446,425,476,436,407,401,404,416,449,406,415,399,411,520,420,402,437,424,439,405,378,367,368,364,330,280,301,257,218,103]
     }
 ]
 {{< /chart >}}
@@ -296,14 +296,14 @@ export default function () {
 [
     {
         label: 'User',
-        data: [0.03,0.34,0.37,0.36,0.38,0.36,0.03],
+        data: [0.03,0.14,0.36,0.37,0.36,0.35,0.03],
         borderColor: '#4bc0c0',
         backgroundColor: '#4bc0c0',
         fill: true
     },
     {
         label: 'System',
-        data: [0.02,0.08,0.07,0.09,0.08,0.08,0.02],
+        data: [0.02,0.04,0.09,0.08,0.09,0.07,0.02],
         borderColor: '#ff6384',
         backgroundColor: '#ff6384',
         fill: true
@@ -315,14 +315,14 @@ export default function () {
 [
     {
         label: 'User',
-        data: [0.03,0.89,0.9,0.91,0.91,0.53,0.03],
+        data: [0.04,0.88,0.92,0.93,0.92,0.92,0.03],
         borderColor: '#4bc0c0',
         backgroundColor: '#4bc0c0',
         fill: true
     },
     {
         label: 'System',
-        data: [0.02,0.07,0.07,0.09,0.09,0.05,0.02],
+        data: [0.02,0.07,0.08,0.07,0.08,0.08,0.02],
         borderColor: '#ff6384',
         backgroundColor: '#ff6384',
         fill: true
@@ -433,16 +433,16 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 | Metric                  | Value     |
 | ----------------------- | --------- |
 | Iteration creation rate | **5/s**   |
-| Total requests          | **4386**  |
-| Total iterations        | **86**    |
-| Average max req/s       | **70**    |
-| p(90) req duration      | **1.24s** |
+| Total requests          | **11934** |
+| Total iterations        | **234**   |
+| Average max req/s       | **180**   |
+| p(90) req duration      | **371ms** |
 
 {{< chart type="timeseries" title="Req/s count" >}}
 [
     {
         label: 'Req/s',
-        data: [31,62,60,64,63,68,66,63,64,64,67,66,64,65,65,64,66,63,55,69,65,66,63,66,65,65,65,60,64,66,65,63,64,58,56,59,53,52,56,60,52,53,47,50,53,56,50,45,54,56,54,49,47,47,52,56,47,44,51,58,53,43,51,48,48,45,45,40,44,41,46,41,43,43,38,42,36,38,36,35,29]
+        data: [64,138,161,163,174,170,164,172,183,176,174,161,181,179,181,177,174,182,178,184,183,171,183,177,193,168,161,188,179,187,172,173,187,175,188,174,170,183,181,185,172,175,179,185,183,180,167,186,180,183,173,169,189,181,181,176,174,177,182,188,174,168,181,172,190,176,169,180,30]
     }
 ]
 {{< /chart >}}
@@ -455,7 +455,7 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 [
     {
         label: 'VUs',
-        data: [2,4,6,8,10,10,12,14,15,17,18,20,21,22,24,26,28,29,31,32,33,35,37,37,39,40,42,44,45,47,48,49,50,50,49,50,49,49,50,50,50,50,49,50,49,50,50,50,49,50,49,50,49,50,49,49,50,49,50,48,48,48,47,45,43,42,39,38,37,35,30,30,25,21,20,19,17,15,12,8]
+        data: [5,10,14,17,20,22,26,29,31,34,37,40,43,45,48,50,50,49,50,49,50,49,50,50,48,47,49,49,49,49,50,50,50,50,49,50,50,48,48,48,47,45,50,46,48,49,49,50,50,48,50,49,47,50,49,48,49,50,48,50,47,44,41,40,31,27,22,7]
     }
 ]
 {{< /chart >}}
@@ -464,7 +464,7 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 [
     {
         label: 'Duration (ms)',
-        data: [50,56,89,114,147,148,169,210,231,239,253,284,333,352,344,364,431,458,448,497,483,534,558,573,561,597,628,693,689,687,715,743,780,879,847,848,916,929,892,905,944,941,989,954,979,944,932,979,1009,929,934,940,1059,981,1001,962,989,1047,963,1015,911,925,1046,1008,962,905,970,910,894,877,792,725,730,584,515,505,474,459,382,289,186]
+        data: [39,53,74,94,100,119,137,155,168,175,199,216,237,246,252,277,289,272,274,271,277,279,273,274,267,276,265,280,277,262,283,284,275,278,271,276,286,279,268,270,276,274,266,263,256,274,287,272,276,271,277,291,270,266,271,275,273,283,272,264,278,267,239,238,197,172,150,92,37]
     }
 ]
 {{< /chart >}}
@@ -476,14 +476,14 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 [
     {
         label: 'User',
-        data: [0.02,0.31,0.29,0.28,0.28,0.27,0.03],
+        data: [0.03,0.35,0.83,0.81,0.83,0.82,0.03],
         borderColor: '#4bc0c0',
         backgroundColor: '#4bc0c0',
         fill: true
     },
     {
         label: 'System',
-        data: [0.01,0.06,0.06,0.06,0.06,0.06,0.01],
+        data: [0.02,0.07,0.15,0.15,0.16,0.15,0.02],
         borderColor: '#ff6384',
         backgroundColor: '#ff6384',
         fill: true
@@ -495,14 +495,14 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 [
     {
         label: 'User',
-        data: [0.04,0.8,0.82,0.85,0.86,0.87,0.36,0.03],
+        data: [0.03,0.3,0.33,0.33,0.33,0.3,0.04],
         borderColor: '#4bc0c0',
         backgroundColor: '#4bc0c0',
         fill: true
     },
     {
         label: 'System',
-        data: [0.02,0.19,0.18,0.15,0.14,0.13,0.05,0.02],
+        data: [0.02,0.39,0.44,0.44,0.43,0.43,0.02],
         borderColor: '#ff6384',
         backgroundColor: '#ff6384',
         fill: true
@@ -513,7 +513,7 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 {{< /tab >}}
 {{< /tabs >}}
 
-Now it seems interesting, Laravel performs literally about 2x slower with PostgreSQL than MySQL, with a very high response time (> 1s). Many says that MySQL is better than PostgreSQL for reading data, but I can't explain such a difference. It will be interesting to compare with Symfony Doctrine to get a better idea.
+Laravel performs slightly better than MySQL in this scenario, and we are not limited by database, contrary with MySQL.
 
 #### Laravel PgSQL scenario 2
 
@@ -603,7 +603,7 @@ Now it seems interesting, Laravel performs literally about 2x slower with Postgr
 {{< /tab >}}
 {{< /tabs >}}
 
-Laravel seems less limited by database performance, but still slower than MySQL. Workers and databases are both heavy loaded, and finally we didn't complete a single scenario iteration !
+Laravel performing slower than MySQL in this context. Workers and databases are both heavy loaded, and we didn't complete a single scenario iteration.
 
 ### Symfony
 
@@ -695,7 +695,7 @@ Laravel seems less limited by database performance, but still slower than MySQL.
 {{< /tab >}}
 {{< /tabs >}}
 
-It's very similar to Laravel in this case, performs slightly better with a lower response time.
+It's slightly better than Laravel in this case, with a lower response time.
 
 #### Symfony MySQL scenario 2
 
@@ -785,7 +785,7 @@ It's very similar to Laravel in this case, performs slightly better with a lower
 {{< /tab >}}
 {{< /tabs >}}
 
-Symfony is able to handle the load, a little better than Laravel in the same context. Let's see if it's able to keep up with the same performance with PostgreSQL.
+Symfony is able to handle the load, still better than Laravel in the same context. Let's see if it's able to keep up with the same performance with PostgreSQL.
 
 #### Symfony PgSQL scenario 1
 
@@ -875,7 +875,7 @@ Symfony is able to handle the load, a little better than Laravel in the same con
 {{< /tab >}}
 {{< /tabs >}}
 
-Symfony performs same with PostgreSQL and MySQL, contrary to Laravel which performs more than twice lower in the same context.
+Symfony performs same with PostgreSQL and MySQL, and performing a little less than Laravel when using PostgreSQL.
 
 #### Symfony PgSQL scenario 2
 
@@ -965,7 +965,7 @@ Symfony performs same with PostgreSQL and MySQL, contrary to Laravel which perfo
 {{< /tab >}}
 {{< /tabs >}}
 
-Now it performs clearly slower than with MySQL in same scenario, about almost twice. Slightly better than Laravel in same context. To summary the 2nd scenario give MySQL a good advantage against PostgreSQL **with PHP**.
+Now it performs clearly slower than with MySQL in same scenario. Slightly better than Laravel in same context. To summary the 2nd scenario give MySQL a good advantage against PostgreSQL **with PHP**.
 
 ### FastAPI
 
@@ -1700,13 +1700,13 @@ Not that far to Java variant, just a bit behind. But as workers are fully loaded
 
 ### Conclusion
 
-Here are the final req/s results for each framework. Note that I do my best for PHP by choosing MySQL which shows the best results overall.
+Here are the final req/s results for each framework. I choose to take MySQL results for PHP.
 
 {{< chart type="timeseries" title="Scenario 1" >}}
 [
     {
         label: 'Laravel',
-        data: [6,69,81,103,103,113,83,91,103,112,99,101,109,101,106,108,100,112,117,124,113,111,117,108,129,119,124,81,113,128,124,108,108,128,111,128,123,127,100,124,124,118,119,125,121,101,96,120,110,130,137,117,127,120,124,129,127,115,121,114,126,121,103,124,120,120,116,102,122,103,109,81],
+        data: [54,93,105,93,96,106,111,130,123,116,115,122,124,122,129,115,111,119,121,108,110,109,135,97,109,120,107,105,103,125,115,125,126,126,113,117,114,131,134,84,115,116,112,89,116,120,121,125,120,119,112,112,124,115,138,89,113,137,98,123,111,125,120,126,123,102,124,111,99,107,89,91],
         borderColor: '#c2410c',
         backgroundColor: '#c2410c'
     },
