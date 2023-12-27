@@ -1,6 +1,6 @@
 ---
 title: "A 2024 benchmark of main Web APIs frameworks"
-date: 2023-12-30
+date: 2023-12-26
 tags: ["kubernetes", "docker", "load-testing", "k6", "webapi"]
 ---
 
