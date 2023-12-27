@@ -1,6 +1,6 @@
 ---
 title: "A 2024 benchmark of main Web APIs frameworks"
-date: 2023-12-26
+date: 2023-12-30
 tags: ["kubernetes", "docker", "load-testing", "k6", "webapi"]
 ---
 
@@ -252,7 +252,7 @@ export default function () {
 
 | Metric                  | Value     |
 | ----------------------- | --------- |
-| Iteration creation rate | **3/s**   |
+| Iteration creation rate | **5/s**   |
 | Total requests          | **8007**  |
 | Total iterations        | **157**   |
 | Average max req/s       | **140**   |
@@ -432,7 +432,7 @@ Now we have a very runtime intensive scenario, with workers as bottleneck, API i
 
 | Metric                  | Value     |
 | ----------------------- | --------- |
-| Iteration creation rate | **2/s**   |
+| Iteration creation rate | **5/s**   |
 | Total requests          | **4386**  |
 | Total iterations        | **86**    |
 | Average max req/s       | **70**    |
