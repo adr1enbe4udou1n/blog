@@ -405,10 +405,10 @@ As input variables, you have the choice to use environment variables or separate
 
 ```tf
 hcloud_token = "xxx"
-my_public_ssh_keys = [
+my_ip_addresses = [
   "82.82.82.82/32"
 ]
-my_ip_addresses = [
+my_public_ssh_keys = [
   "ssh-ed25519 xxx"
 ]
 s3_access_key = "xxx"
