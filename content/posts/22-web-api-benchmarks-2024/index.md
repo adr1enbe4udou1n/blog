@@ -551,7 +551,7 @@ vus_max........................: 50      min=50       max=50
 {{< /tab >}}
 {{< /tabs >}}
 
-Now we have a very runtime intensive scenario, with workers as bottleneck, API is keeping up with a low response time (~100ms).
+Now we have a very runtime intensive scenario, with workers as bottleneck, database not very loaded, API is keeping up with a low response time (~100ms).
 
 #### Laravel PgSQL scenario 1
 
@@ -703,7 +703,7 @@ vus_max........................: 50      min=50       max=50
 {{< /tab >}}
 {{< /tabs >}}
 
-Laravel performs slightly better than MySQL in this scenario, and we are not limited by database, contrary with MySQL.
+Laravel performs slightly better than MySQL in this scenario, and we are not limited by database this time.
 
 #### Laravel PgSQL scenario 2
 
@@ -1011,7 +1011,7 @@ vus_max........................: 50      min=50      max=50
 {{< /tab >}}
 {{< /tabs >}}
 
-It's slightly better than Laravel in this case, with a lower response time.
+It's very similar to Laravel.
 
 #### Symfony MySQL scenario 2
 
@@ -1167,7 +1167,7 @@ vus_max........................: 50      min=50       max=50
 {{< /tab >}}
 {{< /tabs >}}
 
-Symfony is able to handle the load, still better than Laravel in the same context. Let's see if it's able to keep up with the same performance with PostgreSQL.
+Similar to Laravel too, just slightly better in the same context. Let's see if it's able to keep up with the same performance with PostgreSQL.
 
 #### Symfony PgSQL scenario 1
 
@@ -1319,7 +1319,7 @@ vus_max........................: 50      min=50       max=50
 {{< /tab >}}
 {{< /tabs >}}
 
-Symfony performs same with PostgreSQL and MySQL, and performing a little less than Laravel when using PostgreSQL.
+Symfony performs same with PostgreSQL and MySQL, but we are limited by database contrary to Laravel case, and performing a little less.
 
 #### Symfony PgSQL scenario 2
 
@@ -1481,26 +1481,27 @@ As a side note here, uvicorn is limited to 1 CPU core, so I use 2 replicas on ea
 
 #### FastAPI PgSQL scenario 1
 
-Iteration creation rate =  **10/s**
+Iteration creation rate =  **15/s**
 
 ```txt
-checks.........................: 100.00% ✓ 30651      ✗ 0
-data_received..................: 252 MB  4.1 MB/s
-data_sent......................: 2.7 MB  44 kB/s
-http_req_blocked...............: avg=45.12µs  min=239ns    med=907ns    max=71.16ms  p(90)=1.34µs   p(95)=1.51µs
-http_req_connecting............: avg=1.92µs   min=0s       med=0s       max=5.95ms   p(90)=0s       p(95)=0s
-http_req_duration..............: avg=26.35ms  min=5.08ms   med=20.98ms  max=250.92ms p(90)=46.63ms  p(95)=62.58ms
-{ expected_response:true }...: avg=26.35ms  min=5.08ms   med=20.98ms  max=250.92ms p(90)=46.63ms  p(95)=62.58ms
-http_req_failed................: 0.00%   ✓ 0          ✗ 30651
-http_req_receiving.............: avg=371.83µs min=18.19µs  med=199.55µs max=38.83ms  p(90)=649.07µs p(95)=1.14ms
-http_req_sending...............: avg=138.43µs min=17.16µs  med=98.68µs  max=21.62ms  p(90)=171.16µs p(95)=225.32µs
-http_req_tls_handshaking.......: avg=40.7µs   min=0s       med=0s       max=47.82ms  p(90)=0s       p(95)=0s
-http_req_waiting...............: avg=25.84ms  min=1.21ms   med=20.49ms  max=250.26ms p(90)=45.93ms  p(95)=61.85ms
-http_reqs......................: 30651   503.353918/s
-iteration_duration.............: avg=1.37s    min=809.38ms med=1.36s    max=1.99s    p(90)=1.62s    p(95)=1.7s
-iterations.....................: 601     9.869685/s
-vus............................: 14      min=10       max=17
-vus_max........................: 50      min=50       max=50
+checks.........................: 100.00% ✓ 33048     ✗ 0
+data_received..................: 272 MB  4.3 MB/s
+data_sent......................: 2.9 MB  46 kB/s
+dropped_iterations.............: 253     4.042284/s
+http_req_blocked...............: avg=44.03µs  min=197ns   med=873ns    max=51.66ms  p(90)=1.31µs   p(95)=1.48µs
+http_req_connecting............: avg=1.59µs   min=0s      med=0s       max=3.33ms   p(90)=0s       p(95)=0s
+http_req_duration..............: avg=87.55ms  min=5.74ms  med=79.16ms  max=449.45ms p(90)=160.7ms  p(95)=187.45ms
+{ expected_response:true }...: avg=87.55ms  min=5.74ms  med=79.16ms  max=449.45ms p(90)=160.7ms  p(95)=187.45ms
+http_req_failed................: 0.00%   ✓ 0         ✗ 33048
+http_req_receiving.............: avg=809.01µs min=18.38µs med=273.27µs max=53.15ms  p(90)=1.95ms   p(95)=3.12ms
+http_req_sending...............: avg=156.85µs min=23.21µs med=95.41µs  max=45.6ms   p(90)=181.16µs p(95)=248.5µs
+http_req_tls_handshaking.......: avg=40.32µs  min=0s      med=0s       max=44.77ms  p(90)=0s       p(95)=0s
+http_req_waiting...............: avg=86.59ms  min=0s      med=78.14ms  max=448.54ms p(90)=159.53ms p(95)=186.05ms
+http_reqs......................: 33048   528.02138/s
+iteration_duration.............: avg=4.49s    min=1.14s   med=4.65s    max=6.25s    p(90)=5.17s    p(95)=5.3s
+iterations.....................: 648     10.35336/s
+vus............................: 22      min=15      max=50
+vus_max........................: 50      min=50      max=50
 ```
 
 {{< tabs >}}
@@ -1511,13 +1512,13 @@ vus_max........................: 50      min=50       max=50
   {
     label: 'Req/s',
     data: [
-      145, 483, 466, 539, 474, 513, 506, 490, 544,
-      491, 527, 502, 465, 528, 521, 508, 505, 460,
-      508, 494, 508, 499, 511, 547, 505, 525, 487,
-      522, 488, 532, 522, 461, 523, 507, 528, 540,
-      474, 497, 525, 504, 550, 496, 528, 519, 541,
-      521, 484, 502, 494, 540, 522, 491, 515, 478,
-      557, 493, 529, 502, 467, 527, 480,  41
+      270, 514, 530, 535, 552, 541, 524, 493, 545,
+      555, 560, 539, 519, 545, 540, 531, 525, 514,
+      547, 540, 537, 533, 485, 511, 534, 525, 508,
+      500, 550, 527, 538, 516, 500, 542, 532, 530,
+      504, 508, 540, 538, 553, 537, 497, 560, 517,
+      578, 559, 487, 551, 546, 538, 531, 517, 518,
+      578, 559, 521, 516, 556, 567, 517, 517, 351
     ]
   }
 ]
@@ -1532,11 +1533,12 @@ vus_max........................: 50      min=50       max=50
   {
     label: 'VUs',
     data: [
-      10, 11, 11, 11, 12, 13, 14, 14, 11, 12, 11, 13,
-      14, 13, 13, 14, 13, 13, 16, 17, 15, 17, 16, 15,
-      15, 13, 15, 15, 15, 14, 14, 15, 16, 15, 15, 13,
-      15, 15, 15, 14, 12, 14, 13, 13, 13, 13, 12, 13,
-      13, 13, 11, 12, 13, 13, 13, 13, 11, 12, 14, 14
+      15, 23, 31, 41, 46, 50, 50, 50, 48, 49, 50, 48,
+      48, 45, 49, 50, 49, 48, 50, 49, 50, 49, 49, 50,
+      50, 50, 50, 48, 50, 47, 49, 48, 48, 49, 49, 50,
+      48, 48, 50, 49, 49, 50, 48, 48, 49, 48, 45, 50,
+      48, 49, 49, 48, 47, 50, 49, 50, 48, 47, 50, 48,
+      39, 22
     ]
   }
 ]
@@ -1547,12 +1549,12 @@ vus_max........................: 50      min=50       max=50
   {
     label: 'Duration (ms)',
     data: [
-      17, 18, 22, 20, 22, 23, 24, 26, 24, 24, 23, 24,
-      27, 26, 25, 24, 26, 29, 28, 29, 32, 31, 32, 30,
-      29, 28, 29, 29, 31, 29, 28, 32, 30, 29, 30, 27,
-      30, 31, 30, 29, 27, 28, 27, 25, 25, 24, 25, 24,
-      25, 25, 23, 25, 24, 28, 24, 24, 23, 23, 28, 26,
-      22, 10
+      20, 33, 45,  65, 74, 88, 93, 96, 90, 89,  90, 92,
+      94, 91, 89,  91, 91, 95, 90, 93, 92, 93, 101, 93,
+      90, 94, 96, 101, 87, 92, 89, 96, 98, 91,  91, 93,
+      94, 97, 92,  90, 88, 91, 95, 91, 93, 86,  88, 94,
+      89, 91, 90,  92, 93, 92, 87, 86, 94, 90,  91, 86,
+      86, 63, 36
     ]
   }
 ]
@@ -1566,11 +1568,11 @@ vus_max........................: 50      min=50       max=50
   {
     label: 'User',
     data: [
-      0.03, 0.03, 0.45, 0.64,
-      0.63, 0.63, 0.64, 0.65,
-      0.65, 0.64, 0.67, 0.64,
-      0.65, 0.65, 0.24, 0.03,
-      0.02, 0.02, 0.02
+      0.03, 0.02, 0.52, 0.71,
+      0.74, 0.73, 0.71, 0.69,
+      0.71, 0.73, 0.73, 0.75,
+      0.71, 0.74,  0.5, 0.04,
+      0.03, 0.03, 0.02
     ],
     borderColor: '#4bc0c0',
     backgroundColor: '#4bc0c0',
@@ -1579,10 +1581,10 @@ vus_max........................: 50      min=50       max=50
   {
     label: 'System',
     data: [
-      0.01, 0.02, 0.09, 0.13,
-      0.13, 0.14, 0.15, 0.14,
-      0.13, 0.15, 0.13, 0.14,
-      0.13, 0.13, 0.07, 0.02,
+      0.01, 0.01, 0.12, 0.15,
+      0.15, 0.15, 0.15, 0.17,
+      0.16, 0.15, 0.15, 0.15,
+      0.15, 0.15, 0.11, 0.02,
       0.01, 0.01, 0.01
     ],
     borderColor: '#ff6384',
@@ -1597,11 +1599,11 @@ vus_max........................: 50      min=50       max=50
   {
     label: 'User',
     data: [
-      0.03, 0.25, 0.38, 0.36,
-      0.38, 0.38, 0.37, 0.37,
-      0.37, 0.37, 0.36, 0.37,
-      0.36, 0.19, 0.03, 0.03,
-      0.03, 0.03, 0.04
+      0.03,  0.3, 0.46, 0.47,
+      0.47, 0.48, 0.47, 0.48,
+      0.49, 0.49, 0.49, 0.46,
+      0.49, 0.35, 0.03, 0.03,
+      0.03, 0.03, 0.03
     ],
     borderColor: '#4bc0c0',
     backgroundColor: '#4bc0c0',
@@ -1610,11 +1612,11 @@ vus_max........................: 50      min=50       max=50
   {
     label: 'System',
     data: [
-      0.01, 0.09, 0.12, 0.14,
-      0.14, 0.15, 0.15, 0.15,
-      0.15, 0.15, 0.14, 0.12,
-      0.13, 0.06, 0.02, 0.02,
-      0.02, 0.02, 0.01
+      0.01, 0.11, 0.25, 0.25,
+       0.3, 0.27, 0.27, 0.25,
+      0.29, 0.28, 0.28, 0.26,
+      0.29, 0.19, 0.02, 0.02,
+      0.02, 0.01, 0.01
     ],
     borderColor: '#ff6384',
     backgroundColor: '#ff6384',
@@ -1936,7 +1938,7 @@ vus_max........................: 50      min=50       max=50
 {{< /tab >}}
 {{< /tabs >}}
 
-It's slightly better than FastAPI, let's keep up on scenario 2.
+It's slightly better than FastAPI, and database is strangely sleeping far more than with FastAPI, let's keep up on scenario 2.
 
 #### NestJS PgSQL scenario 2
 
@@ -2750,13 +2752,13 @@ Here are the final req/s results for each framework. I choose to take MySQL resu
         borderColor: '#0f766e',
         backgroundColor: '#0f766e',
         data: [
-            145, 483, 466, 539, 474, 513, 506, 490, 544,
-            491, 527, 502, 465, 528, 521, 508, 505, 460,
-            508, 494, 508, 499, 511, 547, 505, 525, 487,
-            522, 488, 532, 522, 461, 523, 507, 528, 540,
-            474, 497, 525, 504, 550, 496, 528, 519, 541,
-            521, 484, 502, 494, 540, 522, 491, 515, 478,
-            557, 493, 529, 502, 467, 527, 480,  41
+            270, 514, 530, 535, 552, 541, 524, 493, 545,
+            555, 560, 539, 519, 545, 540, 531, 525, 514,
+            547, 540, 537, 533, 485, 511, 534, 525, 508,
+            500, 550, 527, 538, 516, 500, 542, 532, 530,
+            504, 508, 540, 538, 553, 537, 497, 560, 517,
+            578, 559, 487, 551, 546, 538, 531, 517, 518,
+            578, 559, 521, 516, 556, 567, 517, 517, 351
         ]
     },
     {
