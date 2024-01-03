@@ -178,7 +178,7 @@ module "hcloud_kube" {
   ]
 
   control_planes_custom_config = {
-    tls-sans                    = ["cp.kube.rocks"]
+    tls-san                     = ["cp.kube.rocks"]
     disable                     = ["traefik"]
     etcd-s3                     = true
     etcd-s3-endpoint            = "s3.fr-par.scw.cloud"
@@ -292,7 +292,7 @@ I also prefer increase the eviction threshold to 250Mi, in order to avoid OS OOM
 
 ```tf
 control_planes_custom_config = {
-  tls-sans                    = ["cp.kube.rocks"]
+  tls-san                     = ["cp.kube.rocks"]
   disable                     = ["traefik"]
   etcd-s3                     = true
   etcd-s3-endpoint            = "s3.fr-par.scw.cloud"
