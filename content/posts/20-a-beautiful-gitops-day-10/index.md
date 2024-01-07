@@ -24,7 +24,7 @@ Create dedicated database for SonarQube same as usual, then we can use flux for 
 {{< highlight host="demo-kube-flux" file="clusters/demo/sonarqube/deploy-sonarqube.yaml" >}}
 
 ```yaml
-apiVersion: apps/v1
+apiVersion: v1
 kind: Namespace
 metadata:
   name: sonarqube

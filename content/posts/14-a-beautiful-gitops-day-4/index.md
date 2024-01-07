@@ -352,7 +352,7 @@ Let's try some app that require a bit more configuration and real database conne
 {{< highlight host="demo-kube-flux" file="clusters/demo/n8n/deploy-n8n.yaml" >}}
 
 ```yaml
-apiVersion: apps/v1
+apiVersion: v1
 kind: Namespace
 metadata:
   name: n8n
@@ -517,7 +517,7 @@ Let's try a final candidate with NocoDB, an Airtable-like generator for Postgres
 {{< highlight host="demo-kube-flux" file="clusters/demo/nocodb/deploy-nocodb.yaml" >}}
 
 ```yaml
-apiVersion: apps/v1
+apiVersion: v1
 kind: Namespace
 metadata:
   name: nocodb
