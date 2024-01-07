@@ -423,10 +423,14 @@ spec:
           volumeMounts:
             - name: n8n-data
               mountPath: /home/node/.n8n
+            - name: n8n-cache
+              mountPath: /home/node/.cache
       volumes:
         - name: n8n-data
           persistentVolumeClaim:
             claimName: n8n-data
+        - name: n8n-cache
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
