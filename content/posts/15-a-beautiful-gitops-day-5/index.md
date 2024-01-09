@@ -116,8 +116,8 @@ resource "helm_release" "kube_prometheus_stack" {
   }
 
   set {
-    name  = "prometheus.prometheusSpec.tolerations[0].operator"
-    value = "Exists"
+    name  = "prometheus.prometheusSpec.tolerations[0].effect"
+    value = "NoSchedule"
   }
 
   set {
@@ -632,9 +632,8 @@ resource "helm_release" "loki" {
   }
 
   set {
-    name  = "write.nodeSelector.node-role\\.kubernetes\\.io/storage"
-    type  = "string"
-    value = "true"
+    name  = "write.nodeSelector.node\\.kubernetes\\.io/server-usage"
+    value = "storage"
   }
 
   set {
