@@ -52,9 +52,9 @@ Some notes of this blog :
 * Kubernetes infrastructure completely managed with [`Terraform`](https://github.com/adr1enbe4udou1n/terraform-kube-okami) 🌴
 * **HA** setup using **Hetzner LB**, targeting 2 worker nodes, with **Postgres cluster** (managed on same Kubernetes cluster)
 * `Traefik` as reverse proxy, configured for HA 🛣️
-* Source code on my own [`Gitea`](https://gitea.okami101.io/adr1enbe4udou1n/blog)
-* Compiled by my own [`Concourse`](https://concourse.okami101.io) instance as a final docker container image into self-hosted private registry (**CI** 🏗️)
-* Automatically deployed by `Flux CD v2` to the Kubernetes cluster from [central Git source](https://gitea.okami101.io/okami101/flux-source/src/branch/main/okami/deploy-blog.yaml) (**CD** 🚀)
+* Source code on my own [`Gitea`](https://about.gitea.com/)
+* Compiled by my own [`Concourse`](https://concourse-ci.org/) instance as a final docker container image into self-hosted private registry (**CI** 🏗️)
+* Automatically deployed by `Flux CD v2` to the Kubernetes cluster (**CD** 🚀)
 * Tracked with [`Umami`](https://umami.is/) 📈
 
 All above tools are 💯% self-hosted ! Just sadly missing my own Homelab with Proxmox because no fiber 😿

@@ -931,7 +931,7 @@ spec:
         - name: dockerconfigjson
       containers:
         - name: front
-          image: gitea.okami101.io/kuberocks/demo-ui:latest # {"$imagepolicy": "flux-system:image-demo-ui"}
+          image: gitea.kube.rocks/kuberocks/demo-ui:latest # {"$imagepolicy": "flux-system:image-demo-ui"}
           ports:
             - containerPort: 80
 ---

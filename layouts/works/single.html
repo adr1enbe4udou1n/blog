@@ -49,7 +49,7 @@
                         {{ readFile (print "data/works/" .name ".md") | markdownify }}
                     </div>
                     <div class="flex justify-center gap-4">
-                        {{ partial "button.html" (dict "text" (partial "icon.html" "github") "href" .repo "color" .color) }}
+                        {{ partial "button.html" (dict "text" (partial "icon.html" "github") "href" (print "https://github.com/" .repo) "color" .color) }}
                         {{ if .demo }}
                         {{ partial "button.html" (dict "text" "Demo" "href" .demo "color" .color) }}
                         {{ end }}

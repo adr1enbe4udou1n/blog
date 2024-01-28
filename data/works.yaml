@@ -6,13 +6,13 @@
       apps:
         - name: vue-ts
           title: Vue 3 TS Realworld
-          repo: https://gitea.okami101.io/adr1enbe4udou1n/vue-ts-realworld-example-app
+          repo: adr1enbe4udou1n/vue-ts-realworld-example-app
           ci: conduit-vue-ts
           demo: https://vuetsrealworld.okami101.io
           color: green
         - name: react-ts
           title: React TS Realworld
-          repo: https://gitea.okami101.io/adr1enbe4udou1n/react-ts-realworld-example-app
+          repo: adr1enbe4udou1n/react-ts-realworld-example-app
           ci: conduit-react-ts
           demo: https://reacttsrealworld.okami101.io
           color: blue
@@ -22,41 +22,41 @@
       apps:
         - name: aspnet-core
           title: ASP.NET Core Realworld
-          repo: https://gitea.okami101.io/adr1enbe4udou1n/aspnetcore-realworld-example-app
+          repo: adr1enbe4udou1n/aspnetcore-realworld-example-app
           ci: conduit-aspnet-core
           demo: https://aspnetcorerealworld.okami101.io/api
 
         - name: spring-boot
           title: Spring Boot Realworld
-          repo: https://gitea.okami101.io/adr1enbe4udou1n/spring-boot-realworld-example-app
+          repo: adr1enbe4udou1n/spring-boot-realworld-example-app
           ci: conduit-spring-boot
           demo: https://springbootrealworld.okami101.io/api
           color: green
 
         - name: symfony
           title: Symfony Realworld
-          repo: https://gitea.okami101.io/adr1enbe4udou1n/symfony-realworld-example-app
+          repo: adr1enbe4udou1n/symfony-realworld-example-app
           ci: conduit-symfony
           demo: https://symfonyrealworld.okami101.io/api
           color: black
 
         - name: laravel
           title: Laravel Realworld
-          repo: https://gitea.okami101.io/adr1enbe4udou1n/laravel-realworld-example-app
+          repo: adr1enbe4udou1n/laravel-realworld-example-app
           ci: conduit-laravel
           demo: https://laravelrealworld.okami101.io/api
           color: orange
 
         - name: nestjs
           title: NestJS Realworld
-          repo: https://gitea.okami101.io/adr1enbe4udou1n/nestjs-realworld-example-app
+          repo: adr1enbe4udou1n/nestjs-realworld-example-app
           ci: conduit-nestjs
           demo: https://nestjsrealworld.okami101.io/api
           color: red
 
         - name: fastapi
           title: FastAPI Realworld
-          repo: https://gitea.okami101.io/adr1enbe4udou1n/fastapi-realworld-example-app
+          repo: adr1enbe4udou1n/fastapi-realworld-example-app
           ci: conduit-fastapi
           demo: https://fastapirealworld.okami101.io/api
           color: teal
@@ -69,12 +69,12 @@
         - name: vuetify-admin
           title: Vuetify Admin
           date: 11/2020
-          repo: https://github.com/okami101/vuetify-admin
+          repo: okami101/vuetify-admin
           demo: https://va-demo.okami101.io/
           docs: https://www.okami101.io/vuetify-admin
 
         - name: laravel-rad-stack
           title: Laravel RAD Stack
           date: 10/2021
-          repo: https://github.com/adr1enbe4udou1n/laravel-rad-stack
+          repo: adr1enbe4udou1n/laravel-rad-stack
           demo: https://laravel-rad-stack.okami101.io/
