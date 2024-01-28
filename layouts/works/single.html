@@ -50,10 +50,6 @@
                     </div>
                     <div class="flex justify-center gap-4">
                         {{ partial "button.html" (dict "text" (partial "icon.html" "github") "href" .repo "color" .color) }}
-                        {{ if .ci }}
-                        {{ partial "button.html" (dict "text" (partial "icon.html" "bug") "href" (print
-                        "https://concourse.okami101.io/teams/main/pipelines/" .ci) "color" .color) }}
-                        {{ end }}
                         {{ if .demo }}
                         {{ partial "button.html" (dict "text" "Demo" "href" .demo "color" .color) }}
                         {{ end }}
