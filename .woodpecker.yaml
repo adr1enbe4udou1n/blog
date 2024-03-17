@@ -1,5 +1,0 @@
-steps:
-  - name: build
-    image: hugomods/hugo
-    commands:
-      - hugo --minify
