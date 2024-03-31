@@ -23,7 +23,7 @@ We'll be using the very last up-to-date stable versions of the frameworks, and t
 
 | Framework & Source code                                                                                                                       | Runtime     | ORM            | Tested Database    |
 | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | -------------- | ------------------ |
-| [Laravel 10](https://github.com/adr1enbe4udou1n/laravel-realworld-example-app) ([api](https://laravelrealworld.okami101.io/api/))             | PHP 8.3     | Eloquent       | MySQL & PostgreSQL |
+| [Laravel 11](https://github.com/adr1enbe4udou1n/laravel-realworld-example-app) ([api](https://laravelrealworld.okami101.io/api/))             | PHP 8.3     | Eloquent       | MySQL & PostgreSQL |
 | [Symfony 7](https://github.com/adr1enbe4udou1n/symfony-realworld-example-app) ([api](https://symfonyrealworld.okami101.io/api/))              | PHP 8.3     | Doctrine       | MySQL & PostgreSQL |
 | [FastAPI](https://github.com/adr1enbe4udou1n/fastapi-realworld-example-app) ([api](https://fastapirealworld.okami101.io/api/))                | Python 3.12 | SQLAlchemy 2.0 | PostgreSQL         |
 | [NestJS 10](https://github.com/adr1enbe4udou1n/nestjs-realworld-example-app) ([api](https://nestjsrealworld.okami101.io/api/))                | Node 20     | Prisma 5       | PostgreSQL         |
@@ -41,10 +41,10 @@ Each project are:
 
 ### Side note on PHP configuration
 
-Note as I tested against PostgreSQL for all frameworks as main Database, but I added MySQL for Laravel and Symfony too, just by curiosity, and because of simplicity of PHP for switching database without changing code base, as both DB drivers integrated into base PHP Docker image. It allows to have an interesting Eloquent VS Doctrine ORM comparison for each database.
+Note as I tested against PostgreSQL for all frameworks as main Database, but I added MySQL for Laravel and Symfony too (OPcache enabled), just by curiosity, and because of simplicity of PHP for switching database without changing code base, as both DB drivers integrated into base PHP Docker image. It allows to have an interesting Eloquent VS Doctrine ORM comparison for each database.
 
 {{< alert >}}
-I enabled OPcache and use simple Apache PHP docker image, as it's the simplest configuration for PHP apps containers. The `memory_limit` is set to **1G**. I tested [FrankenPHP](https://frankenphp.dev/), which seems promising at first glance, but performance results was just far lower than Apache, even with worker mode (tried with Symfony runtime and Laravel Octane)...
+Update April 2024: I added worker tests via [FrankenPHP](https://frankenphp.dev/).
 {{< /alert >}}
 
 ## The target hardware
@@ -250,23 +250,23 @@ export default function () {
 Iteration creation rate =  **5/s**
 
 ```txt
-checks.........................: 100.00% ✓ 8313       ✗ 0
-data_received..................: 90 MB   1.3 MB/s
-data_sent......................: 781 kB  11 kB/s
-dropped_iterations.............: 138     1.937589/s
-http_req_blocked...............: avg=180.91µs min=276ns   med=1.08µs   max=45.16ms  p(90)=1.59µs   p(95)=1.81µs
-http_req_connecting............: avg=6.64µs   min=0s      med=0s       max=6.29ms   p(90)=0s       p(95)=0s
-http_req_duration..............: avg=374.29ms min=11.37ms med=370.41ms max=956.84ms p(90)=559.47ms p(95)=610.32ms
-{ expected_response:true }...: avg=374.29ms min=11.37ms med=370.41ms max=956.84ms p(90)=559.47ms p(95)=610.32ms
-http_req_failed................: 0.00%   ✓ 0          ✗ 8313
-http_req_receiving.............: avg=809.54µs min=39.87µs med=404.11µs max=53.92ms  p(90)=1ms      p(95)=2.3ms
-http_req_sending...............: avg=147.9µs  min=31.92µs med=121.93µs max=11.96ms  p(90)=192.85µs p(95)=235.85µs
-http_req_tls_handshaking.......: avg=168.89µs min=0s      med=0s       max=43.99ms  p(90)=0s       p(95)=0s
-http_req_waiting...............: avg=373.33ms min=11.11ms med=369.54ms max=956.55ms p(90)=558.62ms p(95)=609.32ms
-http_reqs......................: 8313    116.718703/s
-iteration_duration.............: avg=19.13s   min=7.37s   med=20.12s   max=23.62s   p(90)=21.53s   p(95)=21.97s
-iterations.....................: 163     2.288602/s
-vus............................: 3       min=3        max=50
+checks.........................: 100.00% ✓ 8160       ✗ 0
+data_received..................: 87 MB   1.2 MB/s
+data_sent......................: 768 kB  11 kB/s
+dropped_iterations.............: 140     1.976351/s
+http_req_blocked...............: avg=213.72µs min=267ns   med=1.09µs   max=48.53ms  p(90)=1.62µs   p(95)=1.84µs
+http_req_connecting............: avg=8.15µs   min=0s      med=0s       max=6.3ms    p(90)=0s       p(95)=0s
+http_req_duration..............: avg=378.29ms min=11.56ms med=376.43ms max=1.2s     p(90)=562.76ms p(95)=628.13ms
+  { expected_response:true }...: avg=378.29ms min=11.56ms med=376.43ms max=1.2s     p(90)=562.76ms p(95)=628.13ms
+http_req_failed................: 0.00%   ✓ 0          ✗ 8160
+http_req_receiving.............: avg=1.53ms   min=32.73µs med=601.76µs max=214.52ms p(90)=2.25ms   p(95)=5.06ms
+http_req_sending...............: avg=209.07µs min=31.58µs med=128.42µs max=80.08ms  p(90)=217.25µs p(95)=293.37µs
+http_req_tls_handshaking.......: avg=199.75µs min=0s      med=0s       max=46.99ms  p(90)=0s       p(95)=0s
+http_req_waiting...............: avg=376.54ms min=10.71ms med=374.89ms max=1.2s     p(90)=561.49ms p(95)=626.28ms
+http_reqs......................: 8160    115.193022/s
+iteration_duration.............: avg=19.35s   min=5.25s   med=20.28s   max=23.11s   p(90)=22s      p(95)=22.36s
+iterations.....................: 160     2.258687/s
+vus............................: 12      min=5        max=50
 vus_max........................: 50      min=50       max=50
 ```
 
@@ -278,13 +278,14 @@ vus_max........................: 50      min=50       max=50
   {
     label: 'Req/s',
     data: [
-       39,  87,  91,  91, 108, 105, 117, 111, 113, 121, 125,
-      125, 113, 130, 125, 111, 129, 120, 120, 122, 113, 128,
-      115, 117, 122, 122, 119, 114, 128, 131, 119, 129, 112,
-      113, 127, 129, 111, 127,  94, 127, 133, 128, 110, 112,
-      123, 132,  96, 125,  99, 126, 130, 137, 116, 122, 132,
-      145,  98, 128, 112, 124, 131, 123, 108, 127, 118, 121,
-      126, 106, 114,  95, 102,  14
+       59,  82, 103,  97, 104,  99, 107, 112, 116, 107,
+      143,  99, 133,  82, 119, 128, 124, 121, 131, 115,
+      113, 109, 121, 151,  98, 119, 118, 107, 112, 125,
+      126, 119, 114, 122, 126, 141,  98, 121, 128, 124,
+      104, 116, 121, 103, 113, 119, 117, 121, 125, 126,
+      125, 109, 123, 138, 104, 130, 114, 127, 114, 141,
+      103, 113, 127, 114, 123, 111, 109, 109, 111, 107,
+       70
     ]
   }
 ]
@@ -299,12 +300,12 @@ vus_max........................: 50      min=50       max=50
   {
     label: 'VUs',
     data: [
-       5, 10, 15, 20, 25, 30, 35, 39, 43, 47, 50, 50,
-      50, 49, 50, 50, 49, 50, 50, 50, 49, 50, 48, 50,
-      50, 48, 49, 50, 46, 47, 47, 50, 50, 50, 50, 48,
-      50, 49, 50, 50, 50, 50, 49, 49, 50, 48, 50, 48,
-      49, 49, 48, 49, 50, 50, 50, 50, 50, 50, 50, 50,
-      48, 46, 46, 41, 40, 39, 36, 31, 24, 14,  3
+       5, 10, 15, 20, 25, 28, 33, 37, 42, 46, 49, 50,
+      50, 50, 50, 50, 50, 50, 49, 50, 50, 50, 49, 49,
+      50, 50, 48, 49, 50, 49, 48, 49, 50, 49, 50, 50,
+      50, 49, 50, 50, 50, 50, 48, 50, 49, 49, 49, 49,
+      50, 48, 48, 49, 50, 49, 49, 50, 50, 49, 50, 49,
+      49, 48, 46, 41, 39, 36, 32, 29, 19, 12
     ]
   }
 ]
@@ -315,14 +316,14 @@ vus_max........................: 50      min=50       max=50
   {
     label: 'Duration (ms)',
     data: [
-       73,  85, 143, 179, 199, 255, 285, 327, 343, 377,
-      386, 387, 463, 401, 390, 420, 398, 415, 403, 410,
-      427, 385, 434, 432, 413, 397, 413, 452, 388, 354,
-      386, 380, 445, 415, 386, 396, 444, 406, 470, 426,
-      380, 396, 443, 447, 391, 384, 409, 498, 456, 391,
-      376, 366, 423, 388, 387, 352, 463, 421, 410, 408,
-      374, 405, 401, 372, 343, 333, 304, 308, 260, 218,
-       90,  24
+       47,  80, 125, 165, 215, 237, 306, 294, 355, 364,
+      374, 393, 446, 495, 452, 399, 402, 414, 400, 388,
+      478, 442, 390, 369, 455, 411, 420, 391, 440, 455,
+      395, 390, 388, 457, 379, 378, 481, 411, 416, 372,
+      471, 400, 443, 471, 406, 470, 395, 422, 408, 380,
+      414, 421, 419, 384, 410, 403, 421, 410, 392, 413,
+      437, 413, 394, 355, 370, 326, 320, 274, 236, 159,
+       85
     ]
   }
 ]
@@ -336,11 +337,11 @@ vus_max........................: 50      min=50       max=50
   {
     label: 'User',
     data: [
-      0.02, 0.03, 0.29, 0.34,
-      0.37, 0.36, 0.36, 0.35,
-      0.37, 0.37, 0.36, 0.36,
-      0.36, 0.36, 0.35, 0.34,
-      0.15, 0.03, 0.02
+      0.04, 0.18, 0.42, 0.41,
+       0.4, 0.42, 0.43, 0.42,
+      0.42, 0.42, 0.41,  0.4,
+      0.42,  0.4,  0.4, 0.26,
+      0.04, 0.04
     ],
     borderColor: '#4bc0c0',
     backgroundColor: '#4bc0c0',
@@ -349,11 +350,11 @@ vus_max........................: 50      min=50       max=50
   {
     label: 'System',
     data: [
-      0.01, 0.01, 0.07, 0.08,
-      0.08, 0.07, 0.08, 0.07,
-      0.08, 0.07, 0.08, 0.08,
-      0.09, 0.08, 0.08, 0.08,
-      0.04, 0.01, 0.01
+      0.02, 0.04, 0.08, 0.08,
+      0.09, 0.08, 0.08, 0.09,
+      0.08, 0.08, 0.08, 0.08,
+      0.09, 0.09, 0.08, 0.06,
+      0.02, 0.02
     ],
     borderColor: '#ff6384',
     backgroundColor: '#ff6384',
@@ -367,11 +368,11 @@ vus_max........................: 50      min=50       max=50
   {
     label: 'User',
     data: [
-      0.03, 0.53, 0.91, 0.92,
-      0.92, 0.93, 0.92, 0.91,
-      0.91, 0.91, 0.91, 0.91,
-      0.91, 0.92, 0.92, 0.39,
-      0.04, 0.03, 0.03
+      0.02,  0.5, 0.93, 0.93,
+      0.93, 0.92, 0.93, 0.93,
+      0.92, 0.92, 0.93, 0.93,
+      0.94, 0.93, 0.92, 0.33,
+      0.02, 0.02
     ],
     borderColor: '#4bc0c0',
     backgroundColor: '#4bc0c0',
@@ -380,11 +381,11 @@ vus_max........................: 50      min=50       max=50
   {
     label: 'System',
     data: [
-      0.02, 0.05, 0.08, 0.08,
-      0.08, 0.07, 0.08, 0.09,
-      0.08, 0.09, 0.08, 0.09,
-      0.08, 0.08, 0.07, 0.04,
-      0.01, 0.02, 0.02
+      0.02, 0.04, 0.06, 0.06,
+      0.07, 0.07, 0.06, 0.07,
+      0.07, 0.07, 0.07, 0.07,
+      0.06, 0.07, 0.06, 0.03,
+      0.01, 0.01
     ],
     borderColor: '#ff6384',
     backgroundColor: '#ff6384',
@@ -403,22 +404,22 @@ As expected here, database is the bottleneck. We'll get slow response time at fu
 Iteration creation rate = **1/2/s**
 
 ```txt
-checks.........................: 100.00% ✓ 28729      ✗ 0
-data_received..................: 68 MB   759 kB/s
-data_sent......................: 2.4 MB  26 kB/s
-http_req_blocked...............: avg=32.4µs   min=250ns   med=1.05µs   max=61.63ms  p(90)=1.5µs    p(95)=1.68µs
-http_req_connecting............: avg=983ns    min=0s      med=0s       max=3.03ms   p(90)=0s       p(95)=0s
-http_req_duration..............: avg=60.22ms  min=8.2ms   med=48.41ms  max=371.38ms p(90)=118.99ms p(95)=147.13ms
-{ expected_response:true }...: avg=60.22ms  min=8.2ms   med=48.41ms  max=371.38ms p(90)=118.99ms p(95)=147.13ms
-http_req_failed................: 0.00%   ✓ 0          ✗ 28729
-http_req_receiving.............: avg=1.07ms   min=23.04µs med=190.23µs max=88.63ms  p(90)=924.45µs p(95)=4.8ms
-http_req_sending...............: avg=125.43µs min=28.12µs med=114.07µs max=6.79ms   p(90)=175.41µs p(95)=204.5µs
-http_req_tls_handshaking.......: avg=28.68µs  min=0s      med=0s       max=41.99ms  p(90)=0s       p(95)=0s
-http_req_waiting...............: avg=59.02ms  min=7.97ms  med=47.55ms  max=347.73ms p(90)=116.52ms p(95)=143.75ms
-http_reqs......................: 28729   319.193743/s
-iteration_duration.............: avg=1m1s     min=48.73s  med=58.88s   max=1m18s    p(90)=1m15s    p(95)=1m16s
-iterations.....................: 5       0.055553/s
-vus............................: 26      min=1        max=29
+checks.........................: 100.00% ✓ 24309      ✗ 0
+data_received..................: 57 MB   628 kB/s
+data_sent......................: 2.0 MB  22 kB/s
+http_req_blocked...............: avg=33.87µs  min=222ns   med=1.09µs   max=62.31ms  p(90)=1.54µs   p(95)=1.71µs
+http_req_connecting............: avg=2.26µs   min=0s      med=0s       max=15.76ms  p(90)=0s       p(95)=0s
+http_req_duration..............: avg=74.01ms  min=8.8ms   med=54.64ms  max=821.77ms p(90)=157.96ms p(95)=194.87ms
+  { expected_response:true }...: avg=74.01ms  min=8.8ms   med=54.64ms  max=821.77ms p(90)=157.96ms p(95)=194.87ms
+http_req_failed................: 0.00%   ✓ 0          ✗ 24309
+http_req_receiving.............: avg=1.58ms   min=19.96µs med=277.8µs  max=219.84ms p(90)=1.85ms   p(95)=7.33ms
+http_req_sending...............: avg=190.85µs min=27.93µs med=120.41µs max=51.12ms  p(90)=204.95µs p(95)=267.48µs
+http_req_tls_handshaking.......: avg=28.34µs  min=0s      med=0s       max=51.19ms  p(90)=0s       p(95)=0s
+http_req_waiting...............: avg=72.24ms  min=0s      med=53.36ms  max=821.49ms p(90)=154.74ms p(95)=190.84ms
+http_reqs......................: 24309   270.071678/s
+iteration_duration.............: avg=1m19s    min=1m18s   med=1m19s    max=1m19s    p(90)=1m19s    p(95)=1m19s
+iterations.....................: 2       0.02222/s
+vus............................: 28      min=1        max=30
 vus_max........................: 50      min=50       max=50
 ```
 
@@ -430,320 +431,15 @@ vus_max........................: 50      min=50       max=50
   {
     label: 'Req/s',
     data: [
-       34,  39, 124, 158, 206, 214, 245, 248, 271, 280, 291,
-      287, 289, 307, 318, 324, 307, 304, 318, 317, 329, 315,
-      309, 340, 338, 339, 325, 323, 341, 344, 345, 326, 330,
-      350, 340, 348, 334, 336, 347, 343, 354, 328, 324, 339,
-      357, 347, 342, 328, 337, 348, 357, 340, 329, 352, 344,
-      347, 336, 345, 341, 356, 353, 340, 344, 352, 339, 353,
-      340, 340, 347, 344, 344, 338, 324, 352, 349, 348, 337,
-      333, 336, 345, 355, 338, 336, 348, 345, 346, 341, 339,
-      342, 347
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-
-{{< tab tabName="Req duration" >}}
-
-{{< chart type="timeseries" title="VUs count" >}}
-[
-  {
-    label: 'VUs',
-    data: [
-       1,  1,  2,  2,  3,  3,  4,  4,  5,  5,  6,  6,
-       7,  7,  8,  8,  9,  9, 10, 10, 11, 11, 12, 12,
-      13, 13, 14, 14, 15, 15, 16, 16, 17, 17, 18, 18,
-      19, 19, 20, 20, 21, 21, 22, 22, 23, 23, 24, 24,
-      24, 24, 25, 25, 26, 26, 27, 26, 27, 27, 28, 28,
-      29, 29, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28,
-      28, 28, 28, 28, 27, 27, 27, 27, 27, 27, 27, 27,
-      27, 27, 26, 26, 26, 26
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< chart type="timeseries" title="Request duration in ms" >}}
-[
-  {
-    label: 'Duration (ms)',
-    data: [
-      27, 25, 16, 12, 14, 14, 16, 16, 18, 17, 20, 21,
-      24, 22, 25, 25, 29, 30, 31, 31, 33, 35, 38, 35,
-      38, 38, 43, 43, 44, 43, 46, 49, 51, 49, 52, 51,
-      56, 56, 58, 58, 59, 63, 66, 65, 66, 65, 70, 72,
-      73, 69, 70, 73, 75, 77, 78, 76, 79, 78, 81, 80,
-      82, 85, 85, 79, 81, 78, 83, 83, 81, 82, 79, 83,
-      83, 83, 79, 80, 81, 80, 81, 80, 76, 80, 77, 80,
-      76, 80, 78, 73, 79, 75
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-{{< tab tabName="CPU load" >}}
-
-{{< chart type="timeseries" title="CPU runtime load" stacked="true" max="1" step="5" >}}
-[
-  {
-    label: 'User',
-    data: [
-      0.02, 0.03, 0.19, 0.47,
-       0.6, 0.67,  0.7, 0.73,
-      0.73, 0.75, 0.75, 0.75,
-      0.79, 0.77, 0.79, 0.76,
-      0.75, 0.77, 0.78
-    ],
-    borderColor: '#4bc0c0',
-    backgroundColor: '#4bc0c0',
-    fill: true
-  },
-  {
-    label: 'System',
-    data: [
-      0.02, 0.01, 0.06, 0.12,
-      0.17, 0.17,  0.2,  0.2,
-      0.21, 0.22,  0.2, 0.22,
-      0.18, 0.21,  0.2,  0.2,
-       0.2, 0.19, 0.19
-    ],
-    borderColor: '#ff6384',
-    backgroundColor: '#ff6384',
-    fill: true
-  }
-]
-{{< /chart >}}
-
-{{< chart type="timeseries" title="CPU database load" stacked="true" max="1" step="5" >}}
-[
-  {
-    label: 'User',
-    data: [
-      0.03, 0.06, 0.13, 0.17, 0.17,
-       0.2,  0.2,  0.2,  0.2, 0.21,
-       0.2, 0.21, 0.21,  0.2,  0.2,
-      0.19,  0.2, 0.21,  0.2
-    ],
-    borderColor: '#4bc0c0',
-    backgroundColor: '#4bc0c0',
-    fill: true
-  },
-  {
-    label: 'System',
-    data: [
-      0.02, 0.04, 0.11, 0.12,
-      0.15, 0.14, 0.15, 0.15,
-      0.15, 0.15, 0.15, 0.16,
-      0.14, 0.15, 0.15, 0.15,
-      0.15, 0.15, 0.16
-    ],
-    borderColor: '#ff6384',
-    backgroundColor: '#ff6384',
-    fill: true
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-{{< /tabs >}}
-
-Now we have a very runtime intensive scenario, with workers as bottleneck, database not very loaded, API is keeping up with a low response time (~100ms).
-
-#### Laravel PgSQL scenario 1
-
-Iteration creation rate = **5/s**
-
-```txt
-checks.........................: 100.00% ✓ 12087      ✗ 0
-data_received..................: 128 MB  1.9 MB/s
-data_sent......................: 1.1 MB  16 kB/s
-dropped_iterations.............: 63      0.928413/s
-http_req_blocked...............: avg=124.62µs min=261ns   med=1.05µs   max=58.76ms  p(90)=1.55µs   p(95)=1.76µs
-http_req_connecting............: avg=4.69µs   min=0s      med=0s       max=6.28ms   p(90)=0s       p(95)=0s
-http_req_duration..............: avg=236.41ms min=17.43ms med=233.87ms max=580.59ms p(90)=356.84ms p(95)=392.18ms
-{ expected_response:true }...: avg=236.41ms min=17.43ms med=233.87ms max=580.59ms p(90)=356.84ms p(95)=392.18ms
-http_req_failed................: 0.00%   ✓ 0          ✗ 12087
-http_req_receiving.............: avg=4.85ms   min=48.19µs med=363.24µs max=136.3ms  p(90)=16.74ms  p(95)=34.43ms
-http_req_sending...............: avg=139.94µs min=26.72µs med=119.27µs max=6.81ms   p(90)=185.96µs p(95)=224.9µs
-http_req_tls_handshaking.......: avg=115.52µs min=0s      med=0s       max=42ms     p(90)=0s       p(95)=0s
-http_req_waiting...............: avg=231.41ms min=17.2ms  med=228.56ms max=580.39ms p(90)=348.64ms p(95)=385.75ms
-http_reqs......................: 12087   178.122642/s
-iteration_duration.............: avg=12.09s   min=2.76s   med=13.14s   max=15.38s   p(90)=14.29s   p(95)=14.55s
-iterations.....................: 237     3.492601/s
-vus............................: 18      min=5        max=50
-vus_max........................: 50      min=50       max=50
-```
-
-{{< tabs >}}
-{{< tab tabName="Req/s" >}}
-
-{{< chart type="timeseries" title="Req/s count" >}}
-[
-  {
-    label: 'Req/s',
-    data: [
-       13, 136, 155, 164, 176, 174, 180, 174, 168, 184,
-      181, 184, 177, 172, 179, 188, 180, 181, 175, 182,
-      188, 178, 180, 178, 184, 178, 186, 182, 173, 185,
-      186, 183, 176, 179, 181, 185, 181, 185, 168, 187,
-      181, 189, 183, 174, 184, 182, 185, 180, 169, 192,
-      178, 190, 176, 179, 184, 177, 189, 176, 178, 184,
-      185, 185, 183, 169, 192, 182, 190, 181,  44
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-
-{{< tab tabName="Req duration" >}}
-
-{{< chart type="timeseries" title="VUs count" >}}
-[
-  {
-    label: 'VUs',
-    data: [
-       5, 10, 15, 16, 19, 22, 25, 27, 29, 32, 34, 38,
-      41, 42, 47, 48, 50, 50, 50, 50, 49, 48, 49, 50,
-      49, 50, 47, 46, 48, 48, 49, 48, 50, 50, 49, 50,
-      48, 48, 47, 50, 46, 48, 47, 49, 49, 50, 50, 50,
-      50, 50, 48, 49, 50, 49, 49, 47, 49, 48, 48, 50,
-      47, 44, 42, 41, 33, 26, 18
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< chart type="timeseries" title="Request duration in ms" >}}
-[
-  {
-    label: 'Duration (ms)',
-    data: [
-       69,  40,  66,  85,  93, 106, 123, 143, 162, 161,
-      176, 192, 211, 231, 238, 251, 261, 277, 278, 277,
-      266, 272, 270, 266, 266, 279, 262, 258, 270, 267,
-      262, 272, 273, 281, 277, 270, 268, 269, 274, 264,
-      273, 254, 257, 261, 268, 268, 271, 272, 278, 276,
-      269, 264, 268, 276, 269, 277, 261, 266, 286, 264,
-      272, 253, 251, 231, 230, 181, 139,  99,  46
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-{{< tab tabName="CPU load" >}}
-
-{{< chart type="timeseries" title="CPU runtime load" stacked="true" max="1" step="5" >}}
-[
-  {
-    label: 'User',
-    data: [
-      0.03, 0.02,  0.6, 0.81,
-      0.83, 0.84, 0.84, 0.82,
-      0.84, 0.83, 0.84, 0.85,
-      0.83, 0.84, 0.83,  0.5,
-      0.03, 0.02, 0.03
-    ],
-    borderColor: '#4bc0c0',
-    backgroundColor: '#4bc0c0',
-    fill: true
-  },
-  {
-    label: 'System',
-    data: [
-      0.02, 0.01, 0.12, 0.16,
-      0.15, 0.14, 0.15, 0.17,
-      0.14, 0.16, 0.15, 0.14,
-      0.16, 0.15, 0.16,  0.1,
-      0.02, 0.02, 0.03
-    ],
-    borderColor: '#ff6384',
-    backgroundColor: '#ff6384',
-    fill: true
-  }
-]
-{{< /chart >}}
-
-{{< chart type="timeseries" title="CPU database load" stacked="true" max="1" step="5" >}}
-[
-  {
-    label: 'User',
-    data: [
-      0.03, 0.21, 0.28, 0.31,
-       0.3, 0.32, 0.32, 0.31,
-       0.3, 0.31, 0.32, 0.32,
-      0.32,  0.3, 0.22, 0.03,
-      0.03, 0.03, 0.04
-    ],
-    borderColor: '#4bc0c0',
-    backgroundColor: '#4bc0c0',
-    fill: true
-  },
-  {
-    label: 'System',
-    data: [
-      0.02, 0.28, 0.42, 0.41,
-      0.44, 0.42, 0.41, 0.42,
-      0.43, 0.42,  0.4, 0.42,
-      0.43, 0.43, 0.28, 0.01,
-      0.02, 0.02, 0.02
-    ],
-    borderColor: '#ff6384',
-    backgroundColor: '#ff6384',
-    fill: true
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-{{< /tabs >}}
-
-Laravel performs slightly better than MySQL in this scenario, and we are not limited by database this time.
-
-#### Laravel PgSQL scenario 2
-
-Iteration creation rate = **1/2/s**
-
-```txt
-checks.........................: 100.00% ✓ 17658     ✗ 0
-data_received..................: 40 MB   448 kB/s
-data_sent......................: 1.5 MB  16 kB/s
-http_req_blocked...............: avg=52.73µs  min=250ns   med=1.08µs   max=70.71ms  p(90)=1.56µs   p(95)=1.77µs
-http_req_connecting............: avg=2.51µs   min=0s      med=0s       max=9.95ms   p(90)=0s       p(95)=0s
-http_req_duration..............: avg=104.85ms min=15.23ms med=99.81ms  max=367.04ms p(90)=178.92ms p(95)=204.39ms
-{ expected_response:true }...: avg=104.85ms min=15.23ms med=99.81ms  max=367.04ms p(90)=178.92ms p(95)=204.39ms
-http_req_failed................: 0.00%   ✓ 0         ✗ 17658
-http_req_receiving.............: avg=796.32µs min=22.71µs med=188.69µs max=77.06ms  p(90)=721.81µs p(95)=3.02ms
-http_req_sending...............: avg=134.62µs min=30.26µs med=119.13µs max=15.1ms   p(90)=184.55µs p(95)=218.8µs
-http_req_tls_handshaking.......: avg=46.04µs  min=0s      med=0s       max=52.27ms  p(90)=0s       p(95)=0s
-http_req_waiting...............: avg=103.92ms min=15.01ms med=98.88ms  max=366.59ms p(90)=177.44ms p(95)=202.74ms
-http_reqs......................: 17658   196.17549/s
-vus............................: 31      min=1       max=31
-vus_max........................: 50      min=50      max=50
-```
-
-{{< tabs >}}
-{{< tab tabName="Req/s" >}}
-
-{{< chart type="timeseries" title="Req/s count" >}}
-[
-  {
-    label: 'Req/s',
-    data: [
-        7,  26,  47,  95, 108, 126, 131, 153, 164, 168, 165,
-      163, 180, 185, 188, 178, 177, 192, 194, 194, 188, 187,
-      200, 202, 202, 202, 185, 207, 197, 202, 202, 196, 210,
-      210, 212, 213, 193, 213, 218, 214, 206, 203, 213, 212,
-      215, 206, 195, 218, 220, 214, 211, 203, 209, 220, 220,
-      212, 205, 215, 209, 218, 212, 206, 217, 220, 219, 211,
-      205, 205, 222, 218, 216, 203, 211, 221, 223, 212, 207,
-      215, 216, 221, 211, 209, 216, 219, 225, 209, 206, 217,
-      216, 217, 115
+       20,  32,  68, 122, 135, 126, 157, 171, 214, 212, 242,
+      260, 247, 272, 274, 271, 281, 272, 294, 286, 272, 272,
+      280, 302, 294, 263, 292, 278, 306, 299, 284, 291, 278,
+      298, 299, 283, 282, 293, 288, 293, 276, 287, 289, 296,
+      302, 284, 299, 284, 303, 304, 272, 280, 288, 303, 293,
+      270, 285, 283, 297, 304, 285, 274, 282, 303, 295, 284,
+      285, 291, 291, 292, 298, 290, 286, 301, 297, 280, 291,
+      272, 294, 298, 290, 279, 290, 311, 299, 272, 300, 280,
+      311, 300,  86
     ]
   }
 ]
@@ -763,9 +459,9 @@ vus_max........................: 50      min=50      max=50
       13, 13, 14, 14, 15, 15, 16, 16, 17, 17, 18, 18,
       19, 19, 20, 20, 21, 21, 22, 22, 23, 23, 24, 24,
       25, 25, 26, 26, 27, 27, 28, 28, 29, 29, 30, 30,
-      31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31,
-      31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31,
-      31, 31, 31, 31, 31, 31
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 29, 29, 29, 28, 28, 28,
+      28, 28, 28, 28, 28, 28
     ]
   }
 ]
@@ -776,14 +472,14 @@ vus_max........................: 50      min=50      max=50
   {
     label: 'Duration (ms)',
     data: [
-       49,  38,  30,  21,  22,  23,  26,  26,  26,  29,  32,  37,
-       35,  38,  39,  44,  47,  47,  48,  51,  55,  59,  57,  59,
-       60,  65,  71,  68,  72,  73,  77,  81,  78,  80,  81,  86,
-       93,  90,  90,  92,  98, 103, 100, 103, 104, 111, 116, 114,
-      111, 114, 121, 124, 126, 124, 123, 132, 140, 136, 137, 139,
-      140, 152, 142, 140, 142, 144, 153, 150, 142, 138, 146, 150,
-      147, 141, 141, 142, 152, 144, 142, 141, 143, 150, 144, 140,
-      139, 145, 153, 141, 146, 141, 149
+       31,  30,  24,  16,  19,  23,  22,  23,  22,  23, 23,  23,
+       26,  26,  27,  29,  31,  33,  33,  35,  38,  40, 41,  40,
+       43,  47,  48,  49,  48,  50,  53,  57,  59,  56, 59,  60,
+       69,  65,  67,  67,  67,  80,  74,  74,  76,  74, 85,  82,
+       83,  83,  83,  99,  95,  88,  91, 100, 107, 103, 98,  98,
+       99, 112, 109,  97, 100, 102, 111, 104,  98, 105, 96, 110,
+      104,  98, 101,  99, 110, 110, 103,  97,  97, 104, 99,  91,
+       93,  91, 103, 100,  91,  91,  97
     ]
   }
 ]
@@ -797,11 +493,11 @@ vus_max........................: 50      min=50      max=50
   {
     label: 'User',
     data: [
-      0.03, 0.02, 0.11, 0.38,
-      0.55, 0.62, 0.67, 0.71,
-      0.73, 0.78, 0.78, 0.77,
-      0.79, 0.81, 0.81,  0.8,
-       0.8,  0.8,  0.8
+      0.04, 0.04, 0.19, 0.41,
+      0.61,  0.7, 0.73, 0.73,
+      0.74, 0.75, 0.76, 0.76,
+      0.75, 0.73, 0.75, 0.73,
+      0.78, 0.75, 0.78
     ],
     borderColor: '#4bc0c0',
     backgroundColor: '#4bc0c0',
@@ -810,11 +506,11 @@ vus_max........................: 50      min=50      max=50
   {
     label: 'System',
     data: [
-      0.01, 0.01, 0.04, 0.06,
-       0.1, 0.11, 0.13, 0.14,
-      0.14, 0.13, 0.14, 0.14,
-      0.15, 0.14, 0.14, 0.14,
-      0.14, 0.15, 0.15
+      0.02, 0.02, 0.04,  0.1,
+      0.13, 0.15, 0.16, 0.17,
+      0.17, 0.16, 0.17, 0.19,
+      0.17, 0.18, 0.17, 0.18,
+      0.17, 0.17, 0.18
     ],
     borderColor: '#ff6384',
     backgroundColor: '#ff6384',
@@ -828,11 +524,11 @@ vus_max........................: 50      min=50      max=50
   {
     label: 'User',
     data: [
-      0.03, 0.04, 0.16, 0.24,
-      0.27, 0.29, 0.29,  0.3,
-      0.32, 0.32, 0.32, 0.33,
-      0.32, 0.33, 0.33, 0.34,
-      0.33, 0.33, 0.33
+      0.03, 0.03, 0.08, 0.16,
+      0.13, 0.14, 0.13, 0.14,
+      0.15, 0.16, 0.13, 0.16,
+      0.14, 0.15, 0.15, 0.15,
+      0.16, 0.16, 0.15
     ],
     borderColor: '#4bc0c0',
     backgroundColor: '#4bc0c0',
@@ -841,11 +537,11 @@ vus_max........................: 50      min=50      max=50
   {
     label: 'System',
     data: [
-      0.02, 0.05, 0.21, 0.31,
-      0.36, 0.39, 0.41, 0.43,
-      0.43, 0.44, 0.44, 0.44,
-      0.47, 0.46, 0.45, 0.46,
-      0.47, 0.45, 0.47
+      0.01, 0.01, 0.06, 0.11,
+       0.1, 0.11,  0.1, 0.11,
+      0.11,  0.1,  0.1,  0.1,
+      0.09, 0.12,  0.1, 0.11,
+      0.12,  0.1,  0.1
     ],
     borderColor: '#ff6384',
     backgroundColor: '#ff6384',
@@ -857,31 +553,29 @@ vus_max........................: 50      min=50      max=50
 {{< /tab >}}
 {{< /tabs >}}
 
-Laravel performing slower than MySQL in this context. Workers and databases are both heavy loaded, and we didn't complete a single scenario iteration.
+Now we have a very runtime intensive scenario, with workers as bottleneck, database not very loaded, API is keeping up with a low response time (~100ms).
 
-### Symfony
-
-#### Symfony MySQL scenario 1
+#### Laravel FrankenPHP MySQL scenario 1
 
 Iteration creation rate = **5/s**
 
 ```txt
-checks.........................: 100.00% ✓ 10353     ✗ 0
-data_received..................: 94 MB   1.4 MB/s
-data_sent......................: 949 kB  14 kB/s
-dropped_iterations.............: 98      1.43851/s
-http_req_blocked...............: avg=148.33µs min=267ns   med=1.08µs   max=54.56ms  p(90)=1.61µs   p(95)=1.84µs
-http_req_connecting............: avg=4.51µs   min=0s      med=0s       max=3.56ms   p(90)=0s       p(95)=0s
-http_req_duration..............: avg=279.44ms min=21.05ms med=293.58ms max=662.16ms p(90)=395.94ms p(95)=427.75ms
-{ expected_response:true }...: avg=279.44ms min=21.05ms med=293.58ms max=662.16ms p(90)=395.94ms p(95)=427.75ms
-http_req_failed................: 0.00%   ✓ 0         ✗ 10353
-http_req_receiving.............: avg=419.67µs min=38.92µs med=255.98µs max=27.16ms  p(90)=532.61µs p(95)=959.6µs
-http_req_sending...............: avg=138.44µs min=31.52µs med=117.04µs max=10.05ms  p(90)=186.82µs p(95)=225.7µs
-http_req_tls_handshaking.......: avg=138.79µs min=0s      med=0s       max=44.36ms  p(90)=0s       p(95)=0s
-http_req_waiting...............: avg=278.88ms min=20.66ms med=293.04ms max=661.64ms p(90)=395.43ms p(95)=427.22ms
-http_reqs......................: 10353   151.96829/s
-iteration_duration.............: avg=14.29s   min=2.62s   med=15.93s   max=17.73s   p(90)=16.93s   p(95)=17.08s
-iterations.....................: 203     2.97977/s
+checks.........................: 100.00% ✓ 7548      ✗ 0
+data_received..................: 81 MB   1.1 MB/s
+data_sent......................: 718 kB  9.4 kB/s
+dropped_iterations.............: 153     2.011418/s
+http_req_blocked...............: avg=227.08µs min=271ns   med=1.14µs   max=56.05ms  p(90)=1.69µs   p(95)=1.9µs
+http_req_connecting............: avg=7.95µs   min=0s      med=0s       max=3.72ms   p(90)=0s       p(95)=0s
+http_req_duration..............: avg=435.71ms min=5.62ms  med=205.37ms max=1.16s    p(90)=927.75ms p(95)=974.12ms
+  { expected_response:true }...: avg=435.71ms min=5.62ms  med=205.37ms max=1.16s    p(90)=927.75ms p(95)=974.12ms
+http_req_failed................: 0.00%   ✓ 0         ✗ 7548
+http_req_receiving.............: avg=1.23ms   min=40.25µs med=700.17µs max=208.48ms p(90)=1.7ms    p(95)=2.67ms
+http_req_sending...............: avg=231.75µs min=32.25µs med=132.92µs max=60.91ms  p(90)=228.32µs p(95)=316.55µs
+http_req_tls_handshaking.......: avg=212.68µs min=0s      med=0s       max=54.71ms  p(90)=0s       p(95)=0s
+http_req_waiting...............: avg=434.24ms min=5.41ms  med=203.73ms max=1.16s    p(90)=925.77ms p(95)=972.64ms
+http_reqs......................: 7548    99.229974/s
+iteration_duration.............: avg=22.28s   min=3.08s   med=23.16s   max=29.88s   p(90)=27.92s   p(95)=28.86s
+iterations.....................: 148     1.945686/s
 vus............................: 3       min=3       max=50
 vus_max........................: 50      min=50      max=50
 ```
@@ -894,13 +588,13 @@ vus_max........................: 50      min=50      max=50
   {
     label: 'Req/s',
     data: [
-       21, 134, 154, 146, 158, 153, 159, 155, 146, 156,
-      157, 152, 155, 138, 159, 157, 154, 160, 147, 149,
-      156, 157, 159, 138, 155, 151, 162, 155, 138, 160,
-      159, 150, 148, 153, 156, 147, 154, 161, 144, 152,
-      157, 149, 155, 145, 155, 158, 148, 162, 141, 148,
-      160, 149, 167, 135, 154, 163, 151, 154, 144, 152,
-      158, 158, 160, 151, 156, 168, 155, 164,  71
+       17, 102, 87,  98,  98, 112, 101,  96, 106,  96,  99, 104,
+       94,  91, 81,  89,  98, 111, 102, 100,  93, 107, 107,  94,
+       95, 102, 91, 106,  97, 102,  97, 101,  97, 108, 106,  89,
+      116, 104, 96,  99, 101,  95, 110,  91,  94, 106, 109,  91,
+      103,  99, 98, 111, 109, 112,  97,  92, 102, 104,  98,  97,
+       96,  98, 91,  99, 102,  97,  95, 102, 104, 108, 104,  96,
+      104
     ]
   }
 ]
@@ -915,12 +609,12 @@ vus_max........................: 50      min=50      max=50
   {
     label: 'VUs',
     data: [
-       5, 10, 13, 17, 19, 23, 27, 30, 34, 36, 40, 42,
-      46, 50, 50, 49, 50, 50, 50, 50, 50, 50, 49, 50,
-      50, 50, 46, 50, 48, 48, 49, 50, 49, 50, 49, 50,
-      50, 50, 50, 50, 47, 50, 50, 49, 49, 46, 49, 49,
-      50, 49, 50, 50, 49, 49, 48, 47, 49, 48, 49, 48,
-      47, 41, 35, 31, 26, 24, 18,  3
+       5, 10, 15, 19, 24, 28, 32, 36, 41, 46, 50, 50,
+      50, 50, 49, 49, 50, 50, 50, 50, 50, 50, 50, 49,
+      50, 50, 50, 50, 48, 49, 49, 50, 48, 49, 49, 50,
+      50, 50, 50, 50, 48, 50, 49, 50, 50, 49, 50, 50,
+      50, 50, 49, 49, 50, 48, 50, 50, 50, 49, 50, 49,
+      47, 46, 44, 43, 43, 42, 42, 41, 38, 36, 30, 29
     ]
   }
 ]
@@ -931,13 +625,14 @@ vus_max........................: 50      min=50      max=50
   {
     label: 'Duration (ms)',
     data: [
-       45,  40,  66,  90, 107, 119, 147, 176, 203, 218,
-      232, 261, 269, 314, 325, 316, 312, 317, 341, 325,
-      320, 315, 318, 339, 326, 318, 308, 307, 337, 331,
-      306, 322, 325, 336, 326, 324, 319, 317, 343, 326,
-      314, 329, 320, 336, 328, 313, 309, 315, 344, 331,
-      315, 313, 319, 352, 316, 330, 307, 313, 344, 320,
-      316, 300, 254, 255, 201, 171, 148, 122,  57
+       30,  47, 110, 148, 179, 196, 270, 330, 282, 423,
+      421, 451, 503, 547, 586, 573, 526, 493, 464, 452,
+      593, 506, 448, 492, 497, 507, 531, 493, 483, 484,
+      516, 496, 465, 495, 465, 494, 477, 454, 525, 486,
+      498, 538, 479, 488, 531, 516, 440, 523, 516, 467,
+      542, 430, 455, 458, 471, 484, 525, 480, 509, 507,
+      511, 516, 510, 472, 433, 432, 483, 423, 369, 376,
+      369, 349, 284
     ]
   }
 ]
@@ -951,11 +646,11 @@ vus_max........................: 50      min=50      max=50
   {
     label: 'User',
     data: [
-      0.02, 0.02, 0.28, 0.33,
-      0.33, 0.33, 0.32, 0.32,
-      0.31, 0.32, 0.34, 0.32,
-      0.33, 0.32, 0.33, 0.23,
-      0.03, 0.02, 0.02
+      0.03, 0.04, 0.35, 0.35,
+      0.35, 0.36, 0.35, 0.35,
+      0.34, 0.36, 0.35, 0.36,
+      0.35, 0.35, 0.35, 0.37,
+      0.36,  0.1, 0.04
     ],
     borderColor: '#4bc0c0',
     backgroundColor: '#4bc0c0',
@@ -964,11 +659,11 @@ vus_max........................: 50      min=50      max=50
   {
     label: 'System',
     data: [
-      0.01, 0.02, 0.13, 0.15,
-      0.14, 0.15, 0.15, 0.14,
-      0.14, 0.15, 0.13, 0.14,
-      0.14, 0.14, 0.13, 0.11,
-      0.02, 0.02, 0.02
+      0.02, 0.02, 0.07, 0.06,
+      0.06, 0.06, 0.06, 0.06,
+      0.05, 0.07, 0.06, 0.06,
+      0.07, 0.07, 0.06, 0.06,
+      0.06, 0.03, 0.02
     ],
     borderColor: '#ff6384',
     backgroundColor: '#ff6384',
@@ -982,10 +677,590 @@ vus_max........................: 50      min=50      max=50
   {
     label: 'User',
     data: [
-      0.03, 0.71, 0.94, 0.94,
-      0.96, 0.94, 0.95, 0.94,
-      0.94, 0.93, 0.94, 0.94,
-      0.93, 0.94, 0.69, 0.04,
+      0.02, 0.11, 0.82,  0.8,
+      0.82, 0.81,  0.8, 0.79,
+      0.81, 0.83, 0.82, 0.81,
+      0.82, 0.83,  0.8,  0.8,
+      0.77, 0.03, 0.03
+    ],
+    borderColor: '#4bc0c0',
+    backgroundColor: '#4bc0c0',
+    fill: true
+  },
+  {
+    label: 'System',
+    data: [
+      0.01, 0.03, 0.04, 0.05,
+      0.03, 0.04, 0.04, 0.04,
+      0.04, 0.04, 0.05, 0.05,
+      0.04, 0.04, 0.05, 0.05,
+      0.05, 0.02, 0.02
+    ],
+    borderColor: '#ff6384',
+    backgroundColor: '#ff6384',
+    fill: true
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+No surprise here, as we are database limited.
+
+#### Laravel FrankenPHP MySQL scenario 2
+
+Iteration creation rate = **1/s**
+
+```txt
+checks.........................: 100.00% ✓ 60530      ✗ 0
+data_received..................: 140 MB  1.6 MB/s
+data_sent......................: 5.0 MB  56 kB/s
+dropped_iterations.............: 4       0.044438/s
+http_req_blocked...............: avg=21.5µs   min=191ns   med=895ns    max=52.03ms  p(90)=1.38µs   p(95)=1.56µs
+http_req_connecting............: avg=1.46µs   min=0s      med=0s       max=10.41ms  p(90)=0s       p(95)=0s
+http_req_duration..............: avg=50.82ms  min=3.01ms  med=46.99ms  max=323.69ms p(90)=94.36ms  p(95)=109.42ms
+  { expected_response:true }...: avg=50.82ms  min=3.01ms  med=46.99ms  max=323.69ms p(90)=94.36ms  p(95)=109.42ms
+http_req_failed................: 0.00%   ✓ 0          ✗ 60530
+http_req_receiving.............: avg=700.42µs min=16.66µs med=199.85µs max=208.14ms p(90)=1.03ms   p(95)=1.92ms
+http_req_sending...............: avg=179.82µs min=16.56µs med=99.19µs  max=122.8ms  p(90)=186.74µs p(95)=258.75µs
+http_req_tls_handshaking.......: avg=18.4µs   min=0s      med=0s       max=47.62ms  p(90)=0s       p(95)=0s
+http_req_waiting...............: avg=49.94ms  min=0s      med=46.2ms   max=323.42ms p(90)=93.11ms  p(95)=107.84ms
+http_reqs......................: 60530   672.458785/s
+iteration_duration.............: avg=53.18s   min=30.44s  med=54.75s   max=1m15s    p(90)=1m13s    p(95)=1m14s
+iterations.....................: 13      0.144424/s
+vus............................: 43      min=1        max=50
+vus_max........................: 50      min=50       max=50
+```
+
+{{< tabs >}}
+{{< tab tabName="Req/s" >}}
+
+{{< chart type="timeseries" title="Req/s count" >}}
+[
+  {
+    label: 'Req/s',
+    data: [
+       65, 149, 216, 476, 507, 578, 561, 625, 668, 647, 623,
+      611, 626, 666, 677, 707, 671, 665, 652, 686, 699, 711,
+      722, 667, 694, 698, 727, 712, 729, 677, 730, 750, 694,
+      736, 676, 700, 727, 704, 701, 712, 705, 646, 713, 734,
+      699, 747, 668, 714, 728, 721, 695, 741, 710, 664, 692,
+      752, 712, 707, 722, 692, 739, 648, 745, 616, 666, 686,
+      736, 704, 721, 716, 732, 686, 712, 710, 682, 719, 720,
+      723, 696, 690, 734, 724, 696, 670, 705, 698, 739, 706
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" >}}
+[
+  {
+    label: 'VUs',
+    data: [
+       1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12,
+      13, 14, 15, 16, 17, 19, 20, 21, 22, 23, 24, 25,
+      26, 27, 28, 29, 30, 31, 30, 31, 32, 33, 33, 34,
+      35, 36, 37, 37, 38, 39, 40, 41, 42, 43, 44, 44,
+      45, 46, 47, 48, 49, 49, 50, 50, 50, 50, 50, 49,
+      49, 49, 49, 49, 49, 48, 48, 48, 48, 48, 48, 47,
+      47, 46, 46, 46, 46, 46, 46, 46, 45, 45, 45, 45,
+      44, 43
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< chart type="timeseries" title="Request duration in ms" >}}
+[
+  {
+    label: 'Duration (ms)',
+    data: [
+      14, 13, 13,  8,  9, 10, 12, 13, 13, 15, 17, 19,
+      20, 21, 22, 22, 25, 26, 30, 29, 30, 30, 30, 37,
+      36, 37, 37, 39, 39, 44, 43, 41, 43, 44, 48, 49,
+      46, 48, 52, 52, 53, 57, 54, 56, 57, 56, 62, 60,
+      61, 62, 64, 65, 65, 74, 73, 67, 70, 69, 70, 73,
+      65, 77, 63, 79, 76, 72, 63, 68, 68, 67, 65, 68,
+      63, 69, 68, 64, 63, 62, 69, 66, 62, 62, 61, 69,
+      64, 61, 61, 61
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" stacked="true" max="1" step="5" >}}
+[
+  {
+    label: 'User',
+    data: [
+      0.04, 0.08, 0.44, 0.58,
+      0.61, 0.64, 0.67, 0.69,
+       0.7, 0.66, 0.67,  0.7,
+      0.68, 0.68, 0.66, 0.69,
+      0.66, 0.69, 0.66
+    ],
+    borderColor: '#4bc0c0',
+    backgroundColor: '#4bc0c0',
+    fill: true
+  },
+  {
+    label: 'System',
+    data: [
+      0.02, 0.03, 0.09, 0.13,
+      0.14, 0.16, 0.15, 0.16,
+      0.15, 0.15, 0.15, 0.15,
+      0.16, 0.17, 0.15, 0.16,
+      0.14, 0.16, 0.15
+    ],
+    borderColor: '#ff6384',
+    backgroundColor: '#ff6384',
+    fill: true
+  }
+]
+{{< /chart >}}
+
+{{< chart type="timeseries" title="CPU database load" stacked="true" max="1" step="5" >}}
+[
+  {
+    label: 'User',
+    data: [
+      0.03, 0.07,  0.2, 0.27,  0.3,
+       0.3, 0.31, 0.29,  0.3, 0.27,
+      0.32,  0.3, 0.31,  0.3,  0.3,
+       0.3, 0.33,  0.3, 0.32
+    ],
+    borderColor: '#4bc0c0',
+    backgroundColor: '#4bc0c0',
+    fill: true
+  },
+  {
+    label: 'System',
+    data: [
+      0.01, 0.04, 0.12, 0.14,
+      0.14, 0.13, 0.14, 0.14,
+      0.14, 0.14, 0.14, 0.14,
+      0.14, 0.15, 0.14, 0.13,
+      0.15, 0.13, 0.13
+    ],
+    borderColor: '#ff6384',
+    backgroundColor: '#ff6384',
+    fill: true
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+This is where Laravel Octane really shines, as it can handle more than twice requests than Apache.
+
+#### Laravel PgSQL scenario 1
+
+Iteration creation rate = **5/s**
+
+```txt
+checks.........................: 100.00% ✓ 10710      ✗ 0
+data_received..................: 115 MB  1.7 MB/s
+data_sent......................: 980 kB  14 kB/s
+dropped_iterations.............: 91      1.338864/s
+http_req_blocked...............: avg=147.78µs min=207ns   med=1.14µs   max=46.93ms  p(90)=1.6µs    p(95)=1.79µs
+http_req_connecting............: avg=8.16µs   min=0s      med=0s       max=11.33ms  p(90)=0s       p(95)=0s
+http_req_duration..............: avg=267.09ms min=17.97ms med=234.63ms max=1.95s    p(90)=489.48ms p(95)=558.7ms
+  { expected_response:true }...: avg=267.09ms min=17.97ms med=234.63ms max=1.95s    p(90)=489.48ms p(95)=558.7ms
+http_req_failed................: 0.00%   ✓ 0          ✗ 10710
+http_req_receiving.............: avg=6.26ms   min=34.64µs med=527.47µs max=301.14ms p(90)=18.09ms  p(95)=43.35ms
+http_req_sending...............: avg=204.36µs min=14.62µs med=132.1µs  max=28.75ms  p(90)=232.5µs  p(95)=332.46µs
+http_req_tls_handshaking.......: avg=136.14µs min=0s      med=0s       max=44.92ms  p(90)=0s       p(95)=0s
+http_req_waiting...............: avg=260.62ms min=17.09ms med=228.96ms max=1.95s    p(90)=476.98ms p(95)=544.88ms
+http_reqs......................: 10710   157.574012/s
+iteration_duration.............: avg=13.68s   min=2.62s   med=14.91s   max=18.1s    p(90)=16.51s   p(95)=17.12s
+iterations.....................: 210     3.089687/s
+vus............................: 16      min=5        max=50
+vus_max........................: 50      min=50       max=50
+```
+
+{{< tabs >}}
+{{< tab tabName="Req/s" >}}
+
+{{< chart type="timeseries" title="Req/s count" >}}
+[
+  {
+    label: 'Req/s',
+    data: [
+       27, 129, 147, 150, 154, 154, 161, 162, 158, 154,
+      152, 163, 161, 157, 154, 160, 166, 158, 146, 158,
+      158, 171, 152, 166, 156, 164, 157, 161, 159, 154,
+      166, 167, 161, 155, 155, 162, 165, 162, 155, 157,
+      158, 161, 165, 155, 157, 158, 173, 154, 158, 158,
+      160, 172, 156, 155, 155, 170, 160, 159, 156, 160,
+      170, 166, 160, 159, 164, 165, 166, 157,  29
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" >}}
+[
+  {
+    label: 'VUs',
+    data: [
+       5, 10, 13, 17, 19, 23, 26, 30, 34, 37, 40, 44,
+      47, 49, 49, 50, 49, 50, 49, 50, 50, 49, 48, 50,
+      48, 47, 48, 49, 49, 48, 50, 50, 50, 48, 50, 50,
+      50, 50, 48, 47, 49, 50, 47, 46, 47, 48, 50, 49,
+      49, 50, 50, 50, 50, 48, 49, 49, 50, 49, 48, 46,
+      39, 36, 35, 33, 29, 23, 16
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< chart type="timeseries" title="Request duration in ms" >}}
+[
+  {
+    label: 'Duration (ms)',
+    data: [
+       45,  46,  69,  96, 110, 131, 145, 168, 180, 227,
+      242, 249, 265, 282, 313, 313, 313, 296, 341, 329,
+      306, 307, 288, 306, 321, 314, 295, 286, 314, 317,
+      296, 304, 296, 314, 318, 304, 308, 309, 299, 329,
+      296, 294, 292, 326, 291, 291, 298, 290, 330, 307,
+      311, 299, 300, 292, 338, 305, 296, 294, 324, 323,
+      285, 238, 219, 226, 205, 170, 135,  91,  40
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" stacked="true" max="1" step="5" >}}
+[
+  {
+    label: 'User',
+    data: [
+      0.04, 0.11, 0.75, 0.82,
+      0.83, 0.79, 0.82, 0.82,
+      0.82, 0.82, 0.81, 0.84,
+      0.81, 0.81, 0.81, 0.29,
+      0.03, 0.04, 0.03
+    ],
+    borderColor: '#4bc0c0',
+    backgroundColor: '#4bc0c0',
+    fill: true
+  },
+  {
+    label: 'System',
+    data: [
+      0.02, 0.03, 0.14, 0.16,
+      0.15, 0.16, 0.15, 0.15,
+      0.15, 0.15, 0.14, 0.15,
+      0.14, 0.15, 0.15, 0.06,
+      0.02, 0.03, 0.02
+    ],
+    borderColor: '#ff6384',
+    backgroundColor: '#ff6384',
+    fill: true
+  }
+]
+{{< /chart >}}
+
+{{< chart type="timeseries" title="CPU database load" stacked="true" max="1" step="5" >}}
+[
+  {
+    label: 'User',
+    data: [
+      0.03, 0.11, 0.28, 0.27,
+      0.28, 0.27, 0.29, 0.27,
+       0.3, 0.29, 0.29, 0.27,
+      0.27, 0.27, 0.26, 0.04,
+      0.02, 0.02, 0.03
+    ],
+    borderColor: '#4bc0c0',
+    backgroundColor: '#4bc0c0',
+    fill: true
+  },
+  {
+    label: 'System',
+    data: [
+      0.02, 0.14, 0.36,  0.4,
+       0.4,  0.4, 0.38, 0.41,
+      0.39, 0.38, 0.38, 0.37,
+      0.36, 0.36, 0.37, 0.04,
+      0.02, 0.02, 0.02
+    ],
+    borderColor: '#ff6384',
+    backgroundColor: '#ff6384',
+    fill: true
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+Laravel performs slightly better than MySQL in this scenario, and we are not limited by database this time.
+
+#### Laravel PgSQL scenario 2
+
+Iteration creation rate = **1/2/s**
+
+```txt
+checks.........................: 100.00% ✓ 15649      ✗ 0
+data_received..................: 36 MB   399 kB/s
+data_sent......................: 1.3 MB  15 kB/s
+http_req_blocked...............: avg=64.09µs  min=197ns   med=1.14µs   max=73.06ms  p(90)=1.6µs    p(95)=1.79µs
+http_req_connecting............: avg=7.83µs   min=0s      med=0s       max=47.56ms  p(90)=0s       p(95)=0s
+http_req_duration..............: avg=118.19ms min=16.33ms med=108.14ms max=506.31ms p(90)=208.01ms p(95)=241.86ms
+  { expected_response:true }...: avg=118.19ms min=16.33ms med=108.14ms max=506.31ms p(90)=208.01ms p(95)=241.86ms
+http_req_failed................: 0.00%   ✓ 0          ✗ 15649
+http_req_receiving.............: avg=1.31ms   min=20.12µs med=294.79µs max=206.57ms p(90)=1.39ms   p(95)=4.84ms
+http_req_sending...............: avg=208.28µs min=27.88µs med=129.12µs max=63.13ms  p(90)=231.66µs p(95)=320.73µs
+http_req_tls_handshaking.......: avg=51.84µs  min=0s      med=0s       max=47.04ms  p(90)=0s       p(95)=0s
+http_req_waiting...............: avg=116.67ms min=14.17ms med=106.7ms  max=480.58ms p(90)=205.2ms  p(95)=239.05ms
+http_reqs......................: 15649   173.850269/s
+vus............................: 31      min=1        max=31
+vus_max........................: 50      min=50       max=50
+```
+
+{{< tabs >}}
+{{< tab tabName="Req/s" >}}
+
+{{< chart type="timeseries" title="Req/s count" >}}
+[
+  {
+    label: 'Req/s',
+    data: [
+       19,  21,  54,  83,  89,  90, 130, 127, 135, 130, 151,
+      157, 159, 162, 166, 156, 155, 167, 176, 179, 179, 181,
+      172, 182, 187, 178, 182, 175, 183, 191, 173, 190, 181,
+      185, 178, 156, 182, 183, 192, 190, 185, 187, 186, 191,
+      195, 192, 188, 181, 190, 193, 190, 192, 183, 188, 203,
+      190, 186, 190, 190, 197, 180, 190, 190, 197, 188, 194,
+      190, 192, 191, 201, 193, 188, 198, 188, 197, 186, 197,
+      182, 189, 193, 183, 200, 183, 192, 192, 194, 190, 184,
+      194, 190
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" >}}
+[
+  {
+    label: 'VUs',
+    data: [
+       1,  1,  2,  2,  3,  3,  4,  5,  5,  6,  6,  7,
+       7,  8,  8,  9,  9, 10, 10, 11, 11, 12, 12, 13,
+      13, 14, 14, 15, 15, 16, 16, 17, 17, 18, 18, 19,
+      19, 20, 20, 21, 21, 22, 22, 23, 23, 24, 24, 25,
+      25, 26, 26, 27, 27, 28, 28, 29, 29, 30, 30, 31,
+      31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31,
+      31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31,
+      31, 31, 31, 31, 31
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< chart type="timeseries" title="Request duration in ms" >}}
+[
+  {
+    label: 'Duration (ms)',
+    data: [
+       49,  45,  36,  24,  31,  33,  30,  30,  37,  37,  39,  38,
+       44,  42,  47,  50,  58,  54,  55,  56,  60,  62,  67,  67,
+       70,  70,  78,  79,  81,  79,  88,  87,  90,  95,  99, 109,
+      107,  98, 109, 106, 106, 117, 115, 118, 116, 116, 131, 120,
+      141, 131, 129, 139, 142, 148, 140, 142, 158, 152, 156, 153,
+      160, 172, 164, 161, 158, 159, 163, 162, 160, 158, 156, 167,
+      159, 159, 161, 163, 159, 166, 162, 159, 165, 164, 162, 166,
+      156, 159, 170, 159, 168, 158
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" stacked="true" max="1" step="5" >}}
+[
+  {
+    label: 'User',
+    data: [
+      0.03, 0.05,  0.2, 0.41,
+      0.59, 0.66, 0.73, 0.76,
+      0.75, 0.76,  0.8,  0.8,
+      0.81, 0.82, 0.79, 0.81,
+      0.82, 0.83, 0.79
+    ],
+    borderColor: '#4bc0c0',
+    backgroundColor: '#4bc0c0',
+    fill: true
+  },
+  {
+    label: 'System',
+    data: [
+      0.02, 0.03, 0.04, 0.08,
+      0.11, 0.12, 0.14, 0.14,
+      0.15, 0.13, 0.14, 0.15,
+      0.14, 0.15, 0.15, 0.15,
+      0.15, 0.14, 0.16
+    ],
+    borderColor: '#ff6384',
+    backgroundColor: '#ff6384',
+    fill: true
+  }
+]
+{{< /chart >}}
+
+{{< chart type="timeseries" title="CPU database load" stacked="true" max="1" step="5" >}}
+[
+  {
+    label: 'User',
+    data: [
+      0.02, 0.03, 0.14, 0.19,
+      0.25, 0.25, 0.27, 0.27,
+      0.27, 0.27, 0.29, 0.28,
+      0.28, 0.29, 0.29, 0.29,
+      0.28,  0.3, 0.31
+    ],
+    borderColor: '#4bc0c0',
+    backgroundColor: '#4bc0c0',
+    fill: true
+  },
+  {
+    label: 'System',
+    data: [
+      0.02, 0.03,  0.2, 0.27,
+      0.33, 0.34, 0.35, 0.36,
+      0.38, 0.39, 0.39,  0.4,
+       0.4, 0.39,  0.4, 0.41,
+      0.42, 0.42, 0.42
+    ],
+    borderColor: '#ff6384',
+    backgroundColor: '#ff6384',
+    fill: true
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+Laravel performing slower than MySQL in this context. Workers and databases are both heavy loaded, and we didn't complete a single scenario iteration.
+
+#### Laravel FrankenPHP PgSQL scenario 1
+
+Iteration creation rate = **5/s**
+
+```txt
+checks.........................: 100.00% ✓ 15351     ✗ 0
+data_received..................: 164 MB  2.7 MB/s
+data_sent......................: 1.4 MB  22 kB/s
+http_req_blocked...............: avg=92.69µs min=244ns    med=1.05µs   max=58.08ms  p(90)=1.51µs   p(95)=1.69µs
+http_req_connecting............: avg=4.66µs  min=0s       med=0s       max=5.16ms   p(90)=0s       p(95)=0s
+http_req_duration..............: avg=18.51ms min=4.14ms   med=16.47ms  max=428.74ms p(90)=25.07ms  p(95)=30.62ms
+  { expected_response:true }...: avg=18.51ms min=4.14ms   med=16.47ms  max=428.74ms p(90)=25.07ms  p(95)=30.62ms
+http_req_failed................: 0.00%   ✓ 0         ✗ 15351
+http_req_receiving.............: avg=907µs   min=26.82µs  med=486.27µs max=207.67ms p(90)=1.42ms   p(95)=2.26ms
+http_req_sending...............: avg=205.9µs min=27.86µs  med=123.52µs max=70.97ms  p(90)=214.68µs p(95)=314.53µs
+http_req_tls_handshaking.......: avg=84.14µs min=0s       med=0s       max=43.29ms  p(90)=0s       p(95)=0s
+http_req_waiting...............: avg=17.4ms  min=0s       med=15.58ms  max=428.19ms p(90)=23.57ms  p(95)=28.49ms
+http_reqs......................: 15351   251.56363/s
+iteration_duration.............: avg=1s      min=777.67ms med=944.47ms max=1.71s    p(90)=1.25s    p(95)=1.37s
+iterations.....................: 301     4.93262/s
+vus............................: 1       min=1       max=8
+vus_max........................: 50      min=50      max=50
+```
+
+{{< tabs >}}
+{{< tab tabName="Req/s" >}}
+
+{{< chart type="timeseries" title="Req/s count" >}}
+[
+  {
+    label: 'Req/s',
+    data: [
+       68, 243, 275, 268, 243, 277, 229, 261, 255,
+      263, 270, 245, 261, 258, 227, 281, 242, 238,
+      279, 257, 249, 248, 235, 281, 255, 259, 227,
+      239, 296, 256, 265, 248, 240, 276, 244, 266,
+      244, 273, 243, 256, 239, 213, 222, 285, 255,
+      297, 242, 249, 282, 264, 269, 235, 273, 253,
+      245, 265, 210, 281, 276, 242, 203,  11
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" >}}
+[
+  {
+    label: 'VUs',
+    data: [
+      5, 5, 5, 5, 4, 4, 5, 5, 5, 4, 4, 4,
+      4, 4, 5, 4, 4, 4, 4, 4, 4, 4, 5, 4,
+      4, 4, 6, 6, 4, 4, 3, 4, 5, 4, 4, 4,
+      5, 4, 4, 4, 5, 7, 8, 7, 6, 5, 5, 5,
+      5, 4, 4, 4, 4, 4, 4, 4, 6, 5, 4, 4,
+      1
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< chart type="timeseries" title="Request duration in ms" >}}
+[
+  {
+    label: 'Duration (ms)',
+    data: [
+      22, 21, 19, 16, 17, 17, 19, 18, 17, 17, 16, 16,
+      17, 16, 20, 18, 17, 20, 18, 16, 18, 18, 22, 19,
+      17, 18, 20, 25, 19, 17, 16, 17, 19, 17, 17, 17,
+      17, 16, 18, 16, 19, 23, 29, 27, 27, 21, 18, 24,
+      19, 17, 16, 18, 16, 16, 17, 16, 21, 20, 16, 16,
+      16, 25
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" stacked="true" max="1" step="5" >}}
+[
+  {
+    label: 'User',
+    data: [
+      0.05, 0.03, 0.29, 0.45,
+      0.44, 0.44, 0.47, 0.45,
+      0.45, 0.46, 0.43,  0.5,
+      0.46, 0.45, 0.22, 0.03,
       0.03, 0.03, 0.03
     ],
     borderColor: '#4bc0c0',
@@ -995,11 +1270,351 @@ vus_max........................: 50      min=50      max=50
   {
     label: 'System',
     data: [
-      0.02, 0.05, 0.05, 0.06,
-      0.04, 0.06, 0.05, 0.06,
-      0.06, 0.07, 0.05, 0.06,
-      0.07, 0.06, 0.05, 0.02,
+      0.03, 0.02, 0.06, 0.09,
+      0.08,  0.1, 0.08, 0.08,
+      0.09, 0.08, 0.07, 0.09,
+       0.1, 0.09, 0.05, 0.02,
+      0.02, 0.03, 0.02
+    ],
+    borderColor: '#ff6384',
+    backgroundColor: '#ff6384',
+    fill: true
+  }
+]
+{{< /chart >}}
+
+{{< chart type="timeseries" title="CPU database load" stacked="true" max="1" step="5" >}}
+[
+  {
+    label: 'User',
+    data: [
+      0.03, 0.02, 0.18, 0.17,
+      0.19, 0.19,  0.2, 0.21,
+      0.18,  0.2, 0.23, 0.18,
+      0.17, 0.19, 0.07, 0.03,
+      0.03, 0.03, 0.03
+    ],
+    borderColor: '#4bc0c0',
+    backgroundColor: '#4bc0c0',
+    fill: true
+  },
+  {
+    label: 'System',
+    data: [
+      0.02, 0.02, 0.12, 0.11,
+       0.1, 0.09, 0.13, 0.12,
+      0.11, 0.14, 0.14,  0.1,
+       0.1, 0.13, 0.04, 0.02,
       0.02, 0.01, 0.02
+    ],
+    borderColor: '#ff6384',
+    backgroundColor: '#ff6384',
+    fill: true
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+Way better than with MySQL but no CPU limitations...
+
+#### Laravel FrankenPHP PgSQL scenario 2
+
+Iteration creation rate = **1/s**
+
+```txt
+checks.........................: 100.00% ✓ 53448      ✗ 0
+data_received..................: 122 MB  1.4 MB/s
+data_sent......................: 4.4 MB  49 kB/s
+dropped_iterations.............: 8       0.088883/s
+http_req_blocked...............: avg=28.83µs  min=188ns   med=900ns    max=130.65ms p(90)=1.4µs    p(95)=1.57µs
+http_req_connecting............: avg=3.26µs   min=0s      med=0s       max=40.47ms  p(90)=0s       p(95)=0s
+http_req_duration..............: avg=59.09ms  min=3.07ms  med=49.91ms  max=426.79ms p(90)=121.42ms p(95)=137.82ms
+  { expected_response:true }...: avg=59.09ms  min=3.07ms  med=49.91ms  max=426.79ms p(90)=121.42ms p(95)=137.82ms
+http_req_failed................: 0.00%   ✓ 0          ✗ 53448
+http_req_receiving.............: avg=1.3ms    min=17.89µs med=202.25µs max=277.84ms p(90)=1.17ms   p(95)=2.63ms
+http_req_sending...............: avg=271.85µs min=22.02µs med=101.15µs max=269.13ms p(90)=197.28µs p(95)=281.99µs
+http_req_tls_handshaking.......: avg=23.83µs  min=0s      med=0s       max=89.85ms  p(90)=0s       p(95)=0s
+http_req_waiting...............: avg=57.51ms  min=0s      med=48.78ms  max=423.57ms p(90)=119.42ms p(95)=135.29ms
+http_reqs......................: 53448   593.825611/s
+iteration_duration.............: avg=1m3s     min=45.9s   med=1m4s     max=1m19s    p(90)=1m17s    p(95)=1m18s
+iterations.....................: 9       0.099993/s
+vus............................: 44      min=1        max=50
+vus_max........................: 50      min=50       max=50
+```
+
+{{< tabs >}}
+{{< tab tabName="Req/s" >}}
+
+{{< chart type="timeseries" title="Req/s count" >}}
+[
+  {
+    label: 'Req/s',
+    data: [
+       59, 137, 245, 368, 393, 519, 334, 446, 490, 576, 526,
+      397, 379, 482, 597, 623, 652, 626, 631, 612, 631, 637,
+      608, 630, 651, 625, 637, 632, 671, 622, 683, 631, 655,
+      641, 632, 673, 659, 603, 650, 652, 642, 623, 668, 678,
+      642, 640, 498, 628, 638, 665, 624, 665, 630, 650, 669,
+      692, 628, 588, 650, 628, 687, 687, 639, 629, 632, 649,
+      657, 608, 669, 648, 658, 601, 618, 654, 654, 654, 521,
+      508, 317, 634, 685, 608, 662, 593, 675
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" >}}
+[
+  {
+    label: 'VUs',
+    data: [
+       1,  2,  3,  4,  5,  6,  8,  8,  9, 10, 11, 12,
+      14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+      26, 27, 28, 29, 30, 31, 33, 34, 35, 36, 37, 38,
+      39, 40, 41, 42, 43, 44, 45, 45, 46, 47, 47, 48,
+      49, 50, 50, 50, 50, 49, 50, 50, 50, 50, 49, 49,
+      49, 49, 49, 49, 49, 49, 48, 48, 48, 48, 47, 47,
+      47, 47, 47, 47, 47, 47, 46, 46, 45, 45
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< chart type="timeseries" title="Request duration in ms" >}}
+[
+  {
+    label: 'Duration (ms)',
+    data: [
+      16, 14, 12, 11, 12, 11,  20, 18, 18, 17, 21, 29,
+      31, 30, 25, 25, 26, 27,  30, 33, 33, 34, 37, 38,
+      39, 41, 42, 43, 44, 48,  46, 48, 50, 53, 56, 54,
+      54, 61, 61, 62, 63, 66,  64, 63, 72, 71, 92, 71,
+      75, 73, 77, 74, 76, 79,  75, 70, 78, 82, 80, 81,
+      70, 71, 72, 81, 78, 75,  75, 78, 75, 75, 73, 77,
+      76, 75, 72, 72, 89, 89, 147, 74, 67, 77, 67, 80,
+      65
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" stacked="true" max="1" step="5" >}}
+[
+  {
+    label: 'User',
+    data: [
+      0.03, 0.08, 0.37, 0.46,
+      0.51, 0.59, 0.58,  0.6,
+      0.62, 0.61,  0.6, 0.59,
+       0.6, 0.59, 0.58, 0.61,
+      0.58, 0.51, 0.64
+    ],
+    borderColor: '#4bc0c0',
+    backgroundColor: '#4bc0c0',
+    fill: true
+  },
+  {
+    label: 'System',
+    data: [
+      0.02, 0.03, 0.08, 0.11,
+      0.12, 0.13, 0.13, 0.14,
+      0.13, 0.16, 0.14, 0.14,
+      0.14, 0.14, 0.15, 0.16,
+      0.15, 0.12, 0.14
+    ],
+    borderColor: '#ff6384',
+    backgroundColor: '#ff6384',
+    fill: true
+  }
+]
+{{< /chart >}}
+
+{{< chart type="timeseries" title="CPU database load" stacked="true" max="1" step="5" >}}
+[
+  {
+    label: 'User',
+    data: [
+      0.02, 0.08, 0.22, 0.22,
+      0.25, 0.25, 0.27, 0.26,
+      0.27, 0.26, 0.27, 0.26,
+      0.28, 0.27, 0.26, 0.26,
+      0.26, 0.26, 0.27
+    ],
+    borderColor: '#4bc0c0',
+    backgroundColor: '#4bc0c0',
+    fill: true
+  },
+  {
+    label: 'System',
+    data: [
+      0.02, 0.05, 0.13, 0.14,
+      0.16, 0.16, 0.16, 0.17,
+      0.16, 0.16, 0.16, 0.17,
+      0.16, 0.16, 0.15, 0.17,
+      0.15, 0.16, 0.18
+    ],
+    borderColor: '#ff6384',
+    backgroundColor: '#ff6384',
+    fill: true
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+Very close to MySQL equivalent.
+
+### Symfony
+
+#### Symfony MySQL scenario 1
+
+Iteration creation rate = **5/s**
+
+```txt
+checks.........................: 100.00% ✓ 10098      ✗ 0
+data_received..................: 91 MB   1.4 MB/s
+data_sent......................: 929 kB  14 kB/s
+dropped_iterations.............: 103     1.525577/s
+http_req_blocked...............: avg=176.31µs min=222ns   med=1.09µs   max=75.92ms  p(90)=1.55µs   p(95)=1.74µs
+http_req_connecting............: avg=6.31µs   min=0s      med=0s       max=4.4ms    p(90)=0s       p(95)=0s
+http_req_duration..............: avg=283.48ms min=16.12ms med=299.04ms max=648.58ms p(90)=411.63ms p(95)=444.18ms
+  { expected_response:true }...: avg=283.48ms min=16.12ms med=299.04ms max=648.58ms p(90)=411.63ms p(95)=444.18ms
+http_req_failed................: 0.00%   ✓ 0          ✗ 10098
+http_req_receiving.............: avg=1.03ms   min=22.06µs med=363.49µs max=204.94ms p(90)=1.63ms   p(95)=3.31ms
+http_req_sending...............: avg=260µs    min=25.52µs med=124.22µs max=76.41ms  p(90)=223.35µs p(95)=316.73µs
+http_req_tls_handshaking.......: avg=162.58µs min=0s      med=0s       max=49.02ms  p(90)=0s       p(95)=0s
+http_req_waiting...............: avg=282.18ms min=15.78ms med=297.55ms max=648.25ms p(90)=410.27ms p(95)=442.18ms
+http_reqs......................: 10098   149.565835/s
+iteration_duration.............: avg=14.51s   min=2.45s   med=16.39s   max=18.09s   p(90)=17.42s   p(95)=17.59s
+iterations.....................: 198     2.932663/s
+vus............................: 13      min=5        max=50
+vus_max........................: 50      min=50       max=50
+```
+
+{{< tabs >}}
+{{< tab tabName="Req/s" >}}
+
+{{< chart type="timeseries" title="Req/s count" >}}
+[
+  {
+    label: 'Req/s',
+    data: [
+       10, 123, 159, 155, 163, 154, 149, 170, 145, 154,
+      150, 155, 152, 150, 153, 140, 156, 154, 149, 160,
+      140, 148, 151, 137, 166, 125, 150, 150, 145, 148,
+      135, 155, 136, 148, 152, 148, 160, 150, 146, 157,
+      148, 145, 158, 164, 144, 141, 153, 136, 157, 159,
+      158, 137, 147, 145, 161, 139, 144, 146, 150, 157,
+      150, 162, 135, 167, 148, 154, 162, 169,  14
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" >}}
+[
+  {
+    label: 'VUs',
+    data: [
+       5, 10, 13, 16, 20, 23, 26, 29, 32, 35, 39, 42,
+      46, 50, 49, 50, 49, 50, 50, 50, 50, 50, 49, 50,
+      47, 50, 48, 50, 50, 49, 49, 49, 50, 49, 49, 50,
+      50, 50, 49, 50, 49, 50, 50, 49, 46, 49, 49, 49,
+      49, 49, 50, 50, 49, 50, 50, 49, 48, 49, 48, 49,
+      46, 41, 35, 28, 22, 20, 13
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< chart type="timeseries" title="Request duration in ms" >}}
+[
+  {
+    label: 'Duration (ms)',
+    data: [
+       43,  37,  59,  80,  94, 126, 140, 158, 189, 193,
+      231, 255, 266, 296, 327, 322, 346, 319, 325, 319,
+      337, 345, 335, 334, 306, 365, 346, 340, 332, 336,
+      351, 332, 337, 333, 336, 326, 322, 337, 327, 310,
+      336, 328, 327, 326, 326, 324, 340, 338, 326, 306,
+      339, 345, 332, 330, 324, 356, 335, 341, 330, 319,
+      336, 313, 262, 240, 210, 152, 128,  84,  28
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" stacked="true" max="1" step="5" >}}
+[
+  {
+    label: 'User',
+    data: [
+      0.03, 0.06, 0.33, 0.33,
+      0.32, 0.31, 0.32, 0.31,
+      0.32, 0.32,  0.3, 0.31,
+      0.31, 0.31, 0.33, 0.13,
+      0.04, 0.03, 0.04
+    ],
+    borderColor: '#4bc0c0',
+    backgroundColor: '#4bc0c0',
+    fill: true
+  },
+  {
+    label: 'System',
+    data: [
+      0.02, 0.03, 0.16, 0.15,
+      0.16, 0.14, 0.14, 0.15,
+      0.14, 0.13, 0.16, 0.14,
+      0.15, 0.15, 0.16, 0.07,
+      0.02, 0.02, 0.03
+    ],
+    borderColor: '#ff6384',
+    backgroundColor: '#ff6384',
+    fill: true
+  }
+]
+{{< /chart >}}
+
+{{< chart type="timeseries" title="CPU database load" stacked="true" max="1" step="5" >}}
+[
+  {
+    label: 'User',
+    data: [
+      0.02, 0.29, 0.91, 0.93,
+      0.94, 0.95, 0.95, 0.94,
+      0.95, 0.95, 0.95, 0.94,
+      0.95, 0.93, 0.93, 0.08,
+      0.03, 0.03, 0.03
+    ],
+    borderColor: '#4bc0c0',
+    backgroundColor: '#4bc0c0',
+    fill: true
+  },
+  {
+    label: 'System',
+    data: [
+      0.01, 0.03, 0.06, 0.07,
+      0.06, 0.05, 0.05, 0.05,
+      0.05, 0.05, 0.05, 0.06,
+      0.05, 0.06, 0.06, 0.02,
+      0.02, 0.02, 0.02
     ],
     borderColor: '#ff6384',
     backgroundColor: '#ff6384',
@@ -1018,22 +1633,22 @@ It's very similar to Laravel.
 Iteration creation rate = **1/2/s**
 
 ```txt
-checks.........................: 100.00% ✓ 34637      ✗ 0
-data_received..................: 63 MB   703 kB/s
-data_sent......................: 2.8 MB  31 kB/s
-http_req_blocked...............: avg=25µs     min=229ns   med=1.01µs   max=53.85ms  p(90)=1.5µs    p(95)=1.68µs
-http_req_connecting............: avg=913ns    min=0s      med=0s       max=2.79ms   p(90)=0s       p(95)=0s
-http_req_duration..............: avg=45.26ms  min=7.15ms  med=33.2ms   max=741.21ms p(90)=97.42ms  p(95)=117.33ms
-{ expected_response:true }...: avg=45.26ms  min=7.15ms  med=33.2ms   max=741.21ms p(90)=97.42ms  p(95)=117.33ms
-http_req_failed................: 0.00%   ✓ 0          ✗ 34637
-http_req_receiving.............: avg=768.97µs min=19.34µs med=130.89µs max=68.86ms  p(90)=530.92µs p(95)=3.15ms
-http_req_sending...............: avg=126.37µs min=26.62µs med=111.05µs max=19.03ms  p(90)=177.14µs p(95)=209.12µs
-http_req_tls_handshaking.......: avg=22.07µs  min=0s      med=0s       max=34.55ms  p(90)=0s       p(95)=0s      
-http_req_waiting...............: avg=44.36ms  min=6.97ms  med=32.51ms  max=740.19ms p(90)=95.8ms   p(95)=115.05ms
-http_reqs......................: 34637   384.829353/s
-iteration_duration.............: avg=50.67s   min=32.73s  med=50.6s    max=1m8s     p(90)=1m7s     p(95)=1m7s
-iterations.....................: 9       0.099993/s
-vus............................: 22      min=1        max=26
+checks.........................: 100.00% ✓ 29892      ✗ 0
+data_received..................: 54 MB   604 kB/s
+data_sent......................: 2.4 MB  26 kB/s
+http_req_blocked...............: avg=28.17µs  min=186ns   med=1.1µs    max=51.44ms  p(90)=1.55µs   p(95)=1.72µs
+http_req_connecting............: avg=1.41µs   min=0s      med=0s       max=5.2ms    p(90)=0s       p(95)=0s
+http_req_duration..............: avg=56.52ms  min=7.06ms  med=31.69ms  max=1.02s    p(90)=137.72ms p(95)=166.41ms
+  { expected_response:true }...: avg=56.52ms  min=7.06ms  med=31.69ms  max=1.02s    p(90)=137.72ms p(95)=166.41ms
+http_req_failed................: 0.00%   ✓ 0          ✗ 29892
+http_req_receiving.............: avg=1.25ms   min=20.02µs med=209.22µs max=209.68ms p(90)=1.23ms   p(95)=5.37ms
+http_req_sending...............: avg=189.98µs min=26.6µs  med=120.12µs max=70.73ms  p(90)=199.97µs p(95)=255.88µs
+http_req_tls_handshaking.......: avg=24.33µs  min=0s      med=0s       max=49.8ms   p(90)=0s       p(95)=0s
+http_req_waiting...............: avg=55.07ms  min=0s      med=30.73ms  max=1.02s    p(90)=134.97ms p(95)=163.13ms
+http_reqs......................: 29892   332.049675/s
+iteration_duration.............: avg=54.72s   min=42.96s  med=55.42s   max=1m9s     p(90)=1m6s     p(95)=1m8s
+iterations.....................: 5       0.055542/s
+vus............................: 26      min=1        max=28
 vus_max........................: 50      min=50       max=50
 ```
 
@@ -1045,15 +1660,15 @@ vus_max........................: 50      min=50       max=50
   {
     label: 'Req/s',
     data: [
-        1,  57, 181, 219, 275, 284, 319, 335, 336, 376, 376,
-      367, 367, 366, 406, 403, 408, 389, 378, 412, 411, 416,
-      394, 381, 416, 413, 419, 391, 393, 413, 418, 420, 404,
-      400, 424, 413, 415, 400, 399, 427, 420, 400, 399, 404,
-      417, 421, 426, 397, 389, 408, 418, 418, 399, 405, 414,
-      419, 416, 405, 394, 415, 405, 407, 399, 409, 395, 408,
-      416, 405, 392, 421, 397, 421, 399, 407, 405, 414, 401,
-      402, 401, 405, 422, 411, 402, 405, 415, 416, 417, 398,
-      396, 240
+       37,  44, 133, 154, 225, 230, 269, 273, 306, 292, 290,
+      272, 324, 339, 345, 342, 345, 351, 373, 354, 362, 318,
+      337, 348, 303, 301, 346, 370, 344, 335, 336, 355, 385,
+      373, 359, 351, 357, 382, 366, 350, 360, 347, 364, 342,
+      336, 362, 379, 375, 342, 348, 352, 352, 385, 360, 341,
+      357, 364, 363, 347, 314, 338, 359, 357, 344, 312, 344,
+      334, 390, 358, 339, 352, 359, 364, 335, 350, 368, 350,
+      378, 347, 357, 355, 331, 389, 343, 331, 342, 359, 369,
+      351, 321
     ]
   }
 ]
@@ -1070,12 +1685,12 @@ vus_max........................: 50      min=50       max=50
     data: [
        1,  1,  2,  2,  3,  3,  4,  4,  5,  5,  6,  6,
        7,  7,  8,  8,  9,  9, 10, 10, 11, 11, 12, 12,
-      13, 13, 14, 14, 15, 15, 16, 16, 16, 16, 17, 16,
-      17, 17, 18, 18, 18, 18, 19, 19, 20, 20, 21, 21,
-      22, 22, 23, 22, 23, 23, 24, 24, 25, 25, 25, 25,
-      26, 26, 26, 26, 26, 26, 26, 26, 25, 25, 25, 25,
-      25, 25, 25, 24, 24, 24, 24, 24, 24, 23, 23, 23,
-      22, 22, 22, 22, 22, 22
+      13, 13, 14, 14, 15, 15, 16, 16, 17, 17, 18, 18,
+      19, 19, 20, 20, 21, 21, 21, 21, 22, 21, 22, 22,
+      23, 23, 24, 24, 25, 25, 26, 26, 27, 27, 28, 27,
+      28, 28, 28, 28, 28, 28, 28, 27, 27, 27, 27, 27,
+      27, 27, 27, 27, 26, 26, 26, 26, 26, 26, 26, 26,
+      26, 26, 26, 26, 26
     ]
   }
 ]
@@ -1086,14 +1701,14 @@ vus_max........................: 50      min=50       max=50
   {
     label: 'Duration (ms)',
     data: [
-      701, 36, 11, 11, 11, 12, 12, 13, 15, 14, 16, 17,
-       19, 20, 19, 21, 22, 24, 26, 25, 27, 27, 30, 32,
-       31, 32, 33, 36, 38, 37, 38, 39, 40, 40, 39, 39,
-       41, 43, 45, 43, 43, 46, 48, 46, 49, 48, 49, 53,
-       56, 55, 55, 54, 58, 57, 58, 58, 59, 62, 63, 62,
-       63, 64, 66, 63, 65, 65, 60, 65, 62, 60, 62, 60,
-       62, 61, 61, 57, 61, 60, 58, 60, 56, 56, 58, 55,
-       54, 53, 53, 55, 55, 53
+      25, 22, 14, 13, 13, 13, 15, 14, 15, 17, 20, 22,
+      20, 22, 22, 23, 26, 25, 26, 27, 30, 34, 35, 34,
+      41, 43, 40, 38, 43, 43, 47, 47, 43, 44, 49, 53,
+      53, 49, 54, 55, 60, 61, 58, 63, 60, 63, 59, 55,
+      68, 64, 70, 70, 63, 70, 70, 78, 75, 72, 81, 81,
+      87, 80, 76, 81, 82, 89, 80, 73, 76, 74, 80, 78,
+      70, 82, 73, 78, 77, 69, 74, 71, 76, 76, 68, 76,
+      75, 78, 75, 69, 75, 74
     ]
   }
 ]
@@ -1107,11 +1722,11 @@ vus_max........................: 50      min=50       max=50
   {
     label: 'User',
     data: [
-      0.03, 0.02,  0.3, 0.44,
-      0.55, 0.57,  0.6, 0.57,
-      0.61, 0.62, 0.59,  0.6,
-      0.59, 0.61, 0.58, 0.61,
-       0.6, 0.57, 0.61
+      0.03, 0.04, 0.13, 0.33,
+      0.43,  0.5, 0.51,  0.5,
+       0.5, 0.54, 0.52, 0.51,
+      0.52, 0.53, 0.49, 0.52,
+      0.51, 0.52, 0.52
     ],
     borderColor: '#4bc0c0',
     backgroundColor: '#4bc0c0',
@@ -1120,11 +1735,11 @@ vus_max........................: 50      min=50       max=50
   {
     label: 'System',
     data: [
-      0.01, 0.01, 0.12, 0.27,
-       0.3, 0.35, 0.33, 0.35,
-      0.34, 0.33, 0.35, 0.34,
-      0.37, 0.34, 0.35, 0.35,
-      0.35, 0.35, 0.35
+      0.02, 0.02, 0.08, 0.19,
+      0.22, 0.28, 0.27,  0.3,
+       0.3,  0.3, 0.29, 0.31,
+      0.29, 0.31, 0.29, 0.31,
+      0.28, 0.32, 0.31
     ],
     borderColor: '#ff6384',
     backgroundColor: '#ff6384',
@@ -1138,11 +1753,11 @@ vus_max........................: 50      min=50       max=50
   {
     label: 'User',
     data: [
-      0.03, 0.07, 0.13, 0.14,
-      0.15, 0.16, 0.14, 0.16,
-      0.17, 0.17, 0.17, 0.15,
-      0.16, 0.14, 0.15, 0.16,
-      0.17, 0.16, 0.15
+      0.03, 0.03, 0.08, 0.15,
+      0.16, 0.13, 0.18, 0.16,
+      0.13, 0.12, 0.14, 0.13,
+      0.14, 0.13, 0.14, 0.12,
+      0.14, 0.13, 0.14
     ],
     borderColor: '#4bc0c0',
     backgroundColor: '#4bc0c0',
@@ -1151,11 +1766,11 @@ vus_max........................: 50      min=50       max=50
   {
     label: 'System',
     data: [
-      0.02, 0.04, 0.06, 0.07,
-      0.08, 0.08, 0.09, 0.08,
-      0.08, 0.07, 0.08, 0.08,
-      0.09, 0.09, 0.09, 0.09,
-      0.07, 0.08, 0.08
+      0.02, 0.02, 0.04, 0.09,
+      0.09, 0.07,  0.1, 0.08,
+      0.07, 0.07, 0.07, 0.07,
+      0.06, 0.07, 0.07, 0.07,
+      0.07, 0.07, 0.08
     ],
     borderColor: '#ff6384',
     backgroundColor: '#ff6384',
@@ -1168,6 +1783,314 @@ vus_max........................: 50      min=50       max=50
 {{< /tabs >}}
 
 Similar to Laravel too, just slightly better in the same context. Let's see if it's able to keep up with the same performance with PostgreSQL.
+
+#### Symfony FrankenPHP MySQL scenario 1
+
+Iteration creation rate = **5/s**
+
+```txt
+checks.........................: 100.00% ✓ 8364       ✗ 0
+data_received..................: 76 MB   1.0 MB/s
+data_sent......................: 785 kB  11 kB/s
+dropped_iterations.............: 137     1.851966/s
+http_req_blocked...............: avg=242.33µs min=234ns   med=943ns    max=188.97ms p(90)=1.67µs   p(95)=1.89µs
+http_req_connecting............: avg=17.81µs  min=0s      med=0s       max=32.11ms  p(90)=0s       p(95)=0s
+http_req_duration..............: avg=382.92ms min=21.37ms med=195.95ms max=1.03s    p(90)=834.69ms p(95)=856.14ms
+  { expected_response:true }...: avg=382.92ms min=21.37ms med=195.95ms max=1.03s    p(90)=834.69ms p(95)=856.14ms
+http_req_failed................: 0.00%   ✓ 0          ✗ 8364
+http_req_receiving.............: avg=972.77µs min=40.4µs  med=506.22µs max=216.57ms p(90)=1.37ms   p(95)=2.09ms
+http_req_sending...............: avg=236.47µs min=30.67µs med=117.91µs max=78.05ms  p(90)=226.06µs p(95)=313.63µs
+http_req_tls_handshaking.......: avg=216.88µs min=0s      med=0s       max=156.72ms p(90)=0s       p(95)=0s
+http_req_waiting...............: avg=381.71ms min=20.36ms med=193.98ms max=969.38ms p(90)=833.5ms  p(95)=854.8ms
+http_reqs......................: 8364    113.064556/s
+iteration_duration.............: avg=19.59s   min=4.27s   med=20.42s   max=26.92s   p(90)=24.57s   p(95)=25.21s
+iterations.....................: 164     2.216952/s
+vus............................: 15      min=5        max=50
+vus_max........................: 50      min=50       max=50
+```
+
+{{< tabs >}}
+{{< tab tabName="Req/s" >}}
+
+{{< chart type="timeseries" title="Req/s count" >}}
+[
+  {
+    label: 'Req/s',
+    data: [
+       56, 119, 116, 110, 112, 111, 130, 115, 116, 112,
+      114, 119, 115, 115, 115, 110, 121, 120, 115, 111,
+      113, 107, 113, 116, 109, 108, 112, 117, 117, 112,
+      117, 113, 108, 112, 106, 114, 122, 118, 120, 116,
+      114, 123, 116, 118, 109, 115, 111, 117, 117, 113,
+      115, 108, 108, 111, 112, 115, 114, 110, 111, 113,
+      114, 119, 113, 113, 114, 113, 113, 112, 114, 108,
+      112, 110, 113, 104
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" >}}
+[
+  {
+    label: 'VUs',
+    data: [
+       5, 10, 15, 20, 23, 30, 35, 40, 44, 48, 50, 50,
+      50, 50, 50, 50, 50, 50, 50, 50, 48, 48, 48, 49,
+      49, 48, 50, 50, 50, 49, 50, 47, 50, 49, 50, 49,
+      50, 50, 49, 50, 50, 50, 50, 47, 48, 50, 48, 49,
+      49, 49, 50, 50, 49, 49, 48, 50, 50, 48, 47, 46,
+      46, 43, 43, 40, 38, 34, 32, 27, 22, 15
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< chart type="timeseries" title="Request duration in ms" >}}
+[
+  {
+    label: 'Duration (ms)',
+    data: [
+       47,  62, 105, 154, 180, 191, 245, 263, 310, 369,
+      369, 421, 427, 416, 438, 426, 425, 392, 431, 429,
+      437, 465, 448, 430, 443, 431, 480, 435, 411, 420,
+      419, 436, 466, 471, 426, 448, 419, 415, 424, 397,
+      427, 434, 412, 415, 459, 424, 450, 435, 407, 425,
+      406, 477, 467, 422, 456, 424, 450, 437, 431, 445,
+      420, 429, 413, 394, 398, 376, 404, 363, 323, 321,
+      267, 249, 188,  98
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" stacked="true" max="1" step="5" >}}
+[
+  {
+    label: 'User',
+    data: [
+      0.03, 0.04, 0.29, 0.34,
+      0.33, 0.33, 0.32, 0.32,
+      0.31, 0.34, 0.34,  0.3,
+      0.32, 0.34, 0.32, 0.31,
+      0.27, 0.03, 0.03
+    ],
+    borderColor: '#4bc0c0',
+    backgroundColor: '#4bc0c0',
+    fill: true
+  },
+  {
+    label: 'System',
+    data: [
+      0.02, 0.03, 0.18,  0.2,
+       0.2, 0.23,  0.2, 0.19,
+      0.21,  0.2,  0.2, 0.22,
+      0.19, 0.18, 0.21,  0.2,
+      0.17, 0.02, 0.02
+    ],
+    borderColor: '#ff6384',
+    backgroundColor: '#ff6384',
+    fill: true
+  }
+]
+{{< /chart >}}
+
+{{< chart type="timeseries" title="CPU database load" stacked="true" max="1" step="5" >}}
+[
+  {
+    label: 'User',
+    data: [
+      0.03, 0.07, 0.59,  0.6,
+       0.6,  0.6, 0.57, 0.59,
+      0.57,  0.6, 0.59, 0.58,
+      0.58, 0.59, 0.58, 0.56,
+      0.36, 0.02, 0.03
+    ],
+    borderColor: '#4bc0c0',
+    backgroundColor: '#4bc0c0',
+    fill: true
+  },
+  {
+    label: 'System',
+    data: [
+      0.02, 0.02, 0.04, 0.04,
+      0.04, 0.04, 0.04, 0.04,
+      0.04, 0.04, 0.05, 0.05,
+      0.04, 0.04, 0.04, 0.04,
+      0.03, 0.02, 0.02
+    ],
+    borderColor: '#ff6384',
+    backgroundColor: '#ff6384',
+    fill: true
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+No enhancements here, it's even worse than Apache equivalent. No CPU limitations whatsoever, so strange behavior.
+
+#### Symfony FrankenPHP MySQL scenario 2
+
+Iteration creation rate = **1/s**
+
+```txt
+checks.........................: 100.00% ✓ 18736      ✗ 0
+data_received..................: 34 MB   380 kB/s
+data_sent......................: 1.5 MB  17 kB/s
+dropped_iterations.............: 11      0.122204/s
+http_req_blocked...............: avg=84.84µs  min=185ns   med=1.14µs   max=87.39ms  p(90)=1.62µs   p(95)=1.8µs
+http_req_connecting............: avg=9.38µs   min=0s      med=0s       max=59.86ms  p(90)=0s       p(95)=0s
+http_req_duration..............: avg=173.8ms  min=11.7ms  med=55.74ms  max=687.96ms p(90)=440.25ms p(95)=460.86ms
+  { expected_response:true }...: avg=173.8ms  min=11.7ms  med=55.74ms  max=687.96ms p(90)=440.25ms p(95)=460.86ms
+http_req_failed................: 0.00%   ✓ 0          ✗ 18736
+http_req_receiving.............: avg=441.13µs min=22.96µs med=197.15µs max=97.18ms  p(90)=687.71µs p(95)=1.05ms
+http_req_sending...............: avg=179.98µs min=25.54µs med=128.13µs max=33.91ms  p(90)=216.85µs p(95)=283.17µs
+http_req_tls_handshaking.......: avg=71.87µs  min=0s      med=0s       max=47.53ms  p(90)=0s       p(95)=0s
+http_req_waiting...............: avg=173.18ms min=0s      med=54.76ms  max=687.54ms p(90)=439.6ms  p(95)=460.32ms
+http_reqs......................: 18736   208.146591/s
+vus............................: 50      min=1        max=50
+vus_max........................: 50      min=50       max=50
+```
+
+{{< tabs >}}
+{{< tab tabName="Req/s" >}}
+
+{{< chart type="timeseries" title="Req/s count" >}}
+[
+  {
+    label: 'Req/s',
+    data: [
+       22,  96, 152, 170, 201, 218, 202, 210, 177, 209, 217,
+      204, 213, 202, 223, 224, 206, 221, 210, 233, 226, 210,
+      222, 220, 222, 219, 209, 214, 203, 229, 225, 210, 221,
+      202, 223, 214, 206, 214, 211, 223, 213, 204, 213, 209,
+      226, 217, 206, 226, 200, 223, 221, 198, 215, 211, 220,
+      218, 193, 210, 202, 213, 218, 210, 203, 187, 210, 225,
+      203, 210, 198, 213, 212, 199, 219, 213, 221, 221, 209,
+      215, 218, 231, 221, 213, 202, 206, 214, 228, 200
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" >}}
+[
+  {
+    label: 'VUs',
+    data: [
+       1,  2,  3,  4,  5,  6,  8, 10, 11, 12, 13, 14,
+      15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
+      27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38,
+      39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
+      50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+      50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+      50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+      50
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< chart type="timeseries" title="Request duration in ms" >}}
+[
+  {
+    label: 'Duration (ms)',
+    data: [
+       40,  20,  19,  23,  24,  27,  32,  38,  50,  47,  50,  54,
+       62,  70,  65,  71,  76,  85,  90,  84,  91,  97, 109, 109,
+      108, 117, 120, 138, 145, 126, 138, 139, 157, 167, 153, 165,
+      172, 185, 177, 179, 192, 189, 213, 213, 193, 210, 210, 228,
+      239, 219, 228, 234, 253, 239, 230, 219, 240, 258, 253, 228,
+      231, 223, 258, 270, 233, 225, 226, 253, 251, 235, 233, 237,
+      249, 234, 218, 233, 218, 252, 228, 215, 225, 219, 260, 248,
+      235, 218, 228
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" stacked="true" max="1" step="5" >}}
+[
+  {
+    label: 'User',
+    data: [
+      0.04, 0.04, 0.32, 0.44,
+      0.45, 0.47,  0.5, 0.47,
+      0.49, 0.46, 0.47, 0.48,
+      0.47, 0.44, 0.45, 0.47,
+      0.47, 0.46, 0.49
+    ],
+    borderColor: '#4bc0c0',
+    backgroundColor: '#4bc0c0',
+    fill: true
+  },
+  {
+    label: 'System',
+    data: [
+      0.02, 0.02, 0.24, 0.33,
+      0.35, 0.35, 0.35, 0.35,
+      0.33, 0.36, 0.33, 0.34,
+      0.33, 0.33, 0.34, 0.32,
+      0.34, 0.35, 0.33
+    ],
+    borderColor: '#ff6384',
+    backgroundColor: '#ff6384',
+    fill: true
+  }
+]
+{{< /chart >}}
+
+{{< chart type="timeseries" title="CPU database load" stacked="true" max="1" step="5" >}}
+[
+  {
+    label: 'User',
+    data: [
+      0.03, 0.04, 0.12,  0.1,
+      0.12, 0.11, 0.09, 0.09,
+      0.09, 0.09, 0.09, 0.11,
+      0.09, 0.09, 0.14, 0.14,
+      0.08, 0.08, 0.12
+    ],
+    borderColor: '#4bc0c0',
+    backgroundColor: '#4bc0c0',
+    fill: true
+  },
+  {
+    label: 'System',
+    data: [
+      0.02, 0.03, 0.06, 0.06,
+      0.06, 0.06, 0.05, 0.05,
+      0.05, 0.05, 0.05, 0.06,
+      0.04, 0.05, 0.07, 0.06,
+      0.04, 0.05, 0.07
+    ],
+    borderColor: '#ff6384',
+    backgroundColor: '#ff6384',
+    fill: true
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+Contrary to Laravel, Symfony is unable to get FrankenPHP really working, and is worst than Apache equivalent. Is it a bug from the runtime ?
 
 #### Symfony PgSQL scenario 1
 
@@ -1474,6 +2397,311 @@ vus_max........................: 50      min=50       max=50
 {{< /tabs >}}
 
 Now it performs clearly slower than with MySQL in same scenario. Slightly better than Laravel in same context. To summary the 2nd scenario give MySQL a good advantage against PostgreSQL **with PHP**.
+
+#### Symfony FrankenPHP PgSQL scenario 1
+
+Iteration creation rate = **5/s**
+
+```txt
+checks.........................: 100.00% ✓ 7293      ✗ 0
+data_received..................: 66 MB   903 kB/s
+data_sent......................: 695 kB  9.5 kB/s
+dropped_iterations.............: 157     2.144507/s
+http_req_blocked...............: avg=229.6µs  min=255ns   med=1.19µs   max=66.85ms p(90)=1.72µs   p(95)=1.95µs
+http_req_connecting............: avg=11.28µs  min=0s      med=0s       max=8.19ms  p(90)=0s       p(95)=0s
+http_req_duration..............: avg=426.12ms min=24.25ms med=160.7ms  max=1.16s   p(90)=952.44ms p(95)=977.43ms
+  { expected_response:true }...: avg=426.12ms min=24.25ms med=160.7ms  max=1.16s   p(90)=952.44ms p(95)=977.43ms
+http_req_failed................: 0.00%   ✓ 0         ✗ 7293
+http_req_receiving.............: avg=720.11µs min=47.48µs med=473.64µs max=64.23ms p(90)=1.12ms   p(95)=1.66ms
+http_req_sending...............: avg=198.91µs min=23.08µs med=138.03µs max=65.84ms p(90)=229.09µs p(95)=294.47µs
+http_req_tls_handshaking.......: avg=210.76µs min=0s      med=0s       max=48.59ms p(90)=0s       p(95)=0s
+http_req_waiting...............: avg=425.2ms  min=22.69ms med=159.27ms max=1.16s   p(90)=951.54ms p(95)=976.27ms
+http_reqs......................: 7293    99.617121/s
+iteration_duration.............: avg=21.79s   min=5.07s   med=22.24s   max=33.97s  p(90)=28.23s   p(95)=29.1s
+iterations.....................: 143     1.953277/s
+vus............................: 1       min=1       max=50
+vus_max........................: 50      min=50      max=50
+```
+
+{{< tabs >}}
+{{< tab tabName="Req/s" >}}
+
+{{< chart type="timeseries" title="Req/s count" >}}
+[
+  {
+    label: 'Req/s',
+    data: [
+       29, 104, 107, 103, 104, 101, 103, 105, 107, 105, 103,
+      103, 103, 103, 103, 102, 100, 101,  95, 102, 100, 102,
+      102,  97, 101, 100, 102, 101,  98,  99,  98, 103, 100,
+       93,  98, 103, 104, 101, 100, 101, 104, 108, 105, 100,
+      104, 101, 100, 101,  97,  99, 101, 101, 100,  94, 102,
+       98, 101, 103,  96, 102,  99, 102,  97,  97,  97,  99,
+      103, 101,  94, 100, 100,  95,  95,  11
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" >}}
+[
+  {
+    label: 'VUs',
+    data: [
+       5, 10, 15, 20, 25, 29, 32, 36, 40, 45, 50, 50,
+      50, 50, 50, 50, 49, 50, 50, 50, 50, 50, 50, 50,
+      50, 49, 50, 49, 49, 49, 49, 50, 49, 50, 49, 48,
+      50, 48, 50, 50, 50, 50, 50, 49, 50, 50, 49, 50,
+      50, 49, 49, 50, 48, 48, 50, 49, 50, 50, 49, 49,
+      47, 44, 40, 38, 33, 31, 29, 27, 26, 21, 18, 12,
+       1
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< chart type="timeseries" title="Request duration in ms" >}}
+[
+  {
+    label: 'Duration (ms)',
+    data: [
+       57,  61, 103, 147, 196, 247, 275, 310, 315, 382,
+      431, 466, 468, 455, 478, 502, 478, 494, 491, 519,
+      510, 484, 483, 488, 526, 497, 479, 485, 478, 529,
+      517, 469, 495, 491, 547, 490, 464, 479, 472, 512,
+      498, 458, 466, 457, 515, 497, 483, 485, 498, 534,
+      507, 477, 502, 483, 496, 500, 480, 490, 493, 518,
+      510, 467, 463, 430, 422, 354, 304, 280, 279, 278,
+      220, 187, 118,  48
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" stacked="true" max="1" step="5" >}}
+[
+  {
+    label: 'User',
+    data: [
+      0.04, 0.19, 0.43, 0.43,
+      0.41, 0.42, 0.42, 0.41,
+      0.41, 0.41, 0.42, 0.42,
+       0.4, 0.41, 0.38, 0.37,
+      0.07, 0.07, 0.03
+    ],
+    borderColor: '#4bc0c0',
+    backgroundColor: '#4bc0c0',
+    fill: true
+  },
+  {
+    label: 'System',
+    data: [
+      0.02, 0.09,  0.2, 0.19,
+      0.19, 0.18, 0.17, 0.17,
+      0.17, 0.18, 0.19, 0.19,
+      0.18, 0.17, 0.17, 0.17,
+      0.04, 0.04, 0.02
+    ],
+    borderColor: '#ff6384',
+    backgroundColor: '#ff6384',
+    fill: true
+  }
+]
+{{< /chart >}}
+
+{{< chart type="timeseries" title="CPU database load" stacked="true" max="1" step="5" >}}
+[
+  {
+    label: 'User',
+    data: [
+      0.02, 0.26, 0.39, 0.39,
+      0.36, 0.37, 0.38, 0.36,
+      0.35, 0.35, 0.36, 0.36,
+      0.34, 0.34, 0.35, 0.29,
+      0.04, 0.03, 0.03
+    ],
+    borderColor: '#4bc0c0',
+    backgroundColor: '#4bc0c0',
+    fill: true
+  },
+  {
+    label: 'System',
+    data: [
+      0.02, 0.15, 0.23, 0.22,
+      0.23, 0.22, 0.21, 0.22,
+      0.21, 0.21, 0.21, 0.19,
+      0.21,  0.2, 0.18, 0.17,
+      0.02, 0.02, 0.02
+    ],
+    borderColor: '#ff6384',
+    backgroundColor: '#ff6384',
+    fill: true
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+#### Symfony FrankenPHP PgSQL scenario 2
+
+Iteration creation rate = **1/s**
+
+```txt
+checks.........................: 100.00% ✓ 10178      ✗ 0
+data_received..................: 19 MB   209 kB/s
+data_sent......................: 832 kB  9.2 kB/s
+dropped_iterations.............: 10      0.111093/s
+http_req_blocked...............: avg=173.81µs min=258ns   med=1.17µs   max=71.15ms  p(90)=1.73µs  p(95)=1.96µs
+http_req_connecting............: avg=8.86µs   min=0s      med=0s       max=16.7ms   p(90)=0s      p(95)=0s
+http_req_duration..............: avg=319.5ms  min=18.2ms  med=215.07ms max=928.92ms p(90)=712.4ms p(95)=738.61ms
+  { expected_response:true }...: avg=319.5ms  min=18.2ms  med=215.07ms max=928.92ms p(90)=712.4ms p(95)=738.61ms
+http_req_failed................: 0.00%   ✓ 0          ✗ 10178
+http_req_receiving.............: avg=477µs    min=24.11µs med=239.58µs max=210.58ms p(90)=793.3µs p(95)=1.14ms
+http_req_sending...............: avg=186.15µs min=27.49µs med=133.48µs max=37.54ms  p(90)=231.5µs p(95)=300.04µs
+http_req_tls_handshaking.......: avg=159.15µs min=0s      med=0s       max=44.7ms   p(90)=0s      p(95)=0s
+http_req_waiting...............: avg=318.84ms min=0s      med=214.49ms max=928.73ms p(90)=711.6ms p(95)=738.2ms
+http_reqs......................: 10178   113.070736/s
+vus............................: 50      min=1        max=50
+vus_max........................: 50      min=50       max=50
+```
+
+{{< tabs >}}
+{{< tab tabName="Req/s" >}}
+
+{{< chart type="timeseries" title="Req/s count" >}}
+[
+  {
+    label: 'Req/s',
+    data: [
+       38,  65,  78,  76,  68,  78,  76,  79,  78,  70,  74,  79,
+       80,  75,  74,  79,  79,  80,  80,  73,  80,  81,  80,  80,
+       73,  82,  80,  80,  80,  72,  78, 100, 124, 133, 133, 142,
+      131, 130, 127, 135, 143, 142, 134, 144, 141, 140, 138, 129,
+      142, 139, 141, 137, 143, 139, 139, 138, 138, 129, 136, 132,
+      139, 136, 130, 135, 134, 142, 134, 123, 132, 135, 141, 136,
+      131, 137, 134, 137, 140, 122, 135, 133, 137, 130, 130, 132,
+      132, 135, 133, 125, 135,  39
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+
+{{< tab tabName="Req duration" >}}
+
+{{< chart type="timeseries" title="VUs count" >}}
+[
+  {
+    label: 'VUs',
+    data: [
+       1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12,
+      13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+      25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36,
+      37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,
+      49, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+      50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+      50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50,
+      50, 50, 50, 50, 50, 50
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< chart type="timeseries" title="Request duration in ms" >}}
+[
+  {
+    label: 'Duration (ms)',
+    data: [
+       59,  38,  46,  59,  83,  85,  98, 107, 124, 148, 156,
+      158, 169, 190, 211, 209, 222, 225, 246, 276, 271, 274,
+      290, 306, 333, 332, 347, 348, 364, 402, 394, 316, 271,
+      275, 267, 254, 275, 275, 327, 302, 288, 298, 299, 332,
+      319, 314, 346, 343, 366, 368, 352, 388, 318, 368, 362,
+      351, 361, 357, 399, 376, 364, 365, 359, 398, 380, 345,
+      362, 384, 403, 380, 352, 368, 355, 388, 383, 346, 367,
+      369, 400, 384, 348, 385, 366, 405, 383, 358, 377, 378,
+      394, 384
+    ]
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+{{< tab tabName="CPU load" >}}
+
+{{< chart type="timeseries" title="CPU runtime load" stacked="true" max="1" step="5" >}}
+[
+  {
+    label: 'User',
+    data: [
+      0.03,  0.2, 0.55, 0.53,
+      0.54, 0.54, 0.55, 0.55,
+      0.45, 0.47, 0.49, 0.47,
+      0.49, 0.46, 0.49, 0.45,
+      0.48, 0.45, 0.45
+    ],
+    borderColor: '#4bc0c0',
+    backgroundColor: '#4bc0c0',
+    fill: true
+  },
+  {
+    label: 'System',
+    data: [
+      0.02, 0.07, 0.24, 0.25,
+      0.25, 0.27, 0.26, 0.25,
+      0.23, 0.21, 0.23, 0.22,
+      0.25, 0.23, 0.23, 0.21,
+      0.22, 0.21, 0.22
+    ],
+    borderColor: '#ff6384',
+    backgroundColor: '#ff6384',
+    fill: true
+  }
+]
+{{< /chart >}}
+
+{{< chart type="timeseries" title="CPU database load" stacked="true" max="1" step="5" >}}
+[
+  {
+    label: 'User',
+    data: [
+      0.03, 0.07,  0.1, 0.11,
+       0.1, 0.08, 0.09, 0.11,
+      0.15, 0.15, 0.16, 0.16,
+      0.16, 0.15, 0.15, 0.16,
+      0.15, 0.16, 0.15
+    ],
+    borderColor: '#4bc0c0',
+    backgroundColor: '#4bc0c0',
+    fill: true
+  },
+  {
+    label: 'System',
+    data: [
+      0.02, 0.07, 0.14, 0.14,
+      0.12, 0.12, 0.12, 0.13,
+      0.21, 0.21, 0.21, 0.19,
+      0.21, 0.21, 0.21,  0.2,
+      0.22, 0.23, 0.23
+    ],
+    borderColor: '#ff6384',
+    backgroundColor: '#ff6384',
+    fill: true
+  }
+]
+{{< /chart >}}
+
+{{< /tab >}}
+{{< /tabs >}}
 
 ### FastAPI
 
@@ -2715,22 +3943,22 @@ Not that far to Java variant, just a bit behind. But as workers are fully loaded
 
 ### Conclusion
 
-Here are the final req/s results for each framework. I choose to take MySQL results for PHP.
+Here are the final req/s results for each framework against PgSQL database.
 
 {{< chart type="timeseries" title="Scenario 1" >}}
 [
     {
-        label: 'Laravel',
+        label: 'Laravel Octane',
         borderColor: '#c2410c',
         backgroundColor: '#c2410c',
         data: [
-            39,  87,  91,  91, 108, 105, 117, 111, 113, 121, 125,
-            125, 113, 130, 125, 111, 129, 120, 120, 122, 113, 128,
-            115, 117, 122, 122, 119, 114, 128, 131, 119, 129, 112,
-            113, 127, 129, 111, 127,  94, 127, 133, 128, 110, 112,
-            123, 132,  96, 125,  99, 126, 130, 137, 116, 122, 132,
-            145,  98, 128, 112, 124, 131, 123, 108, 127, 118, 121,
-            126, 106, 114,  95, 102,  14
+             68, 243, 275, 268, 243, 277, 229, 261, 255,
+            263, 270, 245, 261, 258, 227, 281, 242, 238,
+            279, 257, 249, 248, 235, 281, 255, 259, 227,
+            239, 296, 256, 265, 248, 240, 276, 244, 266,
+            244, 273, 243, 256, 239, 213, 222, 285, 255,
+            297, 242, 249, 282, 264, 269, 235, 273, 253,
+            245, 265, 210, 281, 276, 242, 203,  11
         ]
     },
     {
@@ -2738,13 +3966,13 @@ Here are the final req/s results for each framework. I choose to take MySQL resu
         borderColor: '#ffffff',
         backgroundColor: '#ffffff',
         data: [
-             21, 134, 154, 146, 158, 153, 159, 155, 146, 156,
-            157, 152, 155, 138, 159, 157, 154, 160, 147, 149,
-            156, 157, 159, 138, 155, 151, 162, 155, 138, 160,
-            159, 150, 148, 153, 156, 147, 154, 161, 144, 152,
-            157, 149, 155, 145, 155, 158, 148, 162, 141, 148,
-            160, 149, 167, 135, 154, 163, 151, 154, 144, 152,
-            158, 158, 160, 151, 156, 168, 155, 164,  71
+             50, 137, 158, 159, 158, 144, 155, 160, 159, 155,
+            149, 158, 157, 165, 150, 155, 158, 159, 161, 159,
+            143, 163, 161, 162, 162, 144, 158, 165, 160, 159,
+            154, 153, 156, 165, 159, 146, 156, 158, 159, 158,
+            148, 154, 161, 161, 163, 142, 155, 163, 163, 155,
+            150, 158, 159, 160, 159, 149, 157, 163, 158, 159,
+            154, 154, 163, 163, 157, 152, 160, 159,  62
         ]
     },
     {
@@ -2811,19 +4039,18 @@ Here are the final req/s results for each framework. I choose to take MySQL resu
 {{< chart type="timeseries" title="Scenario 2" >}}
 [
     {
-        label: 'Laravel',
+        label: 'Laravel Octane',
         borderColor: '#c2410c',
         backgroundColor: '#c2410c',
         data: [
-            34,  39, 124, 158, 206, 214, 245, 248, 271, 280, 291,
-            287, 289, 307, 318, 324, 307, 304, 318, 317, 329, 315,
-            309, 340, 338, 339, 325, 323, 341, 344, 345, 326, 330,
-            350, 340, 348, 334, 336, 347, 343, 354, 328, 324, 339,
-            357, 347, 342, 328, 337, 348, 357, 340, 329, 352, 344,
-            347, 336, 345, 341, 356, 353, 340, 344, 352, 339, 353,
-            340, 340, 347, 344, 344, 338, 324, 352, 349, 348, 337,
-            333, 336, 345, 355, 338, 336, 348, 345, 346, 341, 339,
-            342, 347
+             59, 137, 245, 368, 393, 519, 334, 446, 490, 576, 526,
+            397, 379, 482, 597, 623, 652, 626, 631, 612, 631, 637,
+            608, 630, 651, 625, 637, 632, 671, 622, 683, 631, 655,
+            641, 632, 673, 659, 603, 650, 652, 642, 623, 668, 678,
+            642, 640, 498, 628, 638, 665, 624, 665, 630, 650, 669,
+            692, 628, 588, 650, 628, 687, 687, 639, 629, 632, 649,
+            657, 608, 669, 648, 658, 601, 618, 654, 654, 654, 521,
+            508, 317, 634, 685, 608, 662, 593, 675
         ]
     },
     {
@@ -2831,15 +4058,15 @@ Here are the final req/s results for each framework. I choose to take MySQL resu
         borderColor: '#ffffff',
         backgroundColor: '#ffffff',
         data: [
-            1,  57, 181, 219, 275, 284, 319, 335, 336, 376, 376,
-            367, 367, 366, 406, 403, 408, 389, 378, 412, 411, 416,
-            394, 381, 416, 413, 419, 391, 393, 413, 418, 420, 404,
-            400, 424, 413, 415, 400, 399, 427, 420, 400, 399, 404,
-            417, 421, 426, 397, 389, 408, 418, 418, 399, 405, 414,
-            419, 416, 405, 394, 415, 405, 407, 399, 409, 395, 408,
-            416, 405, 392, 421, 397, 421, 399, 407, 405, 414, 401,
-            402, 401, 405, 422, 411, 402, 405, 415, 416, 417, 398,
-            396, 240
+             14,  37,  66, 114, 147, 159, 161, 176, 202, 203, 207,
+            213, 202, 222, 226, 229, 226, 217, 236, 243, 242, 225,
+            226, 242, 248, 253, 235, 230, 246, 254, 249, 243, 225,
+            251, 251, 252, 221, 229, 247, 255, 250, 241, 238, 252,
+            255, 259, 242, 234, 252, 253, 253, 240, 238, 255, 250,
+            253, 246, 240, 250, 255, 254, 245, 240, 252, 258, 254,
+            234, 234, 252, 251, 254, 250, 236, 248, 256, 260, 244,
+            234, 248, 254, 253, 244, 246, 253, 252, 254, 244, 239,
+            252, 258,  84
         ]
     },
     {
@@ -2914,6 +4141,8 @@ Here are the final req/s results for each framework. I choose to take MySQL resu
 To resume, compiled languages have always a clear advantage when it comes to raw performance. But do you really need it ?
 
 Keep in mind that it shouldn't be the only criteria to choose a web framework. The DX is also very important, for exemple Laravel stays a very nice candidate in this regard.
+
+In PHP, Laravel Octane seems the be the most performant solution, by skipping the framework bootstrap most of the time. Sadly Symfony seems to be not as good with FrankenPHP in choosen scenarios, don't know if it's a bug or a misconfiguration, let me know in comments if you have any suggestion.
 
 When it comes to compiled languages, I still personally prefer ASP.NET Core over Spring Boot because of the DX. The performance gap is negligible, and it hasn't this warmup Java feeling and keeps a raisonable memory footprint.
 
