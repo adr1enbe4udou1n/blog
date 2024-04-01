@@ -8,6 +8,10 @@ tags: ["kubernetes", "docker", "load-testing", "k6", "webapi"]
 We'll be comparing the read performance of 6 Web APIs frameworks, sharing the same OpenAPI contract from [realworld app](https://github.com/gothinkster/realworld), a medium-like clone, implemented under multiple languages (PHP, Python, Javascript, Java and C#).
 {{< /lead >}}
 
+{{< alert >}}
+Update April 2024 for PHP: I replaced previous Apache results by new [FrankenPHP](https://frankenphp.dev/). Now PHP is back in the game, with huge performance increase thanks to worker mode.
+{{< /alert >}}
+
 This is not a basic synthetic benchmark, but a real world benchmark with DB data tests, and multiple scenarios. This post may be updated when new versions of frameworks will be released or any suggestions for performance related improvement in below commentary section.
 
 A state of the art of real world benchmarks comparison of Web APIs is difficult to achieve and very time-consuming as it forces to master each framework. As performance can highly dependent of:
@@ -21,14 +25,14 @@ Now that's said, let's fight !
 
 We'll be using the very last up-to-date stable versions of the frameworks, and the latest stable version of the runtime.
 
-| Framework & Source code                                                                                                                       | Runtime     | ORM            | Tested Database    |
-| --------------------------------------------------------------------------------------------------------------------------------------------- | ----------- | -------------- | ------------------ |
-| [Laravel 11](https://github.com/adr1enbe4udou1n/laravel-realworld-example-app) ([api](https://laravelrealworld.okami101.io/api/))             | PHP 8.3     | Eloquent       | MySQL & PostgreSQL |
-| [Symfony 7](https://github.com/adr1enbe4udou1n/symfony-realworld-example-app) ([api](https://symfonyrealworld.okami101.io/api/))              | PHP 8.3     | Doctrine       | MySQL & PostgreSQL |
-| [FastAPI](https://github.com/adr1enbe4udou1n/fastapi-realworld-example-app) ([api](https://fastapirealworld.okami101.io/api/))                | Python 3.12 | SQLAlchemy 2.0 | PostgreSQL         |
-| [NestJS 10](https://github.com/adr1enbe4udou1n/nestjs-realworld-example-app) ([api](https://nestjsrealworld.okami101.io/api/))                | Node 20     | Prisma 5       | PostgreSQL         |
-| [Spring Boot 3.2](https://github.com/adr1enbe4udou1n/spring-boot-realworld-example-app) ([api](https://springbootrealworld.okami101.io/api/)) | Java 21     | Hibernate 6    | PostgreSQL         |
-| [ASP.NET Core 8](https://github.com/adr1enbe4udou1n/aspnetcore-realworld-example-app) ([api](https://aspnetcorerealworld.okami101.io/api/))   | .NET 8.0    | EF Core 8      | PostgreSQL         |
+| Framework & Source code                                                                                                                       | Runtime        | ORM            | Tested Database    |
+| --------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | -------------- | ------------------ |
+| [Laravel 11](https://github.com/adr1enbe4udou1n/laravel-realworld-example-app) ([api](https://laravelrealworld.okami101.io/api/))             | FrankenPHP 8.3 | Eloquent       | MySQL & PostgreSQL |
+| [Symfony 7](https://github.com/adr1enbe4udou1n/symfony-realworld-example-app) ([api](https://symfonyrealworld.okami101.io/api/))              | FrankenPHP 8.3 | Doctrine       | MySQL & PostgreSQL |
+| [FastAPI](https://github.com/adr1enbe4udou1n/fastapi-realworld-example-app) ([api](https://fastapirealworld.okami101.io/api/))                | Python 3.12    | SQLAlchemy 2.0 | PostgreSQL         |
+| [NestJS 10](https://github.com/adr1enbe4udou1n/nestjs-realworld-example-app) ([api](https://nestjsrealworld.okami101.io/api/))                | Node 20        | Prisma 5       | PostgreSQL         |
+| [Spring Boot 3.2](https://github.com/adr1enbe4udou1n/spring-boot-realworld-example-app) ([api](https://springbootrealworld.okami101.io/api/)) | Java 21        | Hibernate 6    | PostgreSQL         |
+| [ASP.NET Core 8](https://github.com/adr1enbe4udou1n/aspnetcore-realworld-example-app) ([api](https://aspnetcorerealworld.okami101.io/api/))   | .NET 8.0       | EF Core 8      | PostgreSQL         |
 
 Each project are:
 
@@ -41,11 +45,7 @@ Each project are:
 
 ### Side note on PHP configuration
 
-Note as I tested against PostgreSQL for all frameworks as main Database, but I added MySQL for Laravel and Symfony too (OPcache enabled), just by curiosity, and because of simplicity of PHP for switching database without changing code base, as both DB drivers integrated into base PHP Docker image. It allows to have an interesting Eloquent VS Doctrine ORM comparison for each database.
-
-{{< alert >}}
-Update April 2024: I added worker tests via [FrankenPHP](https://frankenphp.dev/).
-{{< /alert >}}
+Note as I tested against PostgreSQL for all frameworks as main Database, but I added MySQL for Laravel and Symfony too (OPcache & FrankenPHP worker enabled), just by curiosity, and because of simplicity of PHP for switching database without changing code base, as both DB drivers integrated into base PHP Docker image. It allows to have an interesting Eloquent VS Doctrine ORM comparison for each database.
 
 ## The target hardware
 
@@ -243,319 +243,11 @@ export default function () {
 
 ## The results
 
-### Laravel
+### Laravel (Octane)
+
+Laravel Octane will be enabled with FrankenPHP runtime.
 
 #### Laravel MySQL scenario 1
-
-Iteration creation rate =  **5/s**
-
-```txt
-checks.........................: 100.00% ✓ 8160       ✗ 0
-data_received..................: 87 MB   1.2 MB/s
-data_sent......................: 768 kB  11 kB/s
-dropped_iterations.............: 140     1.976351/s
-http_req_blocked...............: avg=213.72µs min=267ns   med=1.09µs   max=48.53ms  p(90)=1.62µs   p(95)=1.84µs
-http_req_connecting............: avg=8.15µs   min=0s      med=0s       max=6.3ms    p(90)=0s       p(95)=0s
-http_req_duration..............: avg=378.29ms min=11.56ms med=376.43ms max=1.2s     p(90)=562.76ms p(95)=628.13ms
-  { expected_response:true }...: avg=378.29ms min=11.56ms med=376.43ms max=1.2s     p(90)=562.76ms p(95)=628.13ms
-http_req_failed................: 0.00%   ✓ 0          ✗ 8160
-http_req_receiving.............: avg=1.53ms   min=32.73µs med=601.76µs max=214.52ms p(90)=2.25ms   p(95)=5.06ms
-http_req_sending...............: avg=209.07µs min=31.58µs med=128.42µs max=80.08ms  p(90)=217.25µs p(95)=293.37µs
-http_req_tls_handshaking.......: avg=199.75µs min=0s      med=0s       max=46.99ms  p(90)=0s       p(95)=0s
-http_req_waiting...............: avg=376.54ms min=10.71ms med=374.89ms max=1.2s     p(90)=561.49ms p(95)=626.28ms
-http_reqs......................: 8160    115.193022/s
-iteration_duration.............: avg=19.35s   min=5.25s   med=20.28s   max=23.11s   p(90)=22s      p(95)=22.36s
-iterations.....................: 160     2.258687/s
-vus............................: 12      min=5        max=50
-vus_max........................: 50      min=50       max=50
-```
-
-{{< tabs >}}
-{{< tab tabName="Req/s" >}}
-
-{{< chart type="timeseries" title="Req/s count" >}}
-[
-  {
-    label: 'Req/s',
-    data: [
-       59,  82, 103,  97, 104,  99, 107, 112, 116, 107,
-      143,  99, 133,  82, 119, 128, 124, 121, 131, 115,
-      113, 109, 121, 151,  98, 119, 118, 107, 112, 125,
-      126, 119, 114, 122, 126, 141,  98, 121, 128, 124,
-      104, 116, 121, 103, 113, 119, 117, 121, 125, 126,
-      125, 109, 123, 138, 104, 130, 114, 127, 114, 141,
-      103, 113, 127, 114, 123, 111, 109, 109, 111, 107,
-       70
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-
-{{< tab tabName="Req duration" >}}
-
-{{< chart type="timeseries" title="VUs count" >}}
-[
-  {
-    label: 'VUs',
-    data: [
-       5, 10, 15, 20, 25, 28, 33, 37, 42, 46, 49, 50,
-      50, 50, 50, 50, 50, 50, 49, 50, 50, 50, 49, 49,
-      50, 50, 48, 49, 50, 49, 48, 49, 50, 49, 50, 50,
-      50, 49, 50, 50, 50, 50, 48, 50, 49, 49, 49, 49,
-      50, 48, 48, 49, 50, 49, 49, 50, 50, 49, 50, 49,
-      49, 48, 46, 41, 39, 36, 32, 29, 19, 12
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< chart type="timeseries" title="Request duration in ms" >}}
-[
-  {
-    label: 'Duration (ms)',
-    data: [
-       47,  80, 125, 165, 215, 237, 306, 294, 355, 364,
-      374, 393, 446, 495, 452, 399, 402, 414, 400, 388,
-      478, 442, 390, 369, 455, 411, 420, 391, 440, 455,
-      395, 390, 388, 457, 379, 378, 481, 411, 416, 372,
-      471, 400, 443, 471, 406, 470, 395, 422, 408, 380,
-      414, 421, 419, 384, 410, 403, 421, 410, 392, 413,
-      437, 413, 394, 355, 370, 326, 320, 274, 236, 159,
-       85
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-{{< tab tabName="CPU load" >}}
-
-{{< chart type="timeseries" title="CPU runtime load" stacked="true" max="1" step="5" >}}
-[
-  {
-    label: 'User',
-    data: [
-      0.04, 0.18, 0.42, 0.41,
-       0.4, 0.42, 0.43, 0.42,
-      0.42, 0.42, 0.41,  0.4,
-      0.42,  0.4,  0.4, 0.26,
-      0.04, 0.04
-    ],
-    borderColor: '#4bc0c0',
-    backgroundColor: '#4bc0c0',
-    fill: true
-  },
-  {
-    label: 'System',
-    data: [
-      0.02, 0.04, 0.08, 0.08,
-      0.09, 0.08, 0.08, 0.09,
-      0.08, 0.08, 0.08, 0.08,
-      0.09, 0.09, 0.08, 0.06,
-      0.02, 0.02
-    ],
-    borderColor: '#ff6384',
-    backgroundColor: '#ff6384',
-    fill: true
-  }
-]
-{{< /chart >}}
-
-{{< chart type="timeseries" title="CPU database load" stacked="true" max="1" step="5" >}}
-[
-  {
-    label: 'User',
-    data: [
-      0.02,  0.5, 0.93, 0.93,
-      0.93, 0.92, 0.93, 0.93,
-      0.92, 0.92, 0.93, 0.93,
-      0.94, 0.93, 0.92, 0.33,
-      0.02, 0.02
-    ],
-    borderColor: '#4bc0c0',
-    backgroundColor: '#4bc0c0',
-    fill: true
-  },
-  {
-    label: 'System',
-    data: [
-      0.02, 0.04, 0.06, 0.06,
-      0.07, 0.07, 0.06, 0.07,
-      0.07, 0.07, 0.07, 0.07,
-      0.06, 0.07, 0.06, 0.03,
-      0.01, 0.01
-    ],
-    borderColor: '#ff6384',
-    backgroundColor: '#ff6384',
-    fill: true
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-{{< /tabs >}}
-
-As expected here, database is the bottleneck. We'll get slow response time at full load (> 500ms).
-
-#### Laravel MySQL scenario 2
-
-Iteration creation rate = **1/2/s**
-
-```txt
-checks.........................: 100.00% ✓ 24309      ✗ 0
-data_received..................: 57 MB   628 kB/s
-data_sent......................: 2.0 MB  22 kB/s
-http_req_blocked...............: avg=33.87µs  min=222ns   med=1.09µs   max=62.31ms  p(90)=1.54µs   p(95)=1.71µs
-http_req_connecting............: avg=2.26µs   min=0s      med=0s       max=15.76ms  p(90)=0s       p(95)=0s
-http_req_duration..............: avg=74.01ms  min=8.8ms   med=54.64ms  max=821.77ms p(90)=157.96ms p(95)=194.87ms
-  { expected_response:true }...: avg=74.01ms  min=8.8ms   med=54.64ms  max=821.77ms p(90)=157.96ms p(95)=194.87ms
-http_req_failed................: 0.00%   ✓ 0          ✗ 24309
-http_req_receiving.............: avg=1.58ms   min=19.96µs med=277.8µs  max=219.84ms p(90)=1.85ms   p(95)=7.33ms
-http_req_sending...............: avg=190.85µs min=27.93µs med=120.41µs max=51.12ms  p(90)=204.95µs p(95)=267.48µs
-http_req_tls_handshaking.......: avg=28.34µs  min=0s      med=0s       max=51.19ms  p(90)=0s       p(95)=0s
-http_req_waiting...............: avg=72.24ms  min=0s      med=53.36ms  max=821.49ms p(90)=154.74ms p(95)=190.84ms
-http_reqs......................: 24309   270.071678/s
-iteration_duration.............: avg=1m19s    min=1m18s   med=1m19s    max=1m19s    p(90)=1m19s    p(95)=1m19s
-iterations.....................: 2       0.02222/s
-vus............................: 28      min=1        max=30
-vus_max........................: 50      min=50       max=50
-```
-
-{{< tabs >}}
-{{< tab tabName="Req/s" >}}
-
-{{< chart type="timeseries" title="Req/s count" >}}
-[
-  {
-    label: 'Req/s',
-    data: [
-       20,  32,  68, 122, 135, 126, 157, 171, 214, 212, 242,
-      260, 247, 272, 274, 271, 281, 272, 294, 286, 272, 272,
-      280, 302, 294, 263, 292, 278, 306, 299, 284, 291, 278,
-      298, 299, 283, 282, 293, 288, 293, 276, 287, 289, 296,
-      302, 284, 299, 284, 303, 304, 272, 280, 288, 303, 293,
-      270, 285, 283, 297, 304, 285, 274, 282, 303, 295, 284,
-      285, 291, 291, 292, 298, 290, 286, 301, 297, 280, 291,
-      272, 294, 298, 290, 279, 290, 311, 299, 272, 300, 280,
-      311, 300,  86
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-
-{{< tab tabName="Req duration" >}}
-
-{{< chart type="timeseries" title="VUs count" >}}
-[
-  {
-    label: 'VUs',
-    data: [
-       1,  1,  2,  2,  3,  3,  4,  4,  5,  5,  6,  6,
-       7,  7,  8,  8,  9,  9, 10, 10, 11, 11, 12, 12,
-      13, 13, 14, 14, 15, 15, 16, 16, 17, 17, 18, 18,
-      19, 19, 20, 20, 21, 21, 22, 22, 23, 23, 24, 24,
-      25, 25, 26, 26, 27, 27, 28, 28, 29, 29, 30, 30,
-      30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-      30, 30, 30, 30, 30, 30, 29, 29, 29, 28, 28, 28,
-      28, 28, 28, 28, 28, 28
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< chart type="timeseries" title="Request duration in ms" >}}
-[
-  {
-    label: 'Duration (ms)',
-    data: [
-       31,  30,  24,  16,  19,  23,  22,  23,  22,  23, 23,  23,
-       26,  26,  27,  29,  31,  33,  33,  35,  38,  40, 41,  40,
-       43,  47,  48,  49,  48,  50,  53,  57,  59,  56, 59,  60,
-       69,  65,  67,  67,  67,  80,  74,  74,  76,  74, 85,  82,
-       83,  83,  83,  99,  95,  88,  91, 100, 107, 103, 98,  98,
-       99, 112, 109,  97, 100, 102, 111, 104,  98, 105, 96, 110,
-      104,  98, 101,  99, 110, 110, 103,  97,  97, 104, 99,  91,
-       93,  91, 103, 100,  91,  91,  97
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-{{< tab tabName="CPU load" >}}
-
-{{< chart type="timeseries" title="CPU runtime load" stacked="true" max="1" step="5" >}}
-[
-  {
-    label: 'User',
-    data: [
-      0.04, 0.04, 0.19, 0.41,
-      0.61,  0.7, 0.73, 0.73,
-      0.74, 0.75, 0.76, 0.76,
-      0.75, 0.73, 0.75, 0.73,
-      0.78, 0.75, 0.78
-    ],
-    borderColor: '#4bc0c0',
-    backgroundColor: '#4bc0c0',
-    fill: true
-  },
-  {
-    label: 'System',
-    data: [
-      0.02, 0.02, 0.04,  0.1,
-      0.13, 0.15, 0.16, 0.17,
-      0.17, 0.16, 0.17, 0.19,
-      0.17, 0.18, 0.17, 0.18,
-      0.17, 0.17, 0.18
-    ],
-    borderColor: '#ff6384',
-    backgroundColor: '#ff6384',
-    fill: true
-  }
-]
-{{< /chart >}}
-
-{{< chart type="timeseries" title="CPU database load" stacked="true" max="1" step="5" >}}
-[
-  {
-    label: 'User',
-    data: [
-      0.03, 0.03, 0.08, 0.16,
-      0.13, 0.14, 0.13, 0.14,
-      0.15, 0.16, 0.13, 0.16,
-      0.14, 0.15, 0.15, 0.15,
-      0.16, 0.16, 0.15
-    ],
-    borderColor: '#4bc0c0',
-    backgroundColor: '#4bc0c0',
-    fill: true
-  },
-  {
-    label: 'System',
-    data: [
-      0.01, 0.01, 0.06, 0.11,
-       0.1, 0.11,  0.1, 0.11,
-      0.11,  0.1,  0.1,  0.1,
-      0.09, 0.12,  0.1, 0.11,
-      0.12,  0.1,  0.1
-    ],
-    borderColor: '#ff6384',
-    backgroundColor: '#ff6384',
-    fill: true
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-{{< /tabs >}}
-
-Now we have a very runtime intensive scenario, with workers as bottleneck, database not very loaded, API is keeping up with a low response time (~100ms).
-
-#### Laravel FrankenPHP MySQL scenario 1
 
 Iteration creation rate = **5/s**
 
@@ -706,9 +398,9 @@ vus_max........................: 50      min=50      max=50
 {{< /tab >}}
 {{< /tabs >}}
 
-No surprise here, as we are database limited.
+We are database limited.
 
-#### Laravel FrankenPHP MySQL scenario 2
+#### Laravel MySQL scenario 2
 
 Iteration creation rate = **1/s**
 
@@ -861,315 +553,9 @@ vus_max........................: 50      min=50       max=50
 {{< /tab >}}
 {{< /tabs >}}
 
-This is where Laravel Octane really shines, as it can handle more than twice requests than Apache.
+This is where Laravel Octane really shines, previously we had less than 300 req/s with Apache.
 
 #### Laravel PgSQL scenario 1
-
-Iteration creation rate = **5/s**
-
-```txt
-checks.........................: 100.00% ✓ 10710      ✗ 0
-data_received..................: 115 MB  1.7 MB/s
-data_sent......................: 980 kB  14 kB/s
-dropped_iterations.............: 91      1.338864/s
-http_req_blocked...............: avg=147.78µs min=207ns   med=1.14µs   max=46.93ms  p(90)=1.6µs    p(95)=1.79µs
-http_req_connecting............: avg=8.16µs   min=0s      med=0s       max=11.33ms  p(90)=0s       p(95)=0s
-http_req_duration..............: avg=267.09ms min=17.97ms med=234.63ms max=1.95s    p(90)=489.48ms p(95)=558.7ms
-  { expected_response:true }...: avg=267.09ms min=17.97ms med=234.63ms max=1.95s    p(90)=489.48ms p(95)=558.7ms
-http_req_failed................: 0.00%   ✓ 0          ✗ 10710
-http_req_receiving.............: avg=6.26ms   min=34.64µs med=527.47µs max=301.14ms p(90)=18.09ms  p(95)=43.35ms
-http_req_sending...............: avg=204.36µs min=14.62µs med=132.1µs  max=28.75ms  p(90)=232.5µs  p(95)=332.46µs
-http_req_tls_handshaking.......: avg=136.14µs min=0s      med=0s       max=44.92ms  p(90)=0s       p(95)=0s
-http_req_waiting...............: avg=260.62ms min=17.09ms med=228.96ms max=1.95s    p(90)=476.98ms p(95)=544.88ms
-http_reqs......................: 10710   157.574012/s
-iteration_duration.............: avg=13.68s   min=2.62s   med=14.91s   max=18.1s    p(90)=16.51s   p(95)=17.12s
-iterations.....................: 210     3.089687/s
-vus............................: 16      min=5        max=50
-vus_max........................: 50      min=50       max=50
-```
-
-{{< tabs >}}
-{{< tab tabName="Req/s" >}}
-
-{{< chart type="timeseries" title="Req/s count" >}}
-[
-  {
-    label: 'Req/s',
-    data: [
-       27, 129, 147, 150, 154, 154, 161, 162, 158, 154,
-      152, 163, 161, 157, 154, 160, 166, 158, 146, 158,
-      158, 171, 152, 166, 156, 164, 157, 161, 159, 154,
-      166, 167, 161, 155, 155, 162, 165, 162, 155, 157,
-      158, 161, 165, 155, 157, 158, 173, 154, 158, 158,
-      160, 172, 156, 155, 155, 170, 160, 159, 156, 160,
-      170, 166, 160, 159, 164, 165, 166, 157,  29
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-
-{{< tab tabName="Req duration" >}}
-
-{{< chart type="timeseries" title="VUs count" >}}
-[
-  {
-    label: 'VUs',
-    data: [
-       5, 10, 13, 17, 19, 23, 26, 30, 34, 37, 40, 44,
-      47, 49, 49, 50, 49, 50, 49, 50, 50, 49, 48, 50,
-      48, 47, 48, 49, 49, 48, 50, 50, 50, 48, 50, 50,
-      50, 50, 48, 47, 49, 50, 47, 46, 47, 48, 50, 49,
-      49, 50, 50, 50, 50, 48, 49, 49, 50, 49, 48, 46,
-      39, 36, 35, 33, 29, 23, 16
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< chart type="timeseries" title="Request duration in ms" >}}
-[
-  {
-    label: 'Duration (ms)',
-    data: [
-       45,  46,  69,  96, 110, 131, 145, 168, 180, 227,
-      242, 249, 265, 282, 313, 313, 313, 296, 341, 329,
-      306, 307, 288, 306, 321, 314, 295, 286, 314, 317,
-      296, 304, 296, 314, 318, 304, 308, 309, 299, 329,
-      296, 294, 292, 326, 291, 291, 298, 290, 330, 307,
-      311, 299, 300, 292, 338, 305, 296, 294, 324, 323,
-      285, 238, 219, 226, 205, 170, 135,  91,  40
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-{{< tab tabName="CPU load" >}}
-
-{{< chart type="timeseries" title="CPU runtime load" stacked="true" max="1" step="5" >}}
-[
-  {
-    label: 'User',
-    data: [
-      0.04, 0.11, 0.75, 0.82,
-      0.83, 0.79, 0.82, 0.82,
-      0.82, 0.82, 0.81, 0.84,
-      0.81, 0.81, 0.81, 0.29,
-      0.03, 0.04, 0.03
-    ],
-    borderColor: '#4bc0c0',
-    backgroundColor: '#4bc0c0',
-    fill: true
-  },
-  {
-    label: 'System',
-    data: [
-      0.02, 0.03, 0.14, 0.16,
-      0.15, 0.16, 0.15, 0.15,
-      0.15, 0.15, 0.14, 0.15,
-      0.14, 0.15, 0.15, 0.06,
-      0.02, 0.03, 0.02
-    ],
-    borderColor: '#ff6384',
-    backgroundColor: '#ff6384',
-    fill: true
-  }
-]
-{{< /chart >}}
-
-{{< chart type="timeseries" title="CPU database load" stacked="true" max="1" step="5" >}}
-[
-  {
-    label: 'User',
-    data: [
-      0.03, 0.11, 0.28, 0.27,
-      0.28, 0.27, 0.29, 0.27,
-       0.3, 0.29, 0.29, 0.27,
-      0.27, 0.27, 0.26, 0.04,
-      0.02, 0.02, 0.03
-    ],
-    borderColor: '#4bc0c0',
-    backgroundColor: '#4bc0c0',
-    fill: true
-  },
-  {
-    label: 'System',
-    data: [
-      0.02, 0.14, 0.36,  0.4,
-       0.4,  0.4, 0.38, 0.41,
-      0.39, 0.38, 0.38, 0.37,
-      0.36, 0.36, 0.37, 0.04,
-      0.02, 0.02, 0.02
-    ],
-    borderColor: '#ff6384',
-    backgroundColor: '#ff6384',
-    fill: true
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-{{< /tabs >}}
-
-Laravel performs slightly better than MySQL in this scenario, and we are not limited by database this time.
-
-#### Laravel PgSQL scenario 2
-
-Iteration creation rate = **1/2/s**
-
-```txt
-checks.........................: 100.00% ✓ 15649      ✗ 0
-data_received..................: 36 MB   399 kB/s
-data_sent......................: 1.3 MB  15 kB/s
-http_req_blocked...............: avg=64.09µs  min=197ns   med=1.14µs   max=73.06ms  p(90)=1.6µs    p(95)=1.79µs
-http_req_connecting............: avg=7.83µs   min=0s      med=0s       max=47.56ms  p(90)=0s       p(95)=0s
-http_req_duration..............: avg=118.19ms min=16.33ms med=108.14ms max=506.31ms p(90)=208.01ms p(95)=241.86ms
-  { expected_response:true }...: avg=118.19ms min=16.33ms med=108.14ms max=506.31ms p(90)=208.01ms p(95)=241.86ms
-http_req_failed................: 0.00%   ✓ 0          ✗ 15649
-http_req_receiving.............: avg=1.31ms   min=20.12µs med=294.79µs max=206.57ms p(90)=1.39ms   p(95)=4.84ms
-http_req_sending...............: avg=208.28µs min=27.88µs med=129.12µs max=63.13ms  p(90)=231.66µs p(95)=320.73µs
-http_req_tls_handshaking.......: avg=51.84µs  min=0s      med=0s       max=47.04ms  p(90)=0s       p(95)=0s
-http_req_waiting...............: avg=116.67ms min=14.17ms med=106.7ms  max=480.58ms p(90)=205.2ms  p(95)=239.05ms
-http_reqs......................: 15649   173.850269/s
-vus............................: 31      min=1        max=31
-vus_max........................: 50      min=50       max=50
-```
-
-{{< tabs >}}
-{{< tab tabName="Req/s" >}}
-
-{{< chart type="timeseries" title="Req/s count" >}}
-[
-  {
-    label: 'Req/s',
-    data: [
-       19,  21,  54,  83,  89,  90, 130, 127, 135, 130, 151,
-      157, 159, 162, 166, 156, 155, 167, 176, 179, 179, 181,
-      172, 182, 187, 178, 182, 175, 183, 191, 173, 190, 181,
-      185, 178, 156, 182, 183, 192, 190, 185, 187, 186, 191,
-      195, 192, 188, 181, 190, 193, 190, 192, 183, 188, 203,
-      190, 186, 190, 190, 197, 180, 190, 190, 197, 188, 194,
-      190, 192, 191, 201, 193, 188, 198, 188, 197, 186, 197,
-      182, 189, 193, 183, 200, 183, 192, 192, 194, 190, 184,
-      194, 190
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-
-{{< tab tabName="Req duration" >}}
-
-{{< chart type="timeseries" title="VUs count" >}}
-[
-  {
-    label: 'VUs',
-    data: [
-       1,  1,  2,  2,  3,  3,  4,  5,  5,  6,  6,  7,
-       7,  8,  8,  9,  9, 10, 10, 11, 11, 12, 12, 13,
-      13, 14, 14, 15, 15, 16, 16, 17, 17, 18, 18, 19,
-      19, 20, 20, 21, 21, 22, 22, 23, 23, 24, 24, 25,
-      25, 26, 26, 27, 27, 28, 28, 29, 29, 30, 30, 31,
-      31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31,
-      31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31,
-      31, 31, 31, 31, 31
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< chart type="timeseries" title="Request duration in ms" >}}
-[
-  {
-    label: 'Duration (ms)',
-    data: [
-       49,  45,  36,  24,  31,  33,  30,  30,  37,  37,  39,  38,
-       44,  42,  47,  50,  58,  54,  55,  56,  60,  62,  67,  67,
-       70,  70,  78,  79,  81,  79,  88,  87,  90,  95,  99, 109,
-      107,  98, 109, 106, 106, 117, 115, 118, 116, 116, 131, 120,
-      141, 131, 129, 139, 142, 148, 140, 142, 158, 152, 156, 153,
-      160, 172, 164, 161, 158, 159, 163, 162, 160, 158, 156, 167,
-      159, 159, 161, 163, 159, 166, 162, 159, 165, 164, 162, 166,
-      156, 159, 170, 159, 168, 158
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-{{< tab tabName="CPU load" >}}
-
-{{< chart type="timeseries" title="CPU runtime load" stacked="true" max="1" step="5" >}}
-[
-  {
-    label: 'User',
-    data: [
-      0.03, 0.05,  0.2, 0.41,
-      0.59, 0.66, 0.73, 0.76,
-      0.75, 0.76,  0.8,  0.8,
-      0.81, 0.82, 0.79, 0.81,
-      0.82, 0.83, 0.79
-    ],
-    borderColor: '#4bc0c0',
-    backgroundColor: '#4bc0c0',
-    fill: true
-  },
-  {
-    label: 'System',
-    data: [
-      0.02, 0.03, 0.04, 0.08,
-      0.11, 0.12, 0.14, 0.14,
-      0.15, 0.13, 0.14, 0.15,
-      0.14, 0.15, 0.15, 0.15,
-      0.15, 0.14, 0.16
-    ],
-    borderColor: '#ff6384',
-    backgroundColor: '#ff6384',
-    fill: true
-  }
-]
-{{< /chart >}}
-
-{{< chart type="timeseries" title="CPU database load" stacked="true" max="1" step="5" >}}
-[
-  {
-    label: 'User',
-    data: [
-      0.02, 0.03, 0.14, 0.19,
-      0.25, 0.25, 0.27, 0.27,
-      0.27, 0.27, 0.29, 0.28,
-      0.28, 0.29, 0.29, 0.29,
-      0.28,  0.3, 0.31
-    ],
-    borderColor: '#4bc0c0',
-    backgroundColor: '#4bc0c0',
-    fill: true
-  },
-  {
-    label: 'System',
-    data: [
-      0.02, 0.03,  0.2, 0.27,
-      0.33, 0.34, 0.35, 0.36,
-      0.38, 0.39, 0.39,  0.4,
-       0.4, 0.39,  0.4, 0.41,
-      0.42, 0.42, 0.42
-    ],
-    borderColor: '#ff6384',
-    backgroundColor: '#ff6384',
-    fill: true
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-{{< /tabs >}}
-
-Laravel performing slower than MySQL in this context. Workers and databases are both heavy loaded, and we didn't complete a single scenario iteration.
-
-#### Laravel FrankenPHP PgSQL scenario 1
 
 Iteration creation rate = **5/s**
 
@@ -1317,9 +703,9 @@ vus_max........................: 50      min=50      max=50
 {{< /tab >}}
 {{< /tabs >}}
 
-Way better than with MySQL but no CPU limitations...
+Way better than with MySQL but strangely no CPU limitations...
 
-#### Laravel FrankenPHP PgSQL scenario 2
+#### Laravel PgSQL scenario 2
 
 Iteration creation rate = **1/s**
 
@@ -1474,317 +860,9 @@ vus_max........................: 50      min=50       max=50
 
 Very close to MySQL equivalent.
 
-### Symfony
+### Symfony (FrankenPHP)
 
 #### Symfony MySQL scenario 1
-
-Iteration creation rate = **5/s**
-
-```txt
-checks.........................: 100.00% ✓ 10098      ✗ 0
-data_received..................: 91 MB   1.4 MB/s
-data_sent......................: 929 kB  14 kB/s
-dropped_iterations.............: 103     1.525577/s
-http_req_blocked...............: avg=176.31µs min=222ns   med=1.09µs   max=75.92ms  p(90)=1.55µs   p(95)=1.74µs
-http_req_connecting............: avg=6.31µs   min=0s      med=0s       max=4.4ms    p(90)=0s       p(95)=0s
-http_req_duration..............: avg=283.48ms min=16.12ms med=299.04ms max=648.58ms p(90)=411.63ms p(95)=444.18ms
-  { expected_response:true }...: avg=283.48ms min=16.12ms med=299.04ms max=648.58ms p(90)=411.63ms p(95)=444.18ms
-http_req_failed................: 0.00%   ✓ 0          ✗ 10098
-http_req_receiving.............: avg=1.03ms   min=22.06µs med=363.49µs max=204.94ms p(90)=1.63ms   p(95)=3.31ms
-http_req_sending...............: avg=260µs    min=25.52µs med=124.22µs max=76.41ms  p(90)=223.35µs p(95)=316.73µs
-http_req_tls_handshaking.......: avg=162.58µs min=0s      med=0s       max=49.02ms  p(90)=0s       p(95)=0s
-http_req_waiting...............: avg=282.18ms min=15.78ms med=297.55ms max=648.25ms p(90)=410.27ms p(95)=442.18ms
-http_reqs......................: 10098   149.565835/s
-iteration_duration.............: avg=14.51s   min=2.45s   med=16.39s   max=18.09s   p(90)=17.42s   p(95)=17.59s
-iterations.....................: 198     2.932663/s
-vus............................: 13      min=5        max=50
-vus_max........................: 50      min=50       max=50
-```
-
-{{< tabs >}}
-{{< tab tabName="Req/s" >}}
-
-{{< chart type="timeseries" title="Req/s count" >}}
-[
-  {
-    label: 'Req/s',
-    data: [
-       10, 123, 159, 155, 163, 154, 149, 170, 145, 154,
-      150, 155, 152, 150, 153, 140, 156, 154, 149, 160,
-      140, 148, 151, 137, 166, 125, 150, 150, 145, 148,
-      135, 155, 136, 148, 152, 148, 160, 150, 146, 157,
-      148, 145, 158, 164, 144, 141, 153, 136, 157, 159,
-      158, 137, 147, 145, 161, 139, 144, 146, 150, 157,
-      150, 162, 135, 167, 148, 154, 162, 169,  14
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-
-{{< tab tabName="Req duration" >}}
-
-{{< chart type="timeseries" title="VUs count" >}}
-[
-  {
-    label: 'VUs',
-    data: [
-       5, 10, 13, 16, 20, 23, 26, 29, 32, 35, 39, 42,
-      46, 50, 49, 50, 49, 50, 50, 50, 50, 50, 49, 50,
-      47, 50, 48, 50, 50, 49, 49, 49, 50, 49, 49, 50,
-      50, 50, 49, 50, 49, 50, 50, 49, 46, 49, 49, 49,
-      49, 49, 50, 50, 49, 50, 50, 49, 48, 49, 48, 49,
-      46, 41, 35, 28, 22, 20, 13
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< chart type="timeseries" title="Request duration in ms" >}}
-[
-  {
-    label: 'Duration (ms)',
-    data: [
-       43,  37,  59,  80,  94, 126, 140, 158, 189, 193,
-      231, 255, 266, 296, 327, 322, 346, 319, 325, 319,
-      337, 345, 335, 334, 306, 365, 346, 340, 332, 336,
-      351, 332, 337, 333, 336, 326, 322, 337, 327, 310,
-      336, 328, 327, 326, 326, 324, 340, 338, 326, 306,
-      339, 345, 332, 330, 324, 356, 335, 341, 330, 319,
-      336, 313, 262, 240, 210, 152, 128,  84,  28
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-{{< tab tabName="CPU load" >}}
-
-{{< chart type="timeseries" title="CPU runtime load" stacked="true" max="1" step="5" >}}
-[
-  {
-    label: 'User',
-    data: [
-      0.03, 0.06, 0.33, 0.33,
-      0.32, 0.31, 0.32, 0.31,
-      0.32, 0.32,  0.3, 0.31,
-      0.31, 0.31, 0.33, 0.13,
-      0.04, 0.03, 0.04
-    ],
-    borderColor: '#4bc0c0',
-    backgroundColor: '#4bc0c0',
-    fill: true
-  },
-  {
-    label: 'System',
-    data: [
-      0.02, 0.03, 0.16, 0.15,
-      0.16, 0.14, 0.14, 0.15,
-      0.14, 0.13, 0.16, 0.14,
-      0.15, 0.15, 0.16, 0.07,
-      0.02, 0.02, 0.03
-    ],
-    borderColor: '#ff6384',
-    backgroundColor: '#ff6384',
-    fill: true
-  }
-]
-{{< /chart >}}
-
-{{< chart type="timeseries" title="CPU database load" stacked="true" max="1" step="5" >}}
-[
-  {
-    label: 'User',
-    data: [
-      0.02, 0.29, 0.91, 0.93,
-      0.94, 0.95, 0.95, 0.94,
-      0.95, 0.95, 0.95, 0.94,
-      0.95, 0.93, 0.93, 0.08,
-      0.03, 0.03, 0.03
-    ],
-    borderColor: '#4bc0c0',
-    backgroundColor: '#4bc0c0',
-    fill: true
-  },
-  {
-    label: 'System',
-    data: [
-      0.01, 0.03, 0.06, 0.07,
-      0.06, 0.05, 0.05, 0.05,
-      0.05, 0.05, 0.05, 0.06,
-      0.05, 0.06, 0.06, 0.02,
-      0.02, 0.02, 0.02
-    ],
-    borderColor: '#ff6384',
-    backgroundColor: '#ff6384',
-    fill: true
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-{{< /tabs >}}
-
-It's very similar to Laravel.
-
-#### Symfony MySQL scenario 2
-
-Iteration creation rate = **1/2/s**
-
-```txt
-checks.........................: 100.00% ✓ 29892      ✗ 0
-data_received..................: 54 MB   604 kB/s
-data_sent......................: 2.4 MB  26 kB/s
-http_req_blocked...............: avg=28.17µs  min=186ns   med=1.1µs    max=51.44ms  p(90)=1.55µs   p(95)=1.72µs
-http_req_connecting............: avg=1.41µs   min=0s      med=0s       max=5.2ms    p(90)=0s       p(95)=0s
-http_req_duration..............: avg=56.52ms  min=7.06ms  med=31.69ms  max=1.02s    p(90)=137.72ms p(95)=166.41ms
-  { expected_response:true }...: avg=56.52ms  min=7.06ms  med=31.69ms  max=1.02s    p(90)=137.72ms p(95)=166.41ms
-http_req_failed................: 0.00%   ✓ 0          ✗ 29892
-http_req_receiving.............: avg=1.25ms   min=20.02µs med=209.22µs max=209.68ms p(90)=1.23ms   p(95)=5.37ms
-http_req_sending...............: avg=189.98µs min=26.6µs  med=120.12µs max=70.73ms  p(90)=199.97µs p(95)=255.88µs
-http_req_tls_handshaking.......: avg=24.33µs  min=0s      med=0s       max=49.8ms   p(90)=0s       p(95)=0s
-http_req_waiting...............: avg=55.07ms  min=0s      med=30.73ms  max=1.02s    p(90)=134.97ms p(95)=163.13ms
-http_reqs......................: 29892   332.049675/s
-iteration_duration.............: avg=54.72s   min=42.96s  med=55.42s   max=1m9s     p(90)=1m6s     p(95)=1m8s
-iterations.....................: 5       0.055542/s
-vus............................: 26      min=1        max=28
-vus_max........................: 50      min=50       max=50
-```
-
-{{< tabs >}}
-{{< tab tabName="Req/s" >}}
-
-{{< chart type="timeseries" title="Req/s count" >}}
-[
-  {
-    label: 'Req/s',
-    data: [
-       37,  44, 133, 154, 225, 230, 269, 273, 306, 292, 290,
-      272, 324, 339, 345, 342, 345, 351, 373, 354, 362, 318,
-      337, 348, 303, 301, 346, 370, 344, 335, 336, 355, 385,
-      373, 359, 351, 357, 382, 366, 350, 360, 347, 364, 342,
-      336, 362, 379, 375, 342, 348, 352, 352, 385, 360, 341,
-      357, 364, 363, 347, 314, 338, 359, 357, 344, 312, 344,
-      334, 390, 358, 339, 352, 359, 364, 335, 350, 368, 350,
-      378, 347, 357, 355, 331, 389, 343, 331, 342, 359, 369,
-      351, 321
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-
-{{< tab tabName="Req duration" >}}
-
-{{< chart type="timeseries" title="VUs count" >}}
-[
-  {
-    label: 'VUs',
-    data: [
-       1,  1,  2,  2,  3,  3,  4,  4,  5,  5,  6,  6,
-       7,  7,  8,  8,  9,  9, 10, 10, 11, 11, 12, 12,
-      13, 13, 14, 14, 15, 15, 16, 16, 17, 17, 18, 18,
-      19, 19, 20, 20, 21, 21, 21, 21, 22, 21, 22, 22,
-      23, 23, 24, 24, 25, 25, 26, 26, 27, 27, 28, 27,
-      28, 28, 28, 28, 28, 28, 28, 27, 27, 27, 27, 27,
-      27, 27, 27, 27, 26, 26, 26, 26, 26, 26, 26, 26,
-      26, 26, 26, 26, 26
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< chart type="timeseries" title="Request duration in ms" >}}
-[
-  {
-    label: 'Duration (ms)',
-    data: [
-      25, 22, 14, 13, 13, 13, 15, 14, 15, 17, 20, 22,
-      20, 22, 22, 23, 26, 25, 26, 27, 30, 34, 35, 34,
-      41, 43, 40, 38, 43, 43, 47, 47, 43, 44, 49, 53,
-      53, 49, 54, 55, 60, 61, 58, 63, 60, 63, 59, 55,
-      68, 64, 70, 70, 63, 70, 70, 78, 75, 72, 81, 81,
-      87, 80, 76, 81, 82, 89, 80, 73, 76, 74, 80, 78,
-      70, 82, 73, 78, 77, 69, 74, 71, 76, 76, 68, 76,
-      75, 78, 75, 69, 75, 74
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-{{< tab tabName="CPU load" >}}
-
-{{< chart type="timeseries" title="CPU runtime load" stacked="true" max="1" step="5" >}}
-[
-  {
-    label: 'User',
-    data: [
-      0.03, 0.04, 0.13, 0.33,
-      0.43,  0.5, 0.51,  0.5,
-       0.5, 0.54, 0.52, 0.51,
-      0.52, 0.53, 0.49, 0.52,
-      0.51, 0.52, 0.52
-    ],
-    borderColor: '#4bc0c0',
-    backgroundColor: '#4bc0c0',
-    fill: true
-  },
-  {
-    label: 'System',
-    data: [
-      0.02, 0.02, 0.08, 0.19,
-      0.22, 0.28, 0.27,  0.3,
-       0.3,  0.3, 0.29, 0.31,
-      0.29, 0.31, 0.29, 0.31,
-      0.28, 0.32, 0.31
-    ],
-    borderColor: '#ff6384',
-    backgroundColor: '#ff6384',
-    fill: true
-  }
-]
-{{< /chart >}}
-
-{{< chart type="timeseries" title="CPU database load" stacked="true" max="1" step="5" >}}
-[
-  {
-    label: 'User',
-    data: [
-      0.03, 0.03, 0.08, 0.15,
-      0.16, 0.13, 0.18, 0.16,
-      0.13, 0.12, 0.14, 0.13,
-      0.14, 0.13, 0.14, 0.12,
-      0.14, 0.13, 0.14
-    ],
-    borderColor: '#4bc0c0',
-    backgroundColor: '#4bc0c0',
-    fill: true
-  },
-  {
-    label: 'System',
-    data: [
-      0.02, 0.02, 0.04, 0.09,
-      0.09, 0.07,  0.1, 0.08,
-      0.07, 0.07, 0.07, 0.07,
-      0.06, 0.07, 0.07, 0.07,
-      0.07, 0.07, 0.08
-    ],
-    borderColor: '#ff6384',
-    backgroundColor: '#ff6384',
-    fill: true
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-{{< /tabs >}}
-
-Similar to Laravel too, just slightly better in the same context. Let's see if it's able to keep up with the same performance with PostgreSQL.
-
-#### Symfony FrankenPHP MySQL scenario 1
 
 Iteration creation rate = **5/s**
 
@@ -1934,9 +1012,9 @@ vus_max........................: 50      min=50      max=50
 {{< /tab >}}
 {{< /tabs >}}
 
-No enhancements here, it's even worse than Apache equivalent. No CPU limitations whatsoever, so strange behavior.
+Database limited too, but almost twice better than Laravel for MySQL.
 
-#### Symfony FrankenPHP MySQL scenario 2
+#### Symfony MySQL scenario 2
 
 Iteration creation rate = **1/s**
 
@@ -2088,315 +1166,9 @@ vus_max........................: 50      min=50        max=50
 {{< /tab >}}
 {{< /tabs >}}
 
-Contrary to Laravel, Symfony is unable to get FrankenPHP really working, and is worst than Apache equivalent. Is it a bug from the runtime ?
+Huge gap in performance against Laravel Octane here, about twice better ! Without FrankenPHP, we were capping to previously about 300 req/s...
 
 #### Symfony PgSQL scenario 1
-
-Iteration creation rate = **5/s**
-
-```txt
-checks.........................: 100.00% ✓ 10608      ✗ 0
-data_received..................: 96 MB   1.4 MB/s
-data_sent......................: 971 kB  14 kB/s
-dropped_iterations.............: 93      1.362698/s
-http_req_blocked...............: avg=154.31µs min=248ns   med=1.07µs   max=60.23ms  p(90)=1.61µs   p(95)=1.86µs
-http_req_connecting............: avg=5.19µs   min=0s      med=0s       max=3.83ms   p(90)=0s       p(95)=0s
-http_req_duration..............: avg=273.06ms min=19.44ms med=291.33ms max=566.8ms  p(90)=362.38ms p(95)=388.91ms
-{ expected_response:true }...: avg=273.06ms min=19.44ms med=291.33ms max=566.8ms  p(90)=362.38ms p(95)=388.91ms
-http_req_failed................: 0.00%   ✓ 0          ✗ 10608
-http_req_receiving.............: avg=743.59µs min=31.48µs med=265.43µs max=72ms     p(90)=757.9µs  p(95)=2.34ms
-http_req_sending...............: avg=140.55µs min=33.65µs med=118.47µs max=5.54ms   p(90)=188.99µs p(95)=232.62µs
-http_req_tls_handshaking.......: avg=144.54µs min=0s      med=0s       max=50.24ms  p(90)=0s       p(95)=0s
-http_req_waiting...............: avg=272.18ms min=19.24ms med=290.43ms max=566.36ms p(90)=361.47ms p(95)=387.77ms
-http_reqs......................: 10608   155.435505/s
-iteration_duration.............: avg=13.96s   min=2.62s   med=15.67s   max=16.83s   p(90)=16.36s   p(95)=16.48s
-iterations.....................: 208     3.047755/s
-vus............................: 9       min=5        max=50
-vus_max........................: 50      min=50       max=50
-```
-
-{{< tabs >}}
-{{< tab tabName="Req/s" >}}
-
-{{< chart type="timeseries" title="Req/s count" >}}
-[
-  {
-    label: 'Req/s',
-    data: [
-       50, 137, 158, 159, 158, 144, 155, 160, 159, 155,
-      149, 158, 157, 165, 150, 155, 158, 159, 161, 159,
-      143, 163, 161, 162, 162, 144, 158, 165, 160, 159,
-      154, 153, 156, 165, 159, 146, 156, 158, 159, 158,
-      148, 154, 161, 161, 163, 142, 155, 163, 163, 155,
-      150, 158, 159, 160, 159, 149, 157, 163, 158, 159,
-      154, 154, 163, 163, 157, 152, 160, 159,  62
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-
-{{< tab tabName="Req duration" >}}
-
-{{< chart type="timeseries" title="VUs count" >}}
-[
-  {
-    label: 'VUs',
-    data: [
-       5, 10, 13, 16, 20, 23, 27, 30, 32, 36, 40, 43,
-      46, 49, 50, 50, 49, 50, 50, 49, 50, 50, 50, 50,
-      49, 49, 48, 49, 48, 49, 50, 50, 48, 50, 50, 49,
-      50, 49, 49, 50, 49, 48, 49, 48, 47, 49, 48, 50,
-      49, 50, 49, 50, 49, 50, 49, 48, 50, 48, 47, 49,
-      45, 39, 35, 32, 30, 25, 19,  9
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< chart type="timeseries" title="Request duration in ms" >}}
-[
-  {
-    label: 'Duration (ms)',
-    data: [
-       36,  48,  72,  90, 109, 137, 156, 170, 196, 213,
-      240, 260, 272, 286, 309, 340, 310, 313, 307, 306,
-      329, 323, 310, 307, 307, 333, 313, 303, 302, 306,
-      325, 322, 310, 309, 307, 339, 312, 317, 310, 319,
-      332, 322, 306, 306, 296, 332, 316, 308, 306, 309,
-      331, 321, 315, 309, 306, 337, 316, 307, 309, 301,
-      324, 286, 245, 217, 197, 196, 151, 104,  57
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-{{< tab tabName="CPU load" >}}
-
-{{< chart type="timeseries" title="CPU runtime load" stacked="true" max="1" step="5" >}}
-[
-  {
-    label: 'User',
-    data: [
-      0.08, 0.02, 0.17, 0.53,
-      0.54, 0.55, 0.55, 0.54,
-      0.54, 0.55, 0.54, 0.54,
-      0.54, 0.56, 0.55, 0.54,
-      0.15, 0.03, 0.02
-    ],
-    borderColor: '#4bc0c0',
-    backgroundColor: '#4bc0c0',
-    fill: true
-  },
-  {
-    label: 'System',
-    data: [
-      0.03, 0.02, 0.05, 0.17,
-      0.17, 0.17, 0.15, 0.17,
-      0.16, 0.16, 0.16, 0.17,
-      0.17, 0.16, 0.16, 0.17,
-      0.05, 0.01, 0.02
-    ],
-    borderColor: '#ff6384',
-    backgroundColor: '#ff6384',
-    fill: true
-  }
-]
-{{< /chart >}}
-
-{{< chart type="timeseries" title="CPU database load" stacked="true" max="1" step="5" >}}
-[
-  {
-    label: 'User',
-    data: [
-      0.03, 0.14, 0.61, 0.63,
-      0.64, 0.63, 0.64, 0.64,
-      0.64, 0.62, 0.65, 0.63,
-      0.64, 0.64, 0.64, 0.24,
-      0.03, 0.03, 0.03
-    ],
-    borderColor: '#4bc0c0',
-    backgroundColor: '#4bc0c0',
-    fill: true
-  },
-  {
-    label: 'System',
-    data: [
-      0.02, 0.08, 0.33, 0.36,
-      0.36, 0.36, 0.36, 0.36,
-      0.36, 0.38, 0.35, 0.37,
-      0.36, 0.36, 0.35, 0.12,
-      0.02, 0.02, 0.02
-    ],
-    borderColor: '#ff6384',
-    backgroundColor: '#ff6384',
-    fill: true
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-{{< /tabs >}}
-
-Symfony performs same with PostgreSQL and MySQL, but we are limited by database contrary to Laravel case, and performing a little less.
-
-#### Symfony PgSQL scenario 2
-
-Iteration creation rate = **1/2/s**
-
-```txt
-checks.........................: 100.00% ✓ 20817      ✗ 0
-data_received..................: 38 MB   426 kB/s
-data_sent......................: 1.7 MB  19 kB/s
-http_req_blocked...............: avg=48.76µs  min=232ns   med=1.07µs   max=52.14ms p(90)=1.56µs   p(95)=1.78µs
-http_req_connecting............: avg=2.93µs   min=0s      med=0s       max=23.78ms p(90)=0s       p(95)=0s
-http_req_duration..............: avg=88.89ms  min=13.36ms med=81.73ms  max=1.74s   p(90)=157.48ms p(95)=179.93ms
-{ expected_response:true }...: avg=88.89ms  min=13.36ms med=81.73ms  max=1.74s   p(90)=157.48ms p(95)=179.93ms
-http_req_failed................: 0.00%   ✓ 0          ✗ 20817
-http_req_receiving.............: avg=753.58µs min=22.88µs med=147.77µs max=69.37ms p(90)=574.84µs p(95)=2.86ms
-http_req_sending...............: avg=139.52µs min=30.26µs med=120.37µs max=13.1ms  p(90)=191.03µs p(95)=225.35µs
-http_req_tls_handshaking.......: avg=43.19µs  min=0s      med=0s       max=44.53ms p(90)=0s       p(95)=0s
-http_req_waiting...............: avg=88ms     min=13.11ms med=80.82ms  max=1.74s   p(90)=156.15ms p(95)=178.32ms
-http_reqs......................: 20817   231.261996/s
-vus............................: 31      min=1        max=31
-vus_max........................: 50      min=50       max=50
-```
-
-{{< tabs >}}
-{{< tab tabName="Req/s" >}}
-
-{{< chart type="timeseries" title="Req/s count" >}}
-[
-  {
-    label: 'Req/s',
-    data: [
-       14,  37,  66, 114, 147, 159, 161, 176, 202, 203, 207,
-      213, 202, 222, 226, 229, 226, 217, 236, 243, 242, 225,
-      226, 242, 248, 253, 235, 230, 246, 254, 249, 243, 225,
-      251, 251, 252, 221, 229, 247, 255, 250, 241, 238, 252,
-      255, 259, 242, 234, 252, 253, 253, 240, 238, 255, 250,
-      253, 246, 240, 250, 255, 254, 245, 240, 252, 258, 254,
-      234, 234, 252, 251, 254, 250, 236, 248, 256, 260, 244,
-      234, 248, 254, 253, 244, 246, 253, 252, 254, 244, 239,
-      252, 258,  84
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-
-{{< tab tabName="Req duration" >}}
-
-{{< chart type="timeseries" title="VUs count" >}}
-[
-  {
-    label: 'VUs',
-    data: [
-       1,  1,  2,  2,  3,  3,  4,  4,  5,  5,  6,  6,
-       7,  7,  8,  8,  9,  9, 10, 10, 11, 11, 12, 12,
-      13, 13, 14, 14, 15, 15, 16, 16, 17, 17, 18, 18,
-      19, 19, 20, 20, 21, 21, 22, 22, 23, 23, 24, 24,
-      25, 25, 26, 26, 27, 27, 28, 28, 29, 29, 30, 30,
-      31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31,
-      31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31,
-      31, 31, 31, 31, 31, 31
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< chart type="timeseries" title="Request duration in ms" >}}
-[
-  {
-    label: 'Duration (ms)',
-    data: [
-       41,  27,  24,  17,  18,  19,  22,  23,  22,  24,  27,  28,
-       32,  31,  33,  35,  38,  41,  40,  41,  43,  49,  51,  49,
-       51,  51,  57,  61,  59,  58,  62,  65,  71,  70,  69,  70,
-       83,  82,  80,  78,  82,  86,  90,  87,  88,  90,  95, 102,
-       98,  99, 101, 106, 107, 109, 110, 111, 116, 119, 118, 119,
-      118, 127, 127, 125, 121, 121, 127, 128, 132, 122, 121, 124,
-      132, 125, 120, 120, 126, 127, 130, 121, 122, 126, 127, 123,
-      124, 122, 125, 130, 121, 122, 122
-    ]
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-{{< tab tabName="CPU load" >}}
-
-{{< chart type="timeseries" title="CPU runtime load" stacked="true" max="1" step="5" >}}
-[
-  {
-    label: 'User',
-    data: [
-      0.02, 0.02, 0.16, 0.44,
-      0.58, 0.63, 0.69, 0.71,
-      0.72, 0.74, 0.74, 0.73,
-      0.75, 0.73, 0.75, 0.75,
-      0.76, 0.76, 0.76
-    ],
-    borderColor: '#4bc0c0',
-    backgroundColor: '#4bc0c0',
-    fill: true
-  },
-  {
-    label: 'System',
-    data: [
-      0.01, 0.02, 0.07, 0.13,
-      0.18, 0.21, 0.21, 0.21,
-      0.22, 0.21, 0.22, 0.24,
-      0.22, 0.23, 0.23, 0.23,
-      0.22, 0.23, 0.23
-    ],
-    borderColor: '#ff6384',
-    backgroundColor: '#ff6384',
-    fill: true
-  }
-]
-{{< /chart >}}
-
-{{< chart type="timeseries" title="CPU database load" stacked="true" max="1" step="5" >}}
-[
-  {
-    label: 'User',
-    data: [
-      0.03, 0.07, 0.19, 0.23,
-      0.26, 0.27, 0.27, 0.29,
-      0.28, 0.31, 0.32, 0.31,
-       0.3, 0.31, 0.32, 0.31,
-      0.31,  0.3, 0.32
-    ],
-    borderColor: '#4bc0c0',
-    backgroundColor: '#4bc0c0',
-    fill: true
-  },
-  {
-    label: 'System',
-    data: [
-      0.02, 0.07, 0.26, 0.34,
-      0.38,  0.4, 0.42, 0.41,
-      0.43, 0.42, 0.41, 0.42,
-      0.44, 0.43, 0.41, 0.43,
-      0.43, 0.44, 0.42
-    ],
-    borderColor: '#ff6384',
-    backgroundColor: '#ff6384',
-    fill: true
-  }
-]
-{{< /chart >}}
-
-{{< /tab >}}
-{{< /tabs >}}
-
-Now it performs clearly slower than with MySQL in same scenario. Slightly better than Laravel in same context. To summary the 2nd scenario give MySQL a good advantage against PostgreSQL **with PHP**.
-
-#### Symfony FrankenPHP PgSQL scenario 1
 
 Iteration creation rate = **10/s**
 
@@ -2547,7 +1319,9 @@ vus_max........................: 50      min=50       max=50
 {{< /tab >}}
 {{< /tabs >}}
 
-#### Symfony FrankenPHP PgSQL scenario 2
+Twice better than MySQL, and ahead of Laravel for PgSQL.
+
+#### Symfony PgSQL scenario 2
 
 Iteration creation rate = **1/s**
 
@@ -2699,11 +1473,13 @@ vus_max........................: 50      min=50        max=50
 {{< /tab >}}
 {{< /tabs >}}
 
+Same results than MySQL, no database limit.
+
 ### FastAPI
 
 As a side note here, uvicorn is limited to 1 CPU core, so I use 2 replicas on each worker to use all CPU cores.
 
-#### FastAPI PgSQL scenario 1
+#### FastAPI scenario 1
 
 Iteration creation rate =  **15/s**
 
@@ -2852,9 +1628,9 @@ vus_max........................: 50      min=50      max=50
 {{< /tab >}}
 {{< /tabs >}}
 
-Now we are talking, FastAPI outperforms above PHP frameworks, and database isn't the bottleneck anymore.
+FastAPI outperforms above PHP frameworks in this specific scenario, and database isn't the bottleneck anymore.
 
-#### FastAPI PgSQL scenario 2
+#### FastAPI scenario 2
 
 Iteration creation rate = **2/s**
 
@@ -3009,11 +1785,11 @@ vus_max........................: 50      min=50      max=50
 {{< /tab >}}
 {{< /tabs >}}
 
-FastAPI performs around at least twice better than PHP main frameworks in every situation. I'm not sure that testing it on MySQL change anything.
+FastAPI fall behind Symfony but ahead of Laravel.
 
 ### NestJS
 
-#### NestJS PgSQL scenario 1
+#### NestJS scenario 1
 
 Iteration creation rate = **15/s**
 
@@ -3162,9 +1938,9 @@ vus_max........................: 50      min=50       max=50
 {{< /tab >}}
 {{< /tabs >}}
 
-It's slightly better than FastAPI, and database is strangely sleeping far more than with FastAPI, let's keep up on scenario 2.
+It's very close to FastAPI, and database is strangely sleeping far more than with FastAPI, let's keep up on scenario 2.
 
-#### NestJS PgSQL scenario 2
+#### NestJS scenario 2
 
 Iteration creation rate = **3/s**
 
@@ -3320,11 +2096,11 @@ vus_max........................: 50     min=50        max=50
 {{< /tab >}}
 {{< /tabs >}}
 
-Huge gap now, NestJS is the clear winner so far. The native even loop system seems to make miracles. It's time to test it against compiled language.
+Now NestJS match the high performance of Symfony. The native even loop system is very efficient. It's time to test it against compiled language.
 
 ### Spring Boot
 
-#### Spring Boot PgSQL scenario 1
+#### Spring Boot scenario 1
 
 Iteration creation rate = **30/s**
 
@@ -3475,7 +2251,7 @@ vus_max........................: 50      min=50        max=50
 
 End of debate, Spring Boot destroys competition for 1st scenario. Moreover, database is the bottleneck, and java runtime is clearly sleeping here. But JPA Hibernate was difficult to tune for optimal performance, and finally the magic [`@BatchSize`](https://docs.jboss.org/hibernate/orm/current/javadocs/org/hibernate/annotations/BatchSize.html) annotation was the key, allowing to merge n+1 queries into 1+1 queries. Without it, Spring Boot was performing 3 times slower !
 
-#### Spring Boot PgSQL scenario 2
+#### Spring Boot scenario 2
 
 Iteration creation rate = **10/s**
 
@@ -3633,7 +2409,7 @@ Java is maybe not the best DX experience for me, but it's a beast in terms of ra
 
 ### ASP.NET Core
 
-#### ASP.NET Core PgSQL scenario 1
+#### ASP.NET Core scenario 1
 
 Iteration creation rate = **20/s**
 
@@ -3782,9 +2558,9 @@ vus_max........................: 50      min=50       max=50
 {{< /tab >}}
 {{< /tabs >}}
 
-ASP.NET Core is performing well here. EF Core is incredibly efficient by default without any tuning headaches.
+ASP.NET Core is performing well here. EF Core is incredibly efficient by default without any tuning headaches as it was with Sping Boot.
 
-#### ASP.NET Core PgSQL scenario 2
+#### ASP.NET Core scenario 2
 
 Iteration creation rate = **10/s**
 
@@ -3944,7 +2720,7 @@ Here are the final req/s results for each framework against PgSQL database.
 {{< chart type="timeseries" title="Scenario 1" >}}
 [
     {
-        label: 'Laravel Octane',
+        label: 'Laravel',
         borderColor: '#c2410c',
         backgroundColor: '#c2410c',
         data: [
@@ -4036,7 +2812,7 @@ Here are the final req/s results for each framework against PgSQL database.
 {{< chart type="timeseries" title="Scenario 2" >}}
 [
     {
-        label: 'Laravel Octane',
+        label: 'Laravel',
         borderColor: '#c2410c',
         backgroundColor: '#c2410c',
         data: [
@@ -4137,10 +2913,8 @@ Here are the final req/s results for each framework against PgSQL database.
 
 To resume, compiled languages have always a clear advantage when it comes to raw performance. But do you really need it ?
 
-Keep in mind that it shouldn't be the only criteria to choose a web framework. The DX is also very important, for exemple Laravel stays a very nice candidate in this regard.
+Performance isn't the main criteria for a web framework. The DX is also very important, in that regards Laravel stays a very nice candidate, and you always have Octane for high performance if needed.
 
-In PHP, Laravel Octane seems the be the most performant solution, by skipping the framework bootstrap most of the time.
+As we have seen with Symfony, PHP is now really back in the game in term of raw performance, competing against NodeJS. And no more any headaches for worker configuration thanks to the excellent FrankenPHP runtime which provides production optimized docker images.
 
-When it comes to compiled languages, I still personally prefer ASP.NET Core over Spring Boot because of the DX. The performance gap is negligible, and it hasn't this warmup Java feeling and keeps a raisonable memory footprint.
-
-I'm stay open to any suggestions to improve my tests, especially on PHP side. If you have any tips to improve performance by some Framework or PHP low level tuning, let me a comment below !
+When it comes to compiled languages, I still personally prefer the DX of ASP.NET Core over Spring Boot. The performance gap is negligible, and it hasn't this warmup Java feeling and keeps a raisonable memory footprint.
