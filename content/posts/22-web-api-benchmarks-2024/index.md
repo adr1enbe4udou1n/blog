@@ -23,16 +23,18 @@ Now that's said, let's fight !
 
 ## The contenders
 
-We'll be using the very last up-to-date stable versions of the frameworks, and the latest stable version of the runtime.
+We'll be using the very last up-to-date stable versions of each frameworks, and the latest stable version of the runtime.
 
-| Framework & Source code                                                                                                                       | Runtime        | ORM            | Tested Database    |
-| --------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | -------------- | ------------------ |
-| [Laravel 11](https://github.com/adr1enbe4udou1n/laravel-realworld-example-app) ([api](https://laravelrealworld.okami101.io/api/))             | FrankenPHP 8.3 | Eloquent       | MySQL & PostgreSQL |
-| [Symfony 7](https://github.com/adr1enbe4udou1n/symfony-realworld-example-app) ([api](https://symfonyrealworld.okami101.io/api/))              | FrankenPHP 8.3 | Doctrine       | MySQL & PostgreSQL |
-| [FastAPI](https://github.com/adr1enbe4udou1n/fastapi-realworld-example-app) ([api](https://fastapirealworld.okami101.io/api/))                | Python 3.12    | SQLAlchemy 2.0 | PostgreSQL         |
-| [NestJS 10](https://github.com/adr1enbe4udou1n/nestjs-realworld-example-app) ([api](https://nestjsrealworld.okami101.io/api/))                | Node 20        | Prisma 5       | PostgreSQL         |
-| [Spring Boot 3.2](https://github.com/adr1enbe4udou1n/spring-boot-realworld-example-app) ([api](https://springbootrealworld.okami101.io/api/)) | Java 21        | Hibernate 6    | PostgreSQL         |
-| [ASP.NET Core 8](https://github.com/adr1enbe4udou1n/aspnetcore-realworld-example-app) ([api](https://aspnetcorerealworld.okami101.io/api/))   | .NET 8.0       | EF Core 8      | PostgreSQL         |
+I give you all source code as well as public OCI artifacts of each project, so you can test it by yourself quickly.
+
+| Framework & Source code                                                                                                                                                                                                            | Runtime        | ORM            | Database           |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | -------------- | ------------------ |
+| [Laravel 11](https://github.com/adr1enbe4udou1n/laravel-realworld-example-app) ([api](https://laravelrealworld.okami101.io/api/) / [image](https://gitea.okami101.io/conduit/-/packages/container/laravel/latest))                 | FrankenPHP 8.3 | Eloquent       | MySQL & PostgreSQL |
+| [Symfony 7](https://github.com/adr1enbe4udou1n/symfony-realworld-example-app) ([api](https://symfonyrealworld.okami101.io/api/) / [image](https://gitea.okami101.io/conduit/-/packages/container/symfony/latest))                  | FrankenPHP 8.3 | Doctrine       | MySQL & PostgreSQL |
+| [FastAPI](https://github.com/adr1enbe4udou1n/fastapi-realworld-example-app) ([api](https://fastapirealworld.okami101.io/api/) / [image](https://gitea.okami101.io/conduit/-/packages/container/fastapi/latest))                    | Python 3.12    | SQLAlchemy 2.0 | PostgreSQL         |
+| [NestJS 10](https://github.com/adr1enbe4udou1n/nestjs-realworld-example-app) ([api](https://nestjsrealworld.okami101.io/api/) / [image](https://gitea.okami101.io/conduit/-/packages/container/nestjs/latest))                     | Node 20        | Prisma 5       | PostgreSQL         |
+| [Spring Boot 3.2](https://github.com/adr1enbe4udou1n/spring-boot-realworld-example-app) ([api](https://springbootrealworld.okami101.io/api/) / [image](https://gitea.okami101.io/conduit/-/packages/container/spring-boot/latest)) | Java 21        | Hibernate 6    | PostgreSQL         |
+| [ASP.NET Core 8](https://github.com/adr1enbe4udou1n/aspnetcore-realworld-example-app) ([api](https://aspnetcorerealworld.okami101.io/api/) / [image](https://gitea.okami101.io/conduit/-/packages/container/aspnet-core/latest))   | .NET 8.0       | EF Core 8      | PostgreSQL         |
 
 Each project are:
 
@@ -45,11 +47,11 @@ Each project are:
 
 ### Side note on PHP configuration
 
-Note as I tested against PostgreSQL for all frameworks as main Database, but I added MySQL for Laravel and Symfony too (OPcache & FrankenPHP worker enabled), just by curiosity, and because of simplicity of PHP for switching database without changing code base, as both DB drivers integrated into base PHP Docker image. It allows to have an interesting Eloquent VS Doctrine ORM comparison for each database.
+Even if PostgreSQL is the mainly tested database, I added MySQL for PHP frameworks, because of simplicity of PHP for switching database without changing binaries, as both DB drivers integrated into base PHP Docker image. It allows to have an interesting Eloquent VS Doctrine ORM comparison for each database.
 
-## The target hardware
+## The Swarm cluster for testing
 
-We'll running all Web APIs project on a Docker swarm cluster, where each node are composed of 2 dedicated CPUs for stable performance and 8 GB of RAM.
+We'll running all Web APIs project on a Docker swarm cluster, where each node are composed of 2 dedicated CPUs for stable performance and 8 GB of RAM. I'll use 4 CCX13 instances from Hetzner.
 
 Traefik will be used as a reverse proxy, load balancing the requests to the replicas of each node.
 
@@ -77,7 +79,299 @@ end
 
 The Swarm cluster is fully monitored with [Prometheus](https://prometheus.io/) and [Grafana](https://grafana.com/), allowing to get relevant performance result.
 
-## The scenarios
+Here is the complete [terraform swarm bootstrap](https://github.com/adr1enbe4udou1n/terraform-swarm-okami) if you want to reproduce the same setup.
+
+## The deployment configuration
+
+Following is the deployment configuration for each framework, using Docker Swarm stack file.
+
+{{< tabs >}}
+{{< tab tabName="Laravel" >}}
+
+{{< highlight file="deploy-laravel.yml" >}}
+
+```yml
+version: "3.8"
+
+services:
+  app:
+    image: gitea.okami101.io/conduit/laravel:latest
+    environment:
+      - SERVER_NAME=:80
+      - APP_KEY=base64:nltxnFb9OaSAr4QcCchy8dG1QXUbc2+2tsXpzN9+ovg=
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres_db
+      # - DB_CONNECTION=mysql
+      # - DB_HOST=mysql_db
+      - DB_USERNAME=okami
+      - DB_PASSWORD=okami
+      - DB_DATABASE=conduit_laravel
+      - JWT_SECRET_KEY=c2b344e1-1a20-47fc-9aef-55b0c0d568a7
+    entrypoint: php artisan octane:frankenphp
+    networks:
+      - postgres_db
+      - mysql_db
+      - traefik_public
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.laravel-worker.entrypoints=websecure
+        - traefik.http.services.laravel-worker.loadbalancer.server.port=80
+      replicas: 2
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - node.labels.run == true
+
+networks:
+  postgres_db:
+    external: true
+  mysql_db:
+    external: true
+  traefik_public:
+    external: true
+```
+
+{{< /highlight >}}
+
+{{< /tab >}}
+{{< tab tabName="Symfony" >}}
+
+{{< highlight file="deploy-symfony.yml" >}}
+
+```yml
+version: "3.8"
+
+services:
+  app:
+    image: gitea.okami101.io/conduit/symfony:latest
+    environment:
+      - SERVER_NAME=:80
+      - APP_SECRET=ede04f29dd6c8b0e404581d48c36ec73
+      - DATABASE_DRIVER=pdo_pgsql
+      - DATABASE_URL=postgresql://okami:okami@postgres_db/conduit_symfony
+      - DATABASE_RO_URL=postgresql://okami:okami@postgres_db/conduit_symfony
+      # - DATABASE_DRIVER=pdo_mysql
+      # - DATABASE_URL=mysql://okami:okami@mysql_db/conduit_symfony
+      # - DATABASE_RO_URL=mysql://okami:okami@mysql_db/conduit_symfony
+      - JWT_PASSPHRASE=c2b344e1-1a20-47fc-9aef-55b0c0d568a7
+      - FRANKENPHP_CONFIG=worker ./public/index.php
+      - APP_RUNTIME=Runtime\FrankenPhpSymfony\Runtime
+    networks:
+      - postgres_db
+      - mysql_db
+      - traefik_public
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.symfony-worker.entrypoints=websecure
+        - traefik.http.services.symfony-worker.loadbalancer.server.port=80
+      replicas: 2
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - node.labels.run == true
+
+networks:
+  postgres_db:
+    external: true
+  mysql_db:
+    external: true
+  traefik_public:
+    external: true
+```
+
+{{< /highlight >}}
+
+{{< /tab >}}
+{{< tab tabName="FastAPI" >}}
+
+{{< highlight file="deploy-fastapi.yml" >}}
+
+```yml
+version: "3.8"
+
+services:
+  app:
+    image: gitea.okami101.io/conduit/fastapi:latest
+    environment:
+      - DB_HOST=postgres_db
+      - DB_RO_HOST=postgres_db
+      - DB_PORT=5432
+      - DB_USERNAME=okami
+      - DB_PASSWORD=okami
+      - DB_DATABASE=conduit_fastapi
+      - JWT_PASSPHRASE=c2b344e1-1a20-47fc-9aef-55b0c0d568a7
+    networks:
+      - postgres_db
+      - traefik_public
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.fastapi.entrypoints=websecure
+        - traefik.http.services.fastapi.loadbalancer.server.port=8000
+      replicas: 4
+      placement:
+        max_replicas_per_node: 2
+        constraints:
+          - node.labels.run == true
+
+networks:
+  postgres_db:
+    external: true
+  traefik_public:
+    external: true
+```
+
+{{< /highlight >}}
+
+{{< /tab >}}
+{{< tab tabName="NestJS" >}}
+
+{{< highlight file="deploy-nestjs.yml" >}}
+
+```yml
+version: "3.8"
+
+services:
+  app:
+    image: gitea.okami101.io/conduit/nestjs:latest
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgres://okami:okami@postgres_db/conduit_nestjs
+      - JWT_SECRET=c2b344e1-1a20-47fc-9aef-55b0c0d568a7
+    networks:
+      - postgres_db
+      - traefik_public
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.nestjs.entrypoints=websecure
+        - traefik.http.services.nestjs.loadbalancer.server.port=3000
+      replicas: 2
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - node.labels.run == true
+
+networks:
+  postgres_db:
+    external: true
+  traefik_public:
+    external: true
+```
+
+{{< /highlight >}}
+
+{{< /tab >}}
+{{< tab tabName="Spring Boot" >}}
+
+{{< highlight file="deploy-spring-boot.yml" >}}
+
+```yml
+version: "3.8"
+
+services:
+  app:
+    image: gitea.okami101.io/conduit/spring-boot:latest
+    environment:
+      - SPRING_PROFILES_ACTIVE=production
+      - DB_HOST=postgres_db
+      - DB_PORT=5432
+      - DB_RO_HOST=postgres_db
+      - DB_USERNAME=okami
+      - DB_PASSWORD=okami
+      - DB_DATABASE=conduit_springboot
+      - JWT_SECRET_KEY=YzJiMzQ0ZTEtMWEyMC00N2ZjLTlhZWYtNTViMGMwZDU2OGE3
+    networks:
+      - postgres_db
+      - traefik_public
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.springboot.entrypoints=websecure
+        - traefik.http.services.springboot.loadbalancer.server.port=8080
+      replicas: 2
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - node.labels.run == true
+
+networks:
+  postgres_db:
+    external: true
+  traefik_public:
+    external: true
+```
+
+{{< /highlight >}}
+
+{{< /tab >}}
+{{< tab tabName="ASP.NET Core" >}}
+
+{{< highlight file="deploy-aspnet-core.yml" >}}
+
+```yml
+version: "3.8"
+
+services:
+  app:
+    image: gitea.okami101.io/conduit/symfony:latest
+    environment:
+      - SERVER_NAME=:80
+      - APP_SECRET=ede04f29dd6c8b0e404581d48c36ec73
+      - DATABASE_DRIVER=pdo_pgsql
+      - DATABASE_URL=postgresql://okami:okami@postgres_db/conduit_symfony
+      - DATABASE_RO_URL=postgresql://okami:okami@postgres_db/conduit_symfony
+      # - DATABASE_DRIVER=pdo_mysql
+      # - DATABASE_URL=mysql://okami:okami@mysql_db/conduit_symfony
+      # - DATABASE_RO_URL=mysql://okami:okami@mysql_db/conduit_symfony
+      - JWT_PASSPHRASE=c2b344e1-1a20-47fc-9aef-55b0c0d568a7
+      - FRANKENPHP_CONFIG=worker ./public/index.php
+      - APP_RUNTIME=Runtime\FrankenPhpSymfony\Runtime
+    networks:
+      - postgres_db
+      - mysql_db
+      - traefik_public
+    deploy:
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.symfony-worker.entrypoints=websecure
+        - traefik.http.services.symfony-worker.loadbalancer.server.port=80
+      replicas: 2
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - node.labels.run == true
+
+networks:
+  postgres_db:
+    external: true
+  mysql_db:
+    external: true
+  traefik_public:
+    external: true
+```
+
+{{< /highlight >}}
+
+{{< /tab >}}
+{{< /tabs >}}
+
+Once the Swarm cluster is ready with all proxy, monitoring, database tools initialized, create all associated databases and let's deploy each project as following :
+
+```bash
+docker stack deploy laravel -c deploy-laravel.yml
+docker stack deploy symfony -c deploy-symfony.yml
+docker stack deploy fastapi -c deploy-fastapi.yml
+docker stack deploy nestjs -c deploy-nestjs.yml
+docker stack deploy spring-boot -c deploy-spring-boot.yml
+docker stack deploy aspnet-core -c deploy-aspnet-core.yml
+```
+
+Once deployed you must migrate and seed the database according each project, check associated README for info.
+
+## The k6 scenarios
 
 We'll be using [k6](https://k6.io/) to run the tests, with [constant-arrival-rate executor](https://k6.io/docs/using-k6/scenarios/executors/constant-arrival-rate/) for progressive load testing, following 2 different scenarios :
 
@@ -88,7 +382,7 @@ Duration of each scenario is 1 minute, with a 30 seconds graceful for finishing 
 
 The **Iteration creation rate** (rate / timeUnit) will be choosen in order to obtain the highest possible request rate, without any test failures.
 
-### Scenario 1
+### Scenario 1 - Database intensive
 
 The interest of this scenario is to be very database intensive, by fetching all articles, authors, and favorites, following the pagination, with a couple of SQL queries. Note as each code implementation normally use eager loading to avoid N+1 queries, which can have high influence in this test.
 
@@ -176,7 +470,7 @@ SELECT * FROM favorites WHERE article_id IN (<articles.id...>);
 It can highly differ according to each ORM, as few of them can prefer to reduce the queries by using subselect, but it's a good approximation.
 {{< /alert >}}
 
-### Scenario 2
+### Scenario 2 - Runtime intensive
 
 The interest of this scenario is to be mainly runtime intensive, by calling each endpoint of the API.
 
