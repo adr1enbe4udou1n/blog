@@ -115,8 +115,8 @@ services:
     deploy:
       labels:
         - traefik.enable=true
-        - traefik.http.routers.laravel-worker.entrypoints=websecure
-        - traefik.http.services.laravel-worker.loadbalancer.server.port=80
+        - traefik.http.routers.laravel.entrypoints=websecure
+        - traefik.http.services.laravel.loadbalancer.server.port=8000
       replicas: 2
       placement:
         max_replicas_per_node: 1
@@ -164,8 +164,8 @@ services:
     deploy:
       labels:
         - traefik.enable=true
-        - traefik.http.routers.symfony-worker.entrypoints=websecure
-        - traefik.http.services.symfony-worker.loadbalancer.server.port=80
+        - traefik.http.routers.symfony.entrypoints=websecure
+        - traefik.http.services.symfony.loadbalancer.server.port=80
       replicas: 2
       placement:
         max_replicas_per_node: 1
@@ -336,8 +336,8 @@ services:
     deploy:
       labels:
         - traefik.enable=true
-        - traefik.http.routers.symfony-worker.entrypoints=websecure
-        - traefik.http.services.symfony-worker.loadbalancer.server.port=80
+        - traefik.http.routers.symfony.entrypoints=websecure
+        - traefik.http.services.symfony.loadbalancer.server.port=80
       replicas: 2
       placement:
         max_replicas_per_node: 1
