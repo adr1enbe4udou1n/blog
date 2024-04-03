@@ -1616,7 +1616,7 @@ vus_max........................: 50      min=50       max=50
 {{< /tab >}}
 {{< /tabs >}}
 
-Twice better than MySQL, and ahead of Laravel for PgSQL.
+Twice better than MySQL, performing same as Laravel.
 
 #### Symfony PgSQL scenario 2
 
