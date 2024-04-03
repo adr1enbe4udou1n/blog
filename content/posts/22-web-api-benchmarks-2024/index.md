@@ -1000,7 +1000,7 @@ vus_max........................: 50      min=50       max=50
 {{< /tab >}}
 {{< /tabs >}}
 
-Way better than with MySQL.
+Way better than with MySQL and no database limited.
 
 #### Laravel PgSQL scenario 2
 
@@ -1616,7 +1616,7 @@ vus_max........................: 50      min=50       max=50
 {{< /tab >}}
 {{< /tabs >}}
 
-Twice better than MySQL, performing same as Laravel.
+Twice better than MySQL, performing same as Laravel but database limited.
 
 #### Symfony PgSQL scenario 2
 
