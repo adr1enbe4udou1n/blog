@@ -39,7 +39,7 @@ For better fluidity, here is the expected list of variables you'll need to prepa
 | `s3_bucket`       | kuberocks                       |                                                                                 |
 | `s3_access_key`   | xxx                             |                                                                                 |
 | `s3_secret_key`   | xxx                             |                                                                                 |
-| `smtp_host`       | smtp-relay.brevo.com            |                                                                                 |
+| `smtp_host`       | smtp.tem.scw.cloud              |                                                                                 |
 | `smtp_port`       | 587                             |                                                                                 |
 | `smtp_user`       | <me@kube.rocks>                 |                                                                                 |
 | `smtp_password`   | xxx                             |                                                                                 |
