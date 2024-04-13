@@ -359,7 +359,7 @@ resource "helm_release" "traefik" {
   }
 
   set {
-    name  = "ports.ssh.expose"
+    name  = "ports.ssh.expose.default"
     value = "true"
   }
 

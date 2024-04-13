@@ -218,14 +218,14 @@ resource "kubernetes_namespace_v1" "traefik" {
 
 resource "helm_release" "traefik" {
   chart      = "traefik"
-  version    = "24.0.0"
+  version    = "27.0.2"
   repository = "https://traefik.github.io/charts"
 
   name      = "traefik"
   namespace = kubernetes_namespace_v1.traefik.metadata[0].name
 
   set {
-    name  = "ports.web.redirectTo"
+    name  = "ports.web.redirectTo.port"
     value = "websecure"
   }
 
@@ -263,7 +263,7 @@ resource "helm_release" "traefik" {
 
 {{< /highlight >}}
 
-`ports.web.redirectTo` will redirect all HTTP traffic to HTTPS.
+`ports.web.redirectTo.port` will redirect all HTTP traffic to HTTPS.
 
 `forwardedHeaders` and `proxyProtocol` will allow Traefik to get real IP of clients.
 
