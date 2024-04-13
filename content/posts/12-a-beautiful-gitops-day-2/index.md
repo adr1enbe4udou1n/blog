@@ -34,8 +34,8 @@ Let's begin with automatic upgrades management.
 Before we go next steps, we need to install critical monitoring CRDs that will be used by many components for monitoring, a subject that will be covered later.
 
 ```sh
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.67.1/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.67.1/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.73.0/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.73.0/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
 ```
 
 ### Automatic reboot
@@ -47,7 +47,7 @@ When OS kernel is upgraded, the system needs to be rebooted to apply it. This is
 ```tf
 resource "helm_release" "kubereboot" {
   chart      = "kured"
-  version    = "5.1.0"
+  version    = "5.4.5"
   repository = "https://kubereboot.github.io/charts"
 
   name = "kured"
@@ -103,8 +103,10 @@ Don't push yourself get fully 100% GitOps everywhere if the remedy give far more
 {{< /alert >}}
 
 ```sh
+k create ns system-upgrade
 # installing system-upgrade-controller
 ka https://github.com/rancher/system-upgrade-controller/releases/latest/download/system-upgrade-controller.yaml
+ka https://github.com/rancher/system-upgrade-controller/releases/latest/download/crd.yaml
 # checking system-upgrade-controller deployment status
 kg deploy -n system-upgrade
 ```
