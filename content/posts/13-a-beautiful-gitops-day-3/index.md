@@ -200,7 +200,7 @@ resource "kubernetes_secret_v1" "longhorn_backup_credential" {
 
 resource "helm_release" "longhorn" {
   chart      = "longhorn"
-  version    = "1.5.1"
+  version    = "1.6.1"
   repository = "https://charts.longhorn.io"
 
   name      = "longhorn"
