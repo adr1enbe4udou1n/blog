@@ -477,7 +477,7 @@ resource "kubernetes_secret_v1" "postgresql_auth" {
 
 resource "helm_release" "postgresql" {
   chart      = "postgresql"
-  version    = var.chart_postgresql_version
+  version    = "15.2.5"
   repository = "https://charts.bitnami.com/bitnami"
 
   name      = "postgresql"
@@ -636,7 +636,7 @@ resource "kubernetes_secret_v1" "redis_auth" {
 
 resource "helm_release" "redis" {
   chart      = "redis"
-  version    = "18.0.2"
+  version    = "19.1.0"
   repository = "https://charts.bitnami.com/bitnami"
 
   name      = "redis"
