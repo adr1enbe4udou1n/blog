@@ -509,11 +509,6 @@ resource "helm_release" "postgresql" {
   }
 
   set {
-    name  = "architecture"
-    value = "replication"
-  }
-
-  set {
     name  = "metrics.enabled"
     value = "true"
   }
