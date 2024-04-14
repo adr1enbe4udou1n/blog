@@ -273,7 +273,7 @@ resource "kubernetes_namespace_v1" "tracing" {
 
 resource "helm_release" "tempo" {
   chart      = "tempo"
-  version    = "1.5.1"
+  version    = "1.7.2"
   repository = "https://grafana.github.io/helm-charts"
 
   name      = "tempo"
