@@ -358,7 +358,7 @@ Type this commands for both storage nodes or use Longhorn UI from **Node** tab:
 
 ```sh
 # get the default-disk-xxx identifier
-kg nodes.longhorn.io kube-storage-01 -n longhorn-system -o yaml
+kg nodes.longhorn.io kube-storage-0x -n longhorn-system -o yaml
 # patch main default-disk-xxx as fast storage
 k patch nodes.longhorn.io kube-storage-0x -n longhorn-system --type=merge --patch '{"spec": {"disks": {"default-disk-xxx": {"tags": ["fast"]}}}}'
 # add a new schedulable disk by adding HC_Volume_XXXXXXXX path
