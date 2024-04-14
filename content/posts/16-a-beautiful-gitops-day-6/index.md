@@ -73,11 +73,16 @@ resource "kubernetes_namespace_v1" "gitea" {
 
 resource "helm_release" "gitea" {
   chart      = "gitea"
-  version    = "9.2.0"
+  version    = "10.1.3"
   repository = "https://dl.gitea.io/charts"
 
   name      = "gitea"
   namespace = kubernetes_namespace_v1.gitea.metadata[0].name
+
+  set {
+    name  = "image.tag"
+    value = "1.21.10"
+  }
 
   set {
     name  = "gitea.admin.username"
@@ -510,7 +515,7 @@ resource "kubernetes_namespace_v1" "concourse" {
 
 resource "helm_release" "concourse" {
   chart      = "concourse"
-  version    = "17.2.0"
+  version    = "17.3.1"
   repository = "https://concourse-charts.storage.googleapis.com"
 
   name      = "concourse"
