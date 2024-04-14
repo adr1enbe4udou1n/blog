@@ -69,7 +69,7 @@ resource "kubernetes_namespace_v1" "monitoring" {
 
 resource "helm_release" "kube_prometheus_stack" {
   chart      = "kube-prometheus-stack"
-  version    = "49.2.0"
+  version    = "58.1.0"
   repository = "https://prometheus-community.github.io/helm-charts"
 
   name      = "kube-prometheus-stack"
@@ -112,7 +112,7 @@ resource "helm_release" "kube_prometheus_stack" {
 
   set {
     name  = "prometheus.prometheusSpec.tolerations[0].key"
-    value = "node-role.kubernetes.io/storage"
+    value = "node-role.kubernetes.io/monitor"
   }
 
   set {
@@ -296,7 +296,7 @@ Create `grafana` database through pgAdmin with same user and according `grafana_
 {{< highlight host="demo-kube-k3s" file="terraform.tfvars" >}}
 
 ```tf
-smtp_host            = "smtp.mailgun.org"
+smtp_host            = "smtp.tem.scw.cloud"
 smtp_port            = "587"
 smtp_user            = "xxx"
 smtp_password        = "xxx"
@@ -311,7 +311,7 @@ Apply next configuration to Terraform project:
 ```tf
 resource "helm_release" "grafana" {
   chart      = "grafana"
-  version    = "6.58.9"
+  version    = "7.3.8"
   repository = "https://grafana.github.io/helm-charts"
 
   name      = "grafana"
@@ -546,6 +546,7 @@ resource "kubernetes_namespace_v1" "logging" {
 resource "helm_release" "loki" {
   chart      = "loki"
   version    = "5.15.0"
+  # version    = "6.2.0"
   repository = "https://grafana.github.io/helm-charts"
 
   name      = "loki"
