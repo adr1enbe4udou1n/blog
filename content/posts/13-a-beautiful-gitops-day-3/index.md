@@ -358,7 +358,7 @@ Type this commands for both storage nodes or use Longhorn UI from **Node** tab:
 
 ```sh
 # get the default-disk-xxx identifier
-kg nodes.longhorn.io okami-storage-01 -n longhorn-system -o yaml
+kg nodes.longhorn.io kube-storage-01 -n longhorn-system -o yaml
 # patch main default-disk-xxx as fast storage
 k patch nodes.longhorn.io kube-storage-0x -n longhorn-system --type=merge --patch '{"spec": {"disks": {"default-disk-xxx": {"tags": ["fast"]}}}}'
 # add a new schedulable disk by adding HC_Volume_XXXXXXXX path
@@ -587,8 +587,8 @@ Now check that PostgreSQL pods are correctly running on storage nodes with `kgpo
 
 ```txt
 NAME                       READY   STATUS    RESTARTS   AGE    IP            NODE               NOMINATED NODE   READINESS GATES
-postgresql-primary-0       2/2     Running   0          151m   10.42.5.253   okami-storage-01   <none>           <none>
-postgresql-read-0          2/2     Running   0          152m   10.42.2.216   okami-storage-02   <none>           <none>
+postgresql-primary-0       2/2     Running   0          151m   10.42.5.253   kube-storage-01   <none>           <none>
+postgresql-read-0          2/2     Running   0          152m   10.42.2.216   kube-storage-02   <none>           <none>
 ```
 
 And that's it, we have replicated PostgreSQL cluster ready to use ! Go to longhorn UI and be sure that 2 volumes are created on fast disk under **Volume** menu.
