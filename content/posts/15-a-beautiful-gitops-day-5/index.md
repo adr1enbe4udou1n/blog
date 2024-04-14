@@ -545,8 +545,7 @@ resource "kubernetes_namespace_v1" "logging" {
 
 resource "helm_release" "loki" {
   chart      = "loki"
-  version    = "5.15.0"
-  # version    = "6.2.0"
+  version    = "6.2.0"
   repository = "https://grafana.github.io/helm-charts"
 
   name      = "loki"
@@ -560,6 +559,11 @@ resource "helm_release" "loki" {
   set {
     name  = "loki.compactor.retention_enabled"
     value = "true"
+  }
+
+  set {
+    name  = "loki.compactor.delete_request_store"
+    value = "s3"
   }
 
   set {
@@ -605,6 +609,36 @@ resource "helm_release" "loki" {
   set {
     name  = "loki.commonConfig.replication_factor"
     value = "1"
+  }
+
+  set {
+    name  = "loki.schemaConfig.configs[0].from"
+    value = "2024-01-01"
+  }
+
+  set {
+    name  = "loki.schemaConfig.configs[0].store"
+    value = "tsdb"
+  }
+
+  set {
+    name  = "loki.schemaConfig.configs[0].object_store"
+    value = "s3"
+  }
+
+  set {
+    name  = "loki.schemaConfig.configs[0].schema"
+    value = "v13"
+  }
+
+  set {
+    name  = "loki.schemaConfig.configs[0].index.prefix"
+    value = "index_"
+  }
+
+  set {
+    name  = "loki.schemaConfig.configs[0].index.period"
+    value = "24h"
   }
 
   set {
@@ -661,6 +695,21 @@ resource "helm_release" "loki" {
     name  = "test.enabled"
     value = "false"
   }
+
+  set {
+    name  = "chunksCache.enabled"
+    value = "false"
+  }
+
+  set {
+    name  = "resultsCache.enabled"
+    value = "false"
+  }
+
+  set {
+    name  = "lokiCanary.enabled"
+    value = "false"
+  }
 }
 ```
 
@@ -677,7 +726,7 @@ Okay so Loki is running but not fed, for that we'll deploy [Promtail](https://gr
 ```tf
 resource "helm_release" "promtail" {
   chart      = "promtail"
-  version    = "6.15.0"
+  version    = "6.15.5"
   repository = "https://grafana.github.io/helm-charts"
 
   name      = "promtail"
