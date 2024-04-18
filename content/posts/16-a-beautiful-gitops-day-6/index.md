@@ -73,16 +73,11 @@ resource "kubernetes_namespace_v1" "gitea" {
 
 resource "helm_release" "gitea" {
   chart      = "gitea"
-  version    = "10.1.3"
+  version    = "10.1.4"
   repository = "https://dl.gitea.io/charts"
 
   name      = "gitea"
   namespace = kubernetes_namespace_v1.gitea.metadata[0].name
-
-  set {
-    name  = "image.tag"
-    value = "1.21.10"
-  }
 
   set {
     name  = "gitea.admin.username"
