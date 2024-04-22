@@ -528,11 +528,11 @@ As above config applies only at cluster initialization, you may change directly 
 
 Last but not least, we need to add a logging stack. The most popular one is [Elastic Stack](https://www.elastic.co/elastic-stack), but it's very resource intensive. A more lightweight option is to use [Loki](https://grafana.com/oss/loki/), also part of Grafana Labs.
 
-In order to work on scalable mode, we need to have a S3 storage backend. We will reuse same S3 compatible storage as longhorn backup here, but it's recommended to use a separate bucket and credentials.
+We need to have a S3 storage backend for long term storage. We will reuse same S3 compatible storage as longhorn backup here, but it's recommended to use a separate bucket and credentials.
 
 ### Loki
 
-Let's install it now:
+Let's install it on single binary mode:
 
 {{< highlight host="demo-kube-k3s" file="logging.tf" >}}
 
@@ -642,33 +642,43 @@ resource "helm_release" "loki" {
   }
 
   set {
+    name  = "deploymentMode"
+    value = "SingleBinary"
+  }
+
+  set {
     name  = "read.replicas"
-    value = "1"
+    value = "0"
   }
 
   set {
     name  = "backend.replicas"
-    value = "1"
+    value = "0"
   }
 
   set {
     name  = "write.replicas"
-    value = "2"
+    value = "0"
   }
 
   set {
-    name  = "write.tolerations[0].key"
-    value = "node-role.kubernetes.io/storage"
+    name  = "singleBinary.replicas"
+    value = "1"
   }
 
   set {
-    name  = "write.tolerations[0].effect"
+    name  = "singleBinary.tolerations[0].key"
+    value = "node-role.kubernetes.io/monitor"
+  }
+
+  set {
+    name  = "singleBinary.tolerations[0].effect"
     value = "NoSchedule"
   }
 
   set {
-    name  = "write.nodeSelector.node\\.kubernetes\\.io/server-usage"
-    value = "storage"
+    name  = "singleBinary.nodeSelector.node\\.kubernetes\\.io/server-usage"
+    value = "monitor"
   }
 
   set {
