@@ -197,7 +197,7 @@ You may set the same channel as previous step for hcloud cluster creation.
 
 ## External access
 
-Now it's time to expose our cluster to the outside world. We'll use Traefik as ingress controller and cert-manager for SSL certificates management.
+Now it's time to expose our cluster to the outside world. We'll use Traefik v3 as ingress controller and cert-manager for SSL certificates management.
 
 ### Traefik
 
@@ -218,7 +218,7 @@ resource "kubernetes_namespace_v1" "traefik" {
 
 resource "helm_release" "traefik" {
   chart      = "traefik"
-  version    = "27.0.2"
+  version    = "28.0.0"
   repository = "https://traefik.github.io/charts"
 
   name      = "traefik"
@@ -613,7 +613,7 @@ resource "kubernetes_manifest" "traefik_middleware_ip" {
       namespace = kubernetes_namespace_v1.traefik.metadata[0].name
     }
     spec = {
-      ipWhiteList = {
+      ipAllowList = {
         sourceRange = var.whitelisted_ips
       }
     }
@@ -642,7 +642,7 @@ resource "kubernetes_manifest" "traefik_middleware_ip" {
   manifest = {
     //...
     spec = {
-      ipWhiteList = {
+      ipAllowList = {
         sourceRange = var.whitelisted_ips
         ipStrategy = {
           depth = 1
