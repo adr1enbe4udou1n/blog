@@ -29,7 +29,7 @@ kind: Namespace
 metadata:
   name: sonarqube
 ---
-apiVersion: source.toolkit.fluxcd.io/v1beta2
+apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: sonarqube
@@ -38,7 +38,7 @@ spec:
   interval: 1h0m0s
   url: https://SonarSource.github.io/helm-chart-sonarqube
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: sonarqube

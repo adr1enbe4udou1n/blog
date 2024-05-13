@@ -125,7 +125,8 @@ provider "flux" {
 }
 
 resource "flux_bootstrap_git" "this" {
-  path = "clusters/demo"
+  path               = "clusters/demo"
+  embedded_manifests = true
 
   components_extra = [
     "image-reflector-controller",
@@ -152,7 +153,7 @@ Open `demo-kube-flux` project and create helm deployment for sealed secret.
 
 ```yaml
 ---
-apiVersion: source.toolkit.fluxcd.io/v1beta2
+apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: sealed-secrets
@@ -161,7 +162,7 @@ spec:
   interval: 1h0m0s
   url: https://bitnami-labs.github.io/sealed-secrets
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: sealed-secrets

@@ -880,7 +880,7 @@ After push all CI should build correctly. Then the image policy for auto update:
 {{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/images-demo-ui.yaml" >}}
 
 ```yml
-apiVersion: image.toolkit.fluxcd.io/v1beta1
+apiVersion: image.toolkit.fluxcd.io/v1beta2
 kind: ImageRepository
 metadata:
   name: demo-ui
@@ -891,7 +891,7 @@ spec:
   secretRef:
     name: dockerconfigjson
 ---
-apiVersion: image.toolkit.fluxcd.io/v1beta1
+apiVersion: image.toolkit.fluxcd.io/v1beta2
 kind: ImagePolicy
 metadata:
   name: demo-ui

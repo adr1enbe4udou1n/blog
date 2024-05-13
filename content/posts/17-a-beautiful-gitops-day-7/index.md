@@ -432,7 +432,7 @@ Let's define the image update automation task for main Flux repository:
 {{< highlight host="demo-kube-flux" file="clusters/demo/flux-add-ons/image-update-automation.yaml" >}}
 
 ```yaml
-apiVersion: image.toolkit.fluxcd.io/v1beta1
+apiVersion: image.toolkit.fluxcd.io/v1beta2
 kind: ImageUpdateAutomation
 metadata:
   name: flux-system
@@ -465,7 +465,7 @@ Now we need to tell Image Reflector how to scan the repository, as well as the a
 {{< highlight host="demo-kube-flux" file="clusters/demo/kuberocks/images-demo.yaml" >}}
 
 ```yaml
-apiVersion: image.toolkit.fluxcd.io/v1beta1
+apiVersion: image.toolkit.fluxcd.io/v1beta2
 kind: ImageRepository
 metadata:
   name: demo
@@ -476,7 +476,7 @@ spec:
   secretRef:
     name: dockerconfigjson
 ---
-apiVersion: image.toolkit.fluxcd.io/v1beta1
+apiVersion: image.toolkit.fluxcd.io/v1beta2
 kind: ImagePolicy
 metadata:
   name: demo
