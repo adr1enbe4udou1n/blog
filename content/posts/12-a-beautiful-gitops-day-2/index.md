@@ -34,8 +34,8 @@ Let's begin with automatic upgrades management.
 Before we go next steps, we need to install critical monitoring CRDs that will be used by many components for monitoring, a subject that will be covered later.
 
 ```sh
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.73.0/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
-kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.73.0/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
+ka https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.73.0/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml --server-side
+ka https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/v0.73.0/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml --server-side
 ```
 
 ### Automatic reboot
@@ -201,7 +201,13 @@ Now it's time to expose our cluster to the outside world. We'll use Traefik v3 a
 
 ### Traefik
 
-Apply following file:
+Apply CRDs:
+
+```sh
+kak https://github.com/traefik/traefik-helm-chart/traefik/crds/ --server-side
+```
+
+Then apply following:
 
 {{< highlight host="demo-kube-k3s" file="traefik.tf" >}}
 
