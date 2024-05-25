@@ -235,14 +235,20 @@ resource "helm_release" "traefik" {
     value = "websecure"
   }
 
-  set {
+  set_list {
     name  = "ports.websecure.forwardedHeaders.trustedIPs"
-    value = "{127.0.0.1/32,10.0.0.0/8}"
+    value = [
+      "127.0.0.1/32",
+      "10.0.0.0/8"
+    ]
   }
 
-  set {
+  set_list {
     name  = "ports.websecure.proxyProtocol.trustedIPs"
-    value = "{127.0.0.1/32,10.0.0.0/8}"
+    value = [
+      "127.0.0.1/32",
+      "10.0.0.0/8"
+    ]
   }
 
   set {
@@ -562,9 +568,9 @@ Then apply the following Terraform code:
 resource "helm_release" "traefik" {
   //...
 
-  set {
+  set_list {
     name  = "ingressRoute.dashboard.entryPoints"
-    value = "{websecure}"
+    value = ["websecure"]
   }
 
   set {
@@ -684,14 +690,14 @@ locals {
 resource "helm_release" "traefik" {
   //...
 
-  set {
+  set_list {
     name  = "ports.websecure.forwardedHeaders.trustedIPs"
-    value = "{${join(",", local.trusted_ips)}}"
+    value = local.trusted_ips
   }
 
-  set {
+  set_list {
     name  = "ports.websecure.proxyProtocol.trustedIPs"
-    value = "{${join(",", local.trusted_ips)}}"
+    value = local.trusted_ips
   }
 }
 ```
