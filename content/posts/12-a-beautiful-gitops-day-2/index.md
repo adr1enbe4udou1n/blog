@@ -347,7 +347,7 @@ One applied, use `hcloud load-balancer list` to get the public IP of the load ba
 First we need to install cert-manager for proper distributed SSL management. First install CRDs manually.
 
 ```sh
-ka https://github.com/cert-manager/cert-manager/releases/download/v1.14.4/cert-manager.crds.yaml
+ka https://github.com/cert-manager/cert-manager/releases/download/v1.15.0/cert-manager.crds.yaml
 ```
 
 Then apply the following Terraform code.
@@ -363,7 +363,7 @@ resource "kubernetes_namespace_v1" "cert_manager" {
 
 resource "helm_release" "cert_manager" {
   chart      = "cert-manager"
-  version    = "v1.14.4"
+  version    = "v1.15.0"
   repository = "https://charts.jetstack.io"
 
   name      = "cert-manager"
