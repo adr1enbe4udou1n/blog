@@ -3,7 +3,7 @@ title: "About me"
 layout: "simple"
 ---
 
-Hi folks test, I'm a web lover actually working [@Cesson-Sévigné](https://fr.wikipedia.org/wiki/Cesson-S%C3%A9vign%C3%A9), mastering :
+Hi folks, I'm a web lover actually working [@Cesson-Sévigné](https://fr.wikipedia.org/wiki/Cesson-S%C3%A9vign%C3%A9), mastering :
 
 * [`ASP.NET Core`](https://docs.microsoft.com/fr-fr/aspnet/core/?view=aspnetcore-6.0) with `C#` and [`Laravel`](https://laravel.com/) as favorite backend frameworks
 * [`Vue 3`](https://vuejs.org/) with [*Composition API*](https://vuejs.org/guide/extras/composition-api-faq.html) or [`React`](https://fr.reactjs.org/) with [`Typescript`](https://www.typescriptlang.org/)
