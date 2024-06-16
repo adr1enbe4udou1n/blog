@@ -1,17 +1,25 @@
 steps:
+  # - name: Restore Cache
+  #   image: meltwater/drone-cache
+  #   volumes:
+  #     - woodpecker-cache:/woodpecker/src/resources
+  #   settings:
+  #     mount:
+  #       - woodpecker-cache
+
   - name: build
     image: hugomods/hugo:latest
     commands:
       - hugo --minify
     when:
       event: push
-    backend_options:
-      kubernetes:
-        tolerations:
-          - key: node-role.kubernetes.io/runner
-            operator: Exists
-        nodeSelector:
-          node-role.kubernetes.io/runner: "true"
+    # backend_options:
+    #   kubernetes:
+    #     tolerations:
+    #       - key: node-role.kubernetes.io/runner
+    #         operator: Exists
+    #     nodeSelector:
+    #       node-role.kubernetes.io/runner: "true"
 
   - name: publish
     image: woodpeckerci/plugin-docker-buildx
