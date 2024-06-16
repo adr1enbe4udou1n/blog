@@ -3,6 +3,8 @@ steps:
     image: hugomods/hugo:latest
     commands:
       - hugo --minify
+    when:
+      branch: main
     backend_options:
       kubernetes:
         tolerations:
@@ -13,6 +15,8 @@ steps:
 
   - name: publish
     image: woodpeckerci/plugin-docker-buildx
+    when:
+      branch: main
     settings:
       repo: gitea.okami101.io/adr1enbe4udou1n/blog
       registry: https://gitea.okami101.io
