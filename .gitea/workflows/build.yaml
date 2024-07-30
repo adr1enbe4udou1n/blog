@@ -23,5 +23,6 @@ jobs:
           password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
       - uses: docker/build-push-action@v6
         with:
+          context: .
           push: true
           tags: ${{ vars.CONTAINER_REGISTRY_URL }}/${{ gitea.repository }}:latest
