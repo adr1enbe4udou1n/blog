@@ -21,7 +21,7 @@ jobs:
           registry: ${{ vars.CONTAINER_REGISTRY_URL }}
           username: ${{ vars.CONTAINER_REGISTRY_USERNAME }}
           password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
-      - name: Build and push
-        run: |
-          docker build -t ${{ vars.CONTAINER_REGISTRY_URL }}/${{ gitea.repository }}:latest .
-          docker push ${{ vars.CONTAINER_REGISTRY_URL }}/${{ gitea.repository }}:latest
+      - uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: ${{ vars.CONTAINER_REGISTRY_URL }}/${{ gitea.repository }}:latest
