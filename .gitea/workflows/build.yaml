@@ -20,6 +20,7 @@ jobs:
       - name: Build test
         run: hugo --minify
       - uses: docker/metadata-action@v5
+        id: meta
         with:
           images: ${{ vars.CONTAINER_REGISTRY_URL }}/${{ gitea.repository }}
       - uses: docker/login-action@v3
