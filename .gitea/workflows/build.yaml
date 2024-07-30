@@ -24,4 +24,5 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           push: true
+          endpoint: tcp://localhost:2376
           tags: ${{ vars.CONTAINER_REGISTRY_URL }}/adr1enbe4udou1n/blog:latest
