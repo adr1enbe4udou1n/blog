@@ -14,7 +14,7 @@ jobs:
         with:
           path: resources
           key: ${{ runner.os }}-resources
-      - name: Build test
+      - name: Build
         run: hugo --minify
       - uses: docker/login-action@v3
         with:
@@ -23,7 +23,7 @@ jobs:
           password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
       - name: List files in the repository
         run: |
-          ls ${{ gitea.workspace }}
+          ls ${{ gitea.workspace }}/public
       # - uses: docker/build-push-action@v6
       #   with:
       #     push: true
