@@ -16,3 +16,12 @@ jobs:
           key: ${{ runner.os }}-resources
       - name: Build
         run: hugo --minify
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ vars.CONTAINER_REGISTRY_URL }}
+          username: ${{ vars.CONTAINER_REGISTRY_USERNAME }}
+          password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
+      - uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: ${{ vars.CONTAINER_REGISTRY_URL }}/adr1enbe4udou1n/blog:latest
