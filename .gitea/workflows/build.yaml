@@ -23,7 +23,7 @@ jobs:
           password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
       - name: List files in the repository
         run: |
-          ls ${{ gitea.workspace }}/public
+          ls public
       # - uses: docker/build-push-action@v6
       #   with:
       #     push: true
