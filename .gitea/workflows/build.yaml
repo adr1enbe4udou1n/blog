@@ -14,5 +14,5 @@ jobs:
         with:
           path: resources
           key: ${{ runner.os }}-resources
-      - name: Build test
+      - name: Build
         run: hugo --minify
