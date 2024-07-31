@@ -21,10 +21,18 @@ jobs:
           key: ${{ runner.os }}-resources
       - name: Build test
         run: hugo --minify
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: public
   deploy:
     runs-on: ubuntu-latest
     needs: build
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
       - uses: docker/metadata-action@v5
         id: meta
         with:
