@@ -21,19 +21,32 @@ jobs:
           key: ${{ runner.os }}-resources
       - name: Build
         run: hugo --minify
+      - uses: actions/cache@v4
+        id: restore-build
+        with:
+          path: public
+          key: ${{ runner.os }}-public
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    #if: gitea.event_name == 'tag'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        id: restore-build
+        with:
+          path: public
+          key: ${{ runner.os }}-public
       - uses: docker/metadata-action@v5
-        if: gitea.event_name == 'tag'
         id: meta
         with:
           images: ${{ vars.CONTAINER_REGISTRY_URL }}/${{ gitea.repository }}
       - uses: docker/login-action@v3
-        if: gitea.event_name == 'tag'
         with:
           registry: ${{ vars.CONTAINER_REGISTRY_URL }}
           username: ${{ vars.CONTAINER_REGISTRY_USERNAME }}
           password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
       - uses: docker/build-push-action@v6
-        if: gitea.event_name == 'tag'
         with:
           context: .
           push: true
