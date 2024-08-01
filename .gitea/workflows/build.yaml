@@ -19,7 +19,7 @@ jobs:
         with:
           path: resources
           key: ${{ runner.os }}-resources
-      - name: Build test
+      - name: Build
         run: hugo --minify
-      - uses: https://gitea.okami101.io/okami101/docker-action/.gitea/workflows/push-image@main
+      - uses: https://gitea.okami101.io/okami101/docker-action/.gitea/workflows/push-image@d2f8e211e13fbccfa7cc15efeeb4175bd7015027
         #if: startsWith(github.ref, 'refs/tags/v')
