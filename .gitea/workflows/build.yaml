@@ -12,13 +12,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
-      - uses: peaceiris/actions-hugo@v3
-        with:
-          extended: true
       - uses: actions/cache@v4
         with:
           path: resources
           key: ${{ runner.os }}-resources
+      - uses: peaceiris/actions-hugo@v3
+        with:
+          extended: true
       - name: Build
         run: hugo --minify
       - uses: https://gitea.okami101.io/okami101/docker-action@main
