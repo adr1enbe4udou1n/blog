@@ -21,7 +21,7 @@ jobs:
           extended: true
       - name: Build
         run: hugo --minify
-      - uses: https://gitea.okami101.io/okami101/docker-action@main
-        if: startsWith(github.ref, 'refs/tags/v')
+      - uses: https://gitea.okami101.io/okami101/docker-action/docker@main
+        # if: startsWith(github.ref, 'refs/tags/v')
         with:
           password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
