@@ -27,6 +27,6 @@ jobs:
           password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
 
   deploy:
-    uses: https://gitea.okami101.io/okami101/actions/.gitea/workflows/release.yaml@7cf172633373f33677e8518749d0d8e07820a45f
+    uses: https://gitea.okami101.io/okami101/actions/.gitea/workflows/release.yaml@63f50c8c38683640c6a8352ee93a72de4d22087e
     secrets:
       password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
