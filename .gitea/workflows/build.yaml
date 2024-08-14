@@ -22,11 +22,11 @@ jobs:
           extended: true
       - name: Build
         run: hugo --minify
-      - uses: https://gitea.okami101.io/okami101/actions/docker@main
+      - uses: gitea.okami101.io/okami101/actions/docker@main
         with:
           password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
 
   deploy:
-    uses: https://gitea.okami101.io/okami101/actions/.gitea/workflows/release.yaml@main
+    uses: gitea.okami101.io/okami101/actions/.gitea/workflows/release.yaml@main
     with:
       password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
