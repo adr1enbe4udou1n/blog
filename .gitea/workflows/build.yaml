@@ -23,4 +23,3 @@ jobs:
         with:
           password: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
           gitea-token: ${{ secrets.RELEASE_TOKEN }}
-          release: true
