@@ -17,7 +17,7 @@ jobs:
       - uses: peaceiris/actions-hugo@v3
         with:
           extended: true
-      - name: Build
+      - name: Build test
         run: hugo --minify
       - uses: https://gitea.okami101.io/okami101/actions/docker@main
         with:
