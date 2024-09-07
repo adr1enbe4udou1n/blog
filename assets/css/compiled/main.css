@@ -1,4 +1,4 @@
-/*! Congo v2.7.6 | MIT License | https://github.com/jpanther/congo */
+/*! Congo v2.9.0 | MIT License | https://github.com/jpanther/congo */
 
 /*! tailwindcss v3.3.2 | MIT License | https://tailwindcss.com */
 
@@ -1115,6 +1115,12 @@ body:has(#menu-controller:checked) {
 
 /* Table of Contents */
 
+.toc {
+  max-height: 100vh;
+  overflow-y: auto;
+  padding-bottom: 50px;
+}
+
 .toc ul,
 .toc li {
   list-style-type: none;
@@ -1208,6 +1214,33 @@ body:has(#menu-controller:checked) {
   position: absolute;
   z-index: -10;
   opacity: 0.05;
+}
+
+/* Fix long KaTeX equations on mobile (see https://katex.org/docs/issues.html#css-customization) */
+
+.katex-display {
+  overflow: auto hidden;
+}
+
+/* Fix long tables breaking out of article on mobile */
+
+table {
+  display: block;
+  overflow: auto;
+}
+
+@media (min-width: 768px) {
+  table {
+    display: table;
+  }
+}
+
+/* Fix long inline code sections breaking out of article on mobile */
+
+code {
+  word-wrap: break-word;
+  /* All browsers since IE 5.5+ */
+  overflow-wrap: break-word;
 }
 
 /* -- Chroma Highlight -- */
@@ -1753,10 +1786,6 @@ body:has(#menu-controller:checked) {
   top: 5rem;
 }
 
-.top-8 {
-  top: 2rem;
-}
-
 .top-\[100vh\] {
   top: 100vh;
 }
@@ -1852,12 +1881,12 @@ body:has(#menu-controller:checked) {
   margin-top: -0.75rem;
 }
 
-.-mt-4 {
-  margin-top: -1rem;
-}
-
 .mb-1 {
   margin-bottom: 0.25rem;
+}
+
+.mb-10 {
+  margin-bottom: 2.5rem;
 }
 
 .mb-12 {
@@ -1989,20 +2018,12 @@ body:has(#menu-controller:checked) {
   height: 3rem;
 }
 
-.h-2 {
-  height: 0.5rem;
-}
-
-.h-24 {
-  height: 6rem;
-}
-
-.h-36 {
-  height: 9rem;
-}
-
 .h-8 {
   height: 2rem;
+}
+
+.h-auto {
+  height: auto;
 }
 
 .h-full {
@@ -2142,6 +2163,10 @@ body:has(#menu-controller:checked) {
 
 .items-start {
   align-items: flex-start;
+}
+
+.items-end {
+  align-items: flex-end;
 }
 
 .items-center {
@@ -2979,6 +3004,11 @@ body:has(#menu-controller:checked) {
 
 .group:hover .group-hover\:visible {
   visibility: visible;
+}
+
+.group:hover .group-hover\:-translate-x-\[-2px\] {
+  --tw-translate-x: 2px;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
 .group:hover .group-hover\:-translate-x-\[2px\] {
