@@ -6,9 +6,9 @@
 >
   <header class="flex flex-col items-center mb-3">
     <h1 class="text-4xl font-extrabold">
-      {{ .Site.Author.name | default .Site.Title }}
+      {{ .Site.Params.Author.name | default .Site.Title }}
     </h1>
-    {{ with .Site.Author.headline }}
+    {{ with .Site.Params.Author.headline }}
       <h2 class="text-xl text-neutral-500 dark:text-neutral-400">
         {{ . | markdownify | emojify }}
       </h2>
