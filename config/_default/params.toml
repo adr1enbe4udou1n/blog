@@ -70,5 +70,5 @@ links = [
     { email = "mailto:adrien@okami101.io" },
     { github = "https://github.com/adr1enbe4udou1n" },
     { linkedin = "https://linkedin.com/in/adr1enbe4udou1n" },
-    { twitter = "https://twitter.com/adr1enbe4udou1n" },
+    { bluesky = "https://bsky.app/profile/adr1enbe4udou1n.bsky.social" },
 ]
