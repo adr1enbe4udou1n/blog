@@ -9,7 +9,7 @@ We'll be comparing the read performance of 6 Web APIs frameworks, sharing the sa
 {{< /lead >}}
 
 {{< alert >}}
-Update April 2024 for PHP: I replaced previous Apache results by new [FrankenPHP](https://frankenphp.dev/). Now PHP is back in the game, with huge performance increase thanks to worker mode.
+Outdated post, check the [lastest]({{< ref "/posts/23-web-api-benchmarks-2025" >}}) for updated benchs.
 {{< /alert >}}
 
 This is not a basic synthetic benchmark, but a real world benchmark with DB data tests, and multiple scenarios. This post may be updated when new versions of frameworks will be released or any suggestions for performance related improvement in below commentary section.
