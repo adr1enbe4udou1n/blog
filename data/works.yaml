@@ -70,11 +70,8 @@
           title: Vuetify Admin
           date: 11/2020
           repo: okami101/vuetify-admin
-          demo: https://va-demo.okami101.io/
-          docs: https://www.okami101.io/vuetify-admin
 
         - name: laravel-rad-stack
           title: Laravel RAD Stack
           date: 10/2021
           repo: adr1enbe4udou1n/laravel-rad-stack
-          demo: https://laravel-rad-stack.okami101.io/
