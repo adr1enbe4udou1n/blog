@@ -29,12 +29,12 @@ I give you all source code as well as public OCI artifacts of each project, so y
 
 | Framework & Source code                                                                                                                                                                                                            | Runtime        | ORM            |
 | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | -------------- |
-| [Laravel 11](https://github.com/adr1enbe4udou1n/laravel-realworld-example-app) ([api](https://laravelrealworld.okami101.io/api/) / [image](https://gitea.okami101.io/conduit/-/packages/container/laravel/latest))                 | FrankenPHP 8.3 | Eloquent       |
-| [Symfony 7](https://github.com/adr1enbe4udou1n/symfony-realworld-example-app) ([api](https://symfonyrealworld.okami101.io/api/) / [image](https://gitea.okami101.io/conduit/-/packages/container/symfony/latest))                  | FrankenPHP 8.3 | Doctrine       |
-| [FastAPI](https://github.com/adr1enbe4udou1n/fastapi-realworld-example-app) ([api](https://fastapirealworld.okami101.io/api/) / [image](https://gitea.okami101.io/conduit/-/packages/container/fastapi/latest))                    | Python 3.12    | SQLAlchemy 2.0 |
-| [NestJS 10](https://github.com/adr1enbe4udou1n/nestjs-realworld-example-app) ([api](https://nestjsrealworld.okami101.io/api/) / [image](https://gitea.okami101.io/conduit/-/packages/container/nestjs/latest))                     | Node 20        | Prisma 5       |
-| [Spring Boot 3.3](https://github.com/adr1enbe4udou1n/spring-boot-realworld-example-app) ([api](https://springbootrealworld.okami101.io/api/) / [image](https://gitea.okami101.io/conduit/-/packages/container/spring-boot/latest)) | Java 21        | Hibernate 6    |
-| [ASP.NET Core 8](https://github.com/adr1enbe4udou1n/aspnetcore-realworld-example-app) ([api](https://aspnetcorerealworld.okami101.io/api/) / [image](https://gitea.okami101.io/conduit/-/packages/container/aspnet-core/latest))   | .NET 8.0       | EF Core 8      |
+| [Laravel 11](https://github.com/adr1enbe4udou1n/laravel-realworld-example-app) ([api](https://laravelrealworld.okami101.io/api/) / [image](https://forge.okami101.io/conduit/-/packages/container/laravel/latest))                 | FrankenPHP 8.3 | Eloquent       |
+| [Symfony 7](https://github.com/adr1enbe4udou1n/symfony-realworld-example-app) ([api](https://symfonyrealworld.okami101.io/api/) / [image](https://forge.okami101.io/conduit/-/packages/container/symfony/latest))                  | FrankenPHP 8.3 | Doctrine       |
+| [FastAPI](https://github.com/adr1enbe4udou1n/fastapi-realworld-example-app) ([api](https://fastapirealworld.okami101.io/api/) / [image](https://forge.okami101.io/conduit/-/packages/container/fastapi/latest))                    | Python 3.12    | SQLAlchemy 2.0 |
+| [NestJS 10](https://github.com/adr1enbe4udou1n/nestjs-realworld-example-app) ([api](https://nestjsrealworld.okami101.io/api/) / [image](https://forge.okami101.io/conduit/-/packages/container/nestjs/latest))                     | Node 20        | Prisma 5       |
+| [Spring Boot 3.3](https://github.com/adr1enbe4udou1n/spring-boot-realworld-example-app) ([api](https://springbootrealworld.okami101.io/api/) / [image](https://forge.okami101.io/conduit/-/packages/container/spring-boot/latest)) | Java 21        | Hibernate 6    |
+| [ASP.NET Core 8](https://github.com/adr1enbe4udou1n/aspnetcore-realworld-example-app) ([api](https://aspnetcorerealworld.okami101.io/api/) / [image](https://forge.okami101.io/conduit/-/packages/container/aspnet-core/latest))   | .NET 8.0       | EF Core 8      |
 
 Each project are:
 
@@ -92,7 +92,7 @@ version: "3.8"
 
 services:
   app:
-    image: gitea.okami101.io/conduit/laravel:latest
+    image: forge.okami101.io/conduit/laravel:latest
     environment:
       - APP_KEY=base64:nltxnFb9OaSAr4QcCchy8dG1QXUbc2+2tsXpzN9+ovg=
       - DB_CONNECTION=pgsql
@@ -134,7 +134,7 @@ version: "3.8"
 
 services:
   app:
-    image: gitea.okami101.io/conduit/symfony:latest
+    image: forge.okami101.io/conduit/symfony:latest
     environment:
       - SERVER_NAME=:80
       - APP_SECRET=ede04f29dd6c8b0e404581d48c36ec73
@@ -176,7 +176,7 @@ version: "3.8"
 
 services:
   app:
-    image: gitea.okami101.io/conduit/fastapi:latest
+    image: forge.okami101.io/conduit/fastapi:latest
     environment:
       - DB_HOST=postgres_db
       - DB_RO_HOST=postgres_db
@@ -218,7 +218,7 @@ version: "3.8"
 
 services:
   app:
-    image: gitea.okami101.io/conduit/nestjs:latest
+    image: forge.okami101.io/conduit/nestjs:latest
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgres://okami:okami@postgres_db/conduit_nestjs
@@ -256,7 +256,7 @@ version: "3.8"
 
 services:
   app:
-    image: gitea.okami101.io/conduit/spring-boot:latest
+    image: forge.okami101.io/conduit/spring-boot:latest
     environment:
       - SPRING_PROFILES_ACTIVE=production
       - DB_HOST=postgres_db
@@ -299,7 +299,7 @@ version: "3.8"
 
 services:
   app:
-    image: gitea.okami101.io/conduit/symfony:latest
+    image: forge.okami101.io/conduit/symfony:latest
     environment:
       - SERVER_NAME=:80
       - APP_SECRET=ede04f29dd6c8b0e404581d48c36ec73
